@@ -294,9 +294,6 @@ export async function patchReward(rewardPoint: string, rewardField: string, gipo
     if (currentReward === 0 && nextReward > 0) {
       await postCollectionInLogs("初回報酬", "start", "start");
     }
-    if (currentReward === 0 && nextReward > 0) {
-      await postCollectionInLogs("初回報酬", "start", "start");
-    }
     if (nextReward >= 500 && currentReward < 500) {
       await postCollectionInLogs("500ポイント達成", "500", "500");
     }
