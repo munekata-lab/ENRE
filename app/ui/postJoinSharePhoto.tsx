@@ -88,7 +88,7 @@ export default function PostJoinShareComponent() {
       const hashName = Math.random().toString(36).slice(-8);
       const fullPath = "/images/" + hashName + "." + ext;
       const uploadRef = ref(storageRef, fullPath);
-      const place = searchParams.get("place") || "";
+      const place = searchParams.get("programId") || "";
       const result = await uploadBytes(uploadRef, photo);
       const uploadUrl = await getDownloadURL(uploadRef);
       const postData = {
