@@ -61,20 +61,21 @@ export default function DetailCardComponent({
       <Card.Body className="p-1">
       {isEventPeriod && (
               <>
-                <span className="mx-3 mb-3 mt-2">
+                <div className="mx-3 mb-3 mt-2">
                   <span
                     className={[
                       "whitespace-nowrap",
                       "rounded",
                       "bg-red-500",
-                      "px-2",
-                      "py-1",
+                      "px-3",
+                      "py-2",
+                      "text-sm",
                       "text-white",
                     ].join(" ")}
                   >
                     イベント開催中
                   </span>
-                </span>
+                </div>
               </>
         )}
         <p className="text-sm mx-3 mb-3 mt-2">{spotInfo.content}</p>
