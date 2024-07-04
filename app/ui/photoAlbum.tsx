@@ -20,7 +20,7 @@ export default function PhotoAlbumComponent() {
 
   useEffect(() => {
     (async () => {
-      const photos = await fetchLimitedNumberPhotosInfo(3);
+      const photos = await fetchLimitedNumberPhotosInfo(9);
       if (photos.length < 9) {
         const nonPhotos = new Array(9 - photos.length).fill("");
         setPhotosList([...photos, ...nonPhotos]);
