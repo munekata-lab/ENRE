@@ -548,7 +548,12 @@ export async function patchParticipatedEvents(eventId: string) {
   const uid = user.uid;
   try {
     const participatedEvents = await fetchParticipatedEvents();
-    participatedEvents[Number(eventId)] += 1;
+    // participatedEvents[Number(eventId)] += 1;
+    if (participatedEvents[Number(eventId)] !== undefined) {
+      participatedEvents[Number(eventId)] += 1;
+    } else {
+      participatedEvents[Number(eventId)] = 1;
+    }
     await adminDB
       .collection("users")
       .doc(uid)
