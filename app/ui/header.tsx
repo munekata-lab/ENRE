@@ -17,7 +17,7 @@ export default function HeaderComponent() {
   const [nickName, setNickName] = useState("");
   const [ipAddress, setIPAddress] = useState<string | null>("");
 
-  // TODO 2 通知アイコン
+  // TODO できれば 通知アイコン
   // const [notificationUpdateFlag, setNotificationUpdateFlag] = useState(true);
   // const [isReadAllNotification, setIsReadAllNotification] = useState(true);
 

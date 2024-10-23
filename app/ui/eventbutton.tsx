@@ -14,8 +14,11 @@ export default function EventButtonComponent() {
   }
   return (
     <div className="flex flex-row w-full mt-20 mb-20">
-      <button onClick={() => handleClick("isOpen", "true")}>Open</button>
-      <button onClick={() => handleClick("isOpen", "false")}>Closed</button>
+          {/* <h1 className="text-center text-xl">
+        本日開催のイベント
+      </h1> */}
+      {/* <button onClick={() => handleClick("isOpen", "true")}>Open</button> */}
+      {/* <button onClick={() => handleClick("isOpen", "false")}>Closed</button> */}
     </div>
   );
 }

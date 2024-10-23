@@ -70,19 +70,6 @@ export function CharacterSkeleton() {
           <LoadingAnimation />
         </div>
       </div>
-      <div className="flex justify-center items-center p-2 w-full">
-        <div className="w-9/12">
-          <ProgressBar animated now={0} max={400} label={0} />
-        </div>
-      </div>
-      <div className="grid grid-rows-2 grid-cols-2 justify-items-center items-center p-2 bg-white rounded-xl shadow-md">
-        <div className="row-start-1 col-start-1 text-sm">合計獲得ポイント</div>
-        <div className="row-start-2 col-start-1 text-xl font-bold">--pt</div>
-        <div className="row-start-1 col-start-2 text-sm">直近獲得ポイント</div>
-        <div className="row-start-2 col-start-2 text-lg font-bold pl-3">
-          <span className="text-black">--pt</span>
-        </div>
-      </div>
     </div>
   );
 }

@@ -19,7 +19,9 @@ export default async function CheckinDetailComponent() {
         condition: item.programInfo.condition,
         link: `${item.programInfo.link}?programId=${item.programId}&rewardPoint=${item.programInfo.rewardPoint}`,
         owner: item.programInfo.owner,
+        schedule: item.programInfo.schedule,
         isOpen: item.programInfo.isOpen,
+        exit: item.programInfo.exit,
       };
     }
     return {
@@ -29,7 +31,9 @@ export default async function CheckinDetailComponent() {
       caution: item.programInfo.caution,
       condition: item.programInfo.condition,
       owner: item.programInfo.owner,
+      schedule: item.programInfo.schedule,
       isOpen: item.programInfo.isOpen,
+      exit: item.programInfo.exit,
     };
   });
 

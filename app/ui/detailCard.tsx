@@ -13,7 +13,9 @@ type Spots = {
   caution: string[];
   condition: string[];
   owner: string,
+  schedule: {open: string, close: string, day: string}[];
   isOpen: boolean,
+  exit: string,
 };
 
 type Props = {
@@ -29,6 +31,27 @@ export default function DetailCardComponent({
 }: Props) {
 
   const [isExpanded, setIsExpanded] = useState(false);
+  const [isEventPeriod, setIsEventPeriod] = useState(false);
+
+  useEffect(() => {
+    if (spotInfo.schedule == null) {return;}
+    let filteredEvent = spotInfo.schedule.filter((item) => {
+      let now = new Date()
+      let eventMonth = Number(item.day.split("/")[0]) - 1
+      let eventDay = Number(item.day.split("/")[1])
+      // イベント開始日時
+      let startHour = Number(item.open.split(":")[0])
+      let startMin = Number(item.open.split(":")[1])
+      let startDate = new Date(now.getFullYear(), eventMonth, eventDay, startHour, startMin)
+      // イベント終了日時
+      let endHour = Number(item.close.split(":")[0])
+      let endMin = Number(item.close.split(":")[1])
+      let endDate = new Date(now.getFullYear(), eventMonth, eventDay, endHour, endMin)
+
+      return startDate <= now && now <= endDate
+    })
+    setIsEventPeriod(filteredEvent.length > 0);
+  }, [spotInfo.schedule])
 
   return (
     <Card border="light" bg={thema} text={textColor} className="w-full drop-shadow">
@@ -36,8 +59,43 @@ export default function DetailCardComponent({
         {spotInfo.title}
       </Card.Header>
       <Card.Body className="p-1">
+      {isEventPeriod && (
+              <>
+                <div className="mx-3 mb-3 mt-2">
+                  <span
+                    className={[
+                      "whitespace-nowrap",
+                      "rounded",
+                      "bg-red-500",
+                      "px-3",
+                      "py-2",
+                      "text-sm",
+                      "text-white",
+                    ].join(" ")}
+                  >
+                    イベント開催中
+                  </span>
+                </div>
+              </>
+        )}
         <p className="text-sm mx-3 mb-3 mt-2">{spotInfo.content}</p>
         <p className="text-xs text-end mb-1 mr-2">{spotInfo.owner} {spotInfo.place && (<>({spotInfo.place})</>)}</p>
+        <p className="text-xs text-end mb-1 mr-2">途中退出：{spotInfo.exit}</p>
+
+        {spotInfo.schedule != null && (
+          <>
+            <div className="">
+              <p className="text-sm mx-3 mb-3 mt-2">
+                イベント開催時刻
+              </p>
+              {spotInfo.schedule.map((item, index) => (
+                <li key={index} className="text-xs">
+                  {item.day} {item.open}-{item.close}
+                </li>
+              ))}
+            </div>
+          </>
+        )}
 
         {isExpanded && (
           <>

@@ -6,9 +6,10 @@ import { postCollectionInLogs } from "@/lib/dbActions";
 type Props = {
   link: string;
   title: string;
+  detail: string;
 };
 
-export default function QuestionnaireComponent({ link, title }: Props) {
+export default function QuestionnaireComponent({ link, title, detail }: Props) {
   const handleClick = async () => {
     await postCollectionInLogs(
       "アンケート回答クリック",
@@ -18,11 +19,14 @@ export default function QuestionnaireComponent({ link, title }: Props) {
   };
   return (
     <div className="w-full bg-yellow-100 rounded-xl shadow-md overflow-hidden md:max-w-2xl">
-      <div className="grid grid-rows-max-content-layout-2 grid-cols-max-content-layout-2 gap-2 p-3">
+      <div className="grid grid-rows-max-content-layout-3 grid-cols-max-content-layout-2 gap-2 p-3">
         <div className="row-start-1 col-start-1 col-end-3 justify-items-center items-center text-center uppercase tracking-wide text-sm text-green-700 font-semibold">
           {title}
         </div>
-        <div className="row-start-2 col-start-1 col-end-3 grid place-items-center">
+        <div className="row-start-2 col-start-1 col-end-3 justify-items-center items-center text-center tracking-wide text-xs">
+          {detail}
+        </div>
+        <div className="row-start-3 col-start-1 col-end-3 grid place-items-center">
           <Link
             href={link}
             target="_blank"

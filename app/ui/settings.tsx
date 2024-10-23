@@ -6,6 +6,7 @@ import { postUserSettings } from "@/lib/dbActions";
 import { useRouter } from "next/navigation";
 import { postCollectionInLogs, fetchUserSettings } from "@/lib/dbActions";
 import type { UserSettings } from "@/lib/type";
+import Link from "next/link";
 import TimeTableComponent from "./timeTable";
 
 const initialState = {
@@ -71,8 +72,6 @@ export default function SettingsComponent() {
       return newCells;
     });
   };
-
-  // TODO 2 ホームに戻る追加
 
   return (
     <main className="flex flex-col items-center justify-center min-h-screen py-2">
@@ -165,6 +164,11 @@ export default function SettingsComponent() {
           </button>
         </div>
       </form>
+      <Link href="/">
+        <button
+          className="text-xs underline my-4 text-gray-600"
+        >ホームに戻る</button>
+      </Link>
     </main>
   );
 }

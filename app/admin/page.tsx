@@ -608,9 +608,13 @@ function UserListView() {
                           {transpotationMethod(user.modeOfTransportation)}
                         </p>
                       </div>
-                      <p className="mt-2 text-gray-700 text-sm text-left">
+                      {/* <p className="mt-2 text-gray-700 text-sm text-left">
                         チェックインプログラム:{" "}
                         {user.checkinProgramIds.toString()}
+                      </p> */}
+                      <p className="mt-2 text-gray-700 text-sm text-left">
+                        チェックインプログラム:{" "}
+                        {user && user.checkinProgramIds ? user.checkinProgramIds.toString() : "データがありません"}
                       </p>
                     </div>
                     <div className="flex text-sm">

@@ -34,9 +34,11 @@ export default async function EventDetail2Component({key, value}: Props) {
           process: item.process,
           caution: item.caution,
           condition: item.condition,
-          place: place.name,
+          place: item.name,
           owner: item.owner,
+          schedule: item.schedule,
           isOpen: item.isOpen,
+          exit: item.exit,
         };
     // }
   });

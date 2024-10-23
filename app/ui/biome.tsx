@@ -49,7 +49,7 @@ export default function BiomeComponent() {
   }, []);
 
   return (
-    <main className="flex flex-col items-center justify-center min-h-screen pb-52 px-3 w-full text-center mt-52">
+    <main className="flex flex-col items-center min-h-screen pb-52 px-3 w-full text-center mt-28">
       <h1 className="text-2xl font-bold">
         集え！！
         <br />
@@ -142,6 +142,8 @@ export default function BiomeComponent() {
           </button>
         </div>
       )}
+      <div className="w-full min-h-20"></div>
     </main>
+
   );
 }

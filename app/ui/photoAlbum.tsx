@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import Image from "next/image";
 import PhotoDetailsCardComponent from "./photoDetailsCard";
-import { fetchPhotosInfo, fetchLikesPhoto } from "@/lib/dbActions";
+import { fetchPhotosInfo, fetchLikesPhoto, fetchLimitedNumberPhotosInfo } from "@/lib/dbActions";
 
 export default function PhotoAlbumComponent() {
   const [photosList, setPhotosList] = useState<any[]>([]);
@@ -20,7 +20,7 @@ export default function PhotoAlbumComponent() {
 
   useEffect(() => {
     (async () => {
-      const photos = await fetchPhotosInfo();
+      const photos = await fetchLimitedNumberPhotosInfo(9);
       if (photos.length < 9) {
         const nonPhotos = new Array(9 - photos.length).fill("");
         setPhotosList([...photos, ...nonPhotos]);
@@ -36,7 +36,7 @@ export default function PhotoAlbumComponent() {
     <main className="flex min-h-screen flex-col items-center justify-between p-0 text-center">
       <div className="justify-center mt-24 w-full h-full">
         <div className="fixed text-2xl font-bold mb-20 top-24 w-full">
-          <h1 className="text-center">アルバム</h1>
+          <h1 className="text-center">ピックアップ写真</h1>
         </div>
         <div
           className="grid grid-cols-3 gap-0 p-1 w-full overflow-auto mt-20 min-h-full"
@@ -63,20 +63,24 @@ export default function PhotoAlbumComponent() {
                   />
                 </div>
               ) : (
-                <div
-                  key={index}
-                  className="relative overflow-scroll w-full h-0 pb-[100%] bg-gray-200 opacity-70 border border-white"
-                ></div>
+                // <div
+                //   key={index}
+                //   className="relative overflow-scroll w-full h-0 pb-[100%] bg-gray-200 opacity-70 border border-white"
+                // ></div>
+                <></>
               )}
             </div>
           ))}
         </div>
-        <PhotoDetailsCardComponent
+        {/* <PhotoDetailsCardComponent
           photo={selectedPhoto}
           likes={likes}
           onSetLikes={(newLikes: string[]) => setLikes(newLikes)}
           onClose={() => handleOnClose()}
-        />
+        /> */}
+
+        <a href="https://drive.google.com/drive/folders/1BPqu9MlIFzk1s_IovQaIuJ4RqIiPfGTx?usp=sharing">みんなのアルバムはこちら</a>
+
       </div>
     </main>
   );

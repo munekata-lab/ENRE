@@ -26,8 +26,6 @@ export default function MenuComponent({ nickName }: { nickName: string }) {
     };
   }, [menuRef]);
 
-  // TODO 3 デザイン整える
-
   return (
     <div className="relative inline-block text-left z-20" ref={menuRef}>
       <div className="justify-self-center items-center">
@@ -41,16 +39,16 @@ export default function MenuComponent({ nickName }: { nickName: string }) {
             aria-orientation="vertical"
             aria-labelledby="options-menu"
           >
-            <p className="block m-0 px-4 py-2 text-sm text-black text-right">
-              <span>ver {version}</span>
-            </p>
-            <p className="block m-0 px-4 py-2 text-sm text-black text-right">
+            <p className="block m-0 px-4 pt-2 pb-1 text-sm text-black text-right">
               <FontAwesomeIcon icon={faUser} className="mr-2" />
               <span>{nickName}</span>
             </p>
+            <p className="block m-0 px-4 pb-2 text-xs text-black text-right border-b-2 border-gray-300">
+              <span>Enre ver {version}</span>
+            </p>
             <Link href="/about" className="text-right">
               <button
-                className="inline-block px-4 py-2 text-sm text-black hover:bg-white text-right"
+                className="inline-block px-4 py-2 text-sm w-full text-black hover:bg-white text-right"
                 role="menuitem"
               >
                 Enreについて
@@ -58,7 +56,7 @@ export default function MenuComponent({ nickName }: { nickName: string }) {
             </Link>
             <Link href="/settings" className="text-right">
               <button
-                className="inline-block px-4 py-2 text-sm text-black hover:bg-white text-right"
+                className="inline-block px-4 py-2 text-sm w-full text-black hover:bg-white text-right"
                 role="menuitem"
               >
                 設定
@@ -66,7 +64,7 @@ export default function MenuComponent({ nickName }: { nickName: string }) {
             </Link>
             <Link href="/changepassword" className="text-right">
               <button
-                className="inline-block px-4 py-2 text-sm text-black hover:bg-white text-right"
+                className="inline-block px-4 py-2 text-sm w-full text-black hover:bg-white text-right"
                 role="menuitem"
               >
                 パスワード変更
@@ -74,7 +72,7 @@ export default function MenuComponent({ nickName }: { nickName: string }) {
             </Link>
             <button
               onClick={() => logout()}
-              className="inline-block px-4 py-2 text-sm text-black hover:bg-white text-right"
+              className="inline-block px-4 py-2 text-sm w-full text-red-500 hover:bg-white text-right"
               role="menuitem"
             >
               ログアウト

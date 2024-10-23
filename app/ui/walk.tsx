@@ -69,7 +69,8 @@ export default function WalkComponent() {
   };
 
   return (
-    <main className="flex flex-col items-center justify-center min-h-screen px-3">
+    <main className="flex flex-col items-center justify-center min-h-screen px-3 overflow-x-scroll">
+      <div className="w-full h-10"></div>
       <h2 className="text-2xl font-bold">{title}</h2>
       {isWalking === null || isFinished === null ? (
         <p className="text-sm text-green-700 font-bold m-0 p-2">
@@ -107,33 +108,37 @@ export default function WalkComponent() {
           )}
         </>
       )}
-      <div className="p-2 overflow-auto">
+
+      <div className="mt-4 border-b-2 h-1 border-green-600 border-opacity-30 drop-shadow-sm mb-4 w-11/12"></div>
+
+      <div className="p-2">
         <p className="text-sm mb-0 text-left">{content}</p>
-        <p className="text-lg mb-0 font-bold mt-2">手順</p>
+        <p className="text-md mb-1 font-bold mt-3">手順</p>
         <div className="mb-2 text-left">
           {process.map((process, index) => (
-            <p key={index} className="text-sm mb-0 ml-3">
+            <p key={index} className="text-xs mb-0 ml-3">
               {`${index + 1}. ${process}`}
             </p>
           ))}
         </div>
-        <p className="text-lg mb-0 font-bold">注意事項</p>
+        <p className="text-md mb-1 font-bold">注意事項</p>
         <div className="mb-2 text-left">
           {caution.map((caution, index) => (
-            <p key={index} className="text-sm mb-0 ml-3">
+            <p key={index} className="text-xs mb-0 ml-3">
               {caution}
             </p>
           ))}
         </div>
-        <p className="text-lg mb-0 font-bold">付与条件</p>
+        <p className="text-md mb-1 font-bold">付与条件</p>
         <div className="mb-2">
           {condition.map((condition, index) => (
-            <p key={index} className="text-sm mb-0 ml-3">
+            <p key={index} className="text-xs mb-0 ml-3">
               {condition}
             </p>
           ))}
         </div>
       </div>
+      <div className="w-full h-10"></div>
     </main>
   );
 }

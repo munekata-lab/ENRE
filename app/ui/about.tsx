@@ -4,7 +4,6 @@ import packageJson from "../../package.json";
 
 export default function AboutComponent() {
   const version = packageJson.version;
-  // TODO 3 きれいにする
   return (
     <main className="flex flex-col items-center justify-center min-h-screen px-3">
       <Image
@@ -26,6 +25,14 @@ export default function AboutComponent() {
       <p className="text-lg text-center mt-5">
         無限大の可能性を秘めたキャンパスライフをさらに有意義にしてみませんか？
       </p>
+      <Link href="https://kankyoseisaku.pupu.jp/enre/"
+            target="_blank"
+            className="m-0 mb-3 text-white no-underline">
+        <button className="bg-green-700 py-2 px-4 rounded-md">
+          Enre公式HP
+        </button>
+      </Link>
+      <div className="mt-3 border-b-2 h-1 w-full border-green-600 border-opacity-30 drop-shadow-sm"></div>
       <h2 className="text-2xl font-bold mt-5">Enre（ver. {version}）の概要</h2>
       <p className="text-lg text-center mt-5">
         Enre（ver{version}）は2024年7月1日～7月5日のEnre weekを皮切りにEnre（ver1.1.0）は7月31日まで使用することが可能になっています。
@@ -81,6 +88,7 @@ export default function AboutComponent() {
       <p className="text-lg font-bold text-center mt-5">
         さあ、はじめよう”Enre”！
       </p>
+      <div className="mt-3 border-b-2 h-1 w-full border-green-600 border-opacity-30 drop-shadow-sm"></div>
       <p className="text-lg font-bold text-center mt-5"></p>
       <Image src="/title2.png" width={300} height={150} alt="title" />
       <p className="text-lg font-bold text-center mt-3">
@@ -111,7 +119,7 @@ export default function AboutComponent() {
       <div className="flex">
         <div className="w-1/2 flex justify-center items-center">
           <Link href={"/story"} className="no-underline">
-            <Image src="/gama2.png" width={130} height={130} alt="charactor"/>
+            <Image src="/gama2.png" width={130} height={130} alt="charactor" />
           </Link>
         </div>
         <div className="w-1/2 flex justify-center items-center">
@@ -122,6 +130,7 @@ export default function AboutComponent() {
           </Link>
         </div>
       </div>
+      <div className="mt-3 border-b-2 h-1 w-full border-green-600 border-opacity-30 drop-shadow-sm"></div>
       <h2 className="text-2xl font-bold mt-5">企画・制作</h2>
       <p className="text-lg text-center">
         本取組は、グリーンインフラの社会実装に向けた研究活動として、以下の２つの研究室が協働しておこなっています。

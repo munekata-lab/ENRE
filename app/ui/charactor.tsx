@@ -10,10 +10,13 @@ export default async function CharactorComponent() {
   };
 
   const quote = handleCharactorClick();
-  // TODO 1 デバッグ用なので変更する
-  // ここでポイント別のやつを取得できるとする
   const { currentReward, prevReward, rewardC, rewardN, rewardO, gip } = await fetchReward();
-  // const currentReward = 104;
+  // const currentReward =98
+  // const prevReward = 110
+  // const rewardC = 40
+  // const rewardN = 40
+  // const rewardO = 41
+  // const gip = 44
 
   const evoThresholdList = [0, 6, 50, 100, 500];
   const evoState =
@@ -22,22 +25,13 @@ export default async function CharactorComponent() {
         evoThresholdList[2] <= currentReward && currentReward < evoThresholdList[3] ? 3 :
           evoThresholdList[3] <= currentReward && currentReward < evoThresholdList[4] ? 4 : 4;
   const nextEvoThreshold = evoThresholdList[evoState];
-  const imageName = "/icon" + evoState + ".png";
-
-  // TODO 1 ガマちゃん分岐成長処理
-  // TODO 1 姿を変える
-  // ポイント別のやつ(デバッグ用)
-  // const currentRewardOurDoor = 100;
-  // const currentRewardKnowledge = 100;
-  // const currentRewardCommunity = 101;
 
   const currentRewordList = [rewardO, rewardN, rewardC];
   const gamaType = currentRewordList.indexOf(Math.max(...currentRewordList));
   const gamaTypeString = ["アウトドア", "ナレッジ", "コミュニティ"][gamaType];
   const gamaTypeStringColor = "font-bold " + ["text-red-600", "text-blue-600", "text-yellow-600"][gamaType];
 
-  // TODO 1 GIポイント
-  // const currentGiPoint = 10;
+  const imageName = "/icon" + evoState + ( evoState==4 ? "-"+gamaType : "" ) + ".png";
 
   return (
     <div className="w-full">
@@ -106,7 +100,6 @@ export default async function CharactorComponent() {
           )}
         </div>
         <div className="row-start-2 col-start-2 col-end-5 w-full">
-          {/* <ProgressBar variant="success" now={currentReward} max={nextEvoThreshold} /> */}
           {(evoState != 4) && (
             <ProgressBar variant="success" now={currentReward} max={nextEvoThreshold} />
           )}
