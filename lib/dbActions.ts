@@ -49,6 +49,52 @@ export async function fetchPhotosInfo() {
   return photosPathList;
 }
 
+export async function fetchLimitedNumberPhotosInfo(num: Number) {
+  const photosCollection = await adminDB
+    .collection("photos")
+    .orderBy("date", "desc")
+    .limit(num)
+    .get();
+
+  const photosPathList = await Promise.all(
+    photosCollection.docs.map(async (photo: any) => {
+      const id = photo.id;
+      const photoData = photo.data();
+      const userInfoMatchUid = await adminDB
+        .collection("users")
+        .doc(photoData.uid)
+        .get();
+      const nickName = userInfoMatchUid.data().settings.nickName;
+      const currentDate = new Date();
+      const postDate = photoData.date.toDate();
+
+      const setPostDateString = (postDate: Date) => {
+        const diffDate = currentDate.getTime() - postDate.getTime();
+        if (diffDate < 3600000) {
+          return `${Math.floor(diffDate / 60000)}分前`;
+        } else if (diffDate < 86400000) {
+          return `${Math.floor(diffDate / 3600000)}時間前`;
+        } else if (diffDate < 604800000) {
+          return `${Math.floor(diffDate / 86400000)}日前`;
+        }
+        return `${postDate.getFullYear()}年${postDate.getMonth()}月${postDate.getDate()}日`;
+      };
+
+      const postDateString = setPostDateString(postDate);
+
+      return {
+        id: id,
+        nickName: nickName,
+        fav: photoData.fav,
+        url: photoData.url,
+        place: photoData.place,
+        postDate: postDateString,
+      };
+    })
+  );
+  return photosPathList;
+}
+
 export async function fetchLikesPhoto() {
   const user = await getUserFromCookie();
   if (!user) return null;
@@ -341,6 +387,7 @@ export async function fetchAllOnlinePrograms() {
 }
 
 export async function fetchAllPrograms() {
+  console.log("Program fetch Executed!")
   const programRef = await adminDB.collection("program").get();
   const programList: any[] = programRef.docs.map((program: any) => {
     const programData = program.data();
@@ -713,6 +760,61 @@ export async function getUsers() {
   });
 
   return users;
+}
+
+// export async function getPrograms() {
+//   const ProgramsCollection = await adminDB
+//     .collection("test_program2")
+//     .get();
+//   const programs = ProgramsCollection.docs.map((test_program2: any) => {
+//     const uid = test_program2.id;
+//     const title = test_program2.data().title
+//     const content = test_program2.data().content;
+//     const place = test_program2.data().place;
+//     const owner = test_program2.data().owner;
+//     const point = test_program2.data().point;
+//     const day = test_program2.data().day;
+//     const open = test_program2.data().open;
+//     const close = test_program2.data().close;
+
+//     return {
+//       uid: uid,
+//       title: title,
+//       content: content,
+//       place: place,
+//       owner: owner,
+//       point: point,
+//       day: day,
+//       open: open,
+//       close: close,
+//     };
+//   });
+
+//   return programs;
+// }
+
+export async function getProgramsByDay(targetDay: string) {
+  const ProgramsCollection = await adminDB
+    .collection("test_program2")
+    .where("day", "==", targetDay) // dayフィールドでフィルタリング
+    .get();
+
+  const programs = ProgramsCollection.docs.map((doc: any) => {
+    const data = doc.data();
+    return {
+      uid: doc.id,
+      title: data.title,
+      content: data.content,
+      place: data.place,
+      owner: data.owner,
+      point: data.point,
+      day: data.day,
+      open: data.open,
+      close: data.close,
+    };
+  });
+
+  return programs;
 }
 
 export async function getPlace() {
