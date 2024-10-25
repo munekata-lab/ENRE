@@ -609,7 +609,7 @@ type Program = {
   close: string;
 };
 
-export function ProgramsView({ targetDay }: Props) {
+function ProgramsView({ targetDay }: Props) {
     const [programList, setProgramList] = useState<Program[]>([]);
   
     useEffect(() => {
