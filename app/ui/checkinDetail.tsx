@@ -1,5 +1,6 @@
 import DetailCardComponent from "./detailCard";
 import { fetchCheckinProgramIds, fetchProgramInfo } from "@/lib/dbActions";
+import React from "react";
 
 export default async function CheckinDetailComponent() {
   const checkinProgramIdList = await fetchCheckinProgramIds();

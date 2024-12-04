@@ -1,5 +1,6 @@
 "use client";
 
+import React from "react";
 import { useCallback, useState, useRef } from "react";
 import DetailCardComponent from "./detailCard";
 import { LoadingAnimation } from "./skeletons";

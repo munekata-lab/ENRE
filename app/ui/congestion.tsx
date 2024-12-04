@@ -1,4 +1,5 @@
 import { fetchPlace2 } from "@/lib/dbActions";
+import React from "react";
 
 type Props = {
   key: number,
