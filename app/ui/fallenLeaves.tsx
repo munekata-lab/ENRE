@@ -49,33 +49,100 @@ export default function FallenLeavesComponent() {
   const uploadToClient = async (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.files && event.target.files[0]) {
       const file = event.target.files[0];
-      const ext = file.name.split(".").pop()?.toLowerCase();
+      const ext = file.name.split('.').pop()?.toLowerCase();
       const allowedExtensions = [
-        "jpg",
-        "jpeg",
-        "png",
-        "gif",
-        "heic",
-        "JPG",
-        "JPEG",
-        "PNG",
-        "GIF",
-        "HEIC",
+        'jpg', 'jpeg', 'png', 'gif', 'heic',
       ];
+     
       if (!ext || !allowedExtensions.includes(ext)) {
         setError(`許可されていないファイル形式です。(${ext})`);
         return;
       }
-      const options = {
-        maxSizeMB: 1,
-        useWebWorker: true,
-        initialQuality: 0.8,
-        maxWidthOrHeight: 1280,
-      };
-      const compressedFile = await imageCompression(file, options);
-      setPhoto(compressedFile);
-      setCreateObjectURL(URL.createObjectURL(file));
+     
+      try {
+        // 初期の圧縮オプション設定
+        let options = {
+          maxSizeMB: 1, // 最大1MB
+          maxWidthOrHeight: 1920, // 最大幅または高さ
+          useWebWorker: true,
+          initialQuality: 0.8, // 初期品質を高めに設定
+          alwaysKeepResolution: true, // 解像度を維持
+          exifOrientation: undefined, // EXIFデータを削除
+        };
+     
+        // 圧縮処理
+        let compressedFile = await imageCompression(file, options);
+      
+        // 圧縮後のファイルサイズが1MBを超えている場合、品質を段階的に下げて再圧縮
+        while (compressedFile.size / 1024 / 1024 > 1 && options.initialQuality > 0.5) {
+          options.initialQuality -= 0.1;
+          compressedFile = await imageCompression(file, options);
+        }
+      
+        // AVIFへの変換
+        const avifFile = await convertToAVIF(compressedFile, 0.8);
+      
+        // 圧縮および変換されたファイルを状態にセット
+        setPhoto(avifFile);
+        setCreateObjectURL(URL.createObjectURL(avifFile));
+      } catch (error) {
+        console.error('圧縮エラー:', error);
+        setError('画像の圧縮中にエラーが発生しました。');
+      }
     }
+  };
+
+  const convertToAVIF = async (file: File, quality: number): Promise<File> => {
+    return new Promise<File>((resolve, reject) => {
+      const img: HTMLImageElement = document.createElement("img");
+      const url = URL.createObjectURL(file);
+  
+      img.onload = () => {
+        // Canvasを作成
+        const canvas = document.createElement('canvas');
+        canvas.width = img.width;
+        canvas.height = img.height;
+        const ctx = canvas.getContext('2d');
+  
+        if (!ctx) {
+          reject(new Error('Canvasコンテキストの取得に失敗しました。'));
+          return;
+        }
+  
+        // 画像をCanvasに描画
+        ctx.drawImage(img, 0, 0);
+  
+        // AVIFがサポートされているかチェック
+        const isAVIFSupported = canvas.toDataURL('image/avif').startsWith('data:image/avif');
+  
+        const outputFormat = isAVIFSupported ? 'image/avif' : 'image/webp';
+        const outputQuality = isAVIFSupported ? quality : 0.8; // WebPの品質を調整
+  
+        canvas.toBlob(
+          (blob) => {
+            if (blob) {
+              const newExtension = outputFormat === 'image/avif' ? '.avif' : '.webp';
+              const newFile = new File([blob], file.name.replace(/\.\w+$/, newExtension), {
+                type: outputFormat,
+                lastModified: Date.now(),
+              });
+              resolve(newFile);
+            } else {
+              reject(new Error('画像の変換に失敗しました。'));
+            }
+          },
+          outputFormat,
+          outputQuality
+        );
+      };
+  
+      img.onerror = () => {
+        URL.revokeObjectURL(url);
+        reject(new Error('画像の読み込みに失敗しました。'));
+      };
+  
+      img.src = url;
+    });
   };
 
   const uploadToServer = async () => {
