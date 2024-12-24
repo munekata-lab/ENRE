@@ -102,11 +102,14 @@ export default function Admin() {
 }
 
 function ProgramView() {
+  const [programId, setProgramId] = useState("");
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
   const [place, setPlace] = useState("");
   const [owner, setOwner] = useState("");
   const [point, setPoint] = useState("");
+  const [gip, setGip] = useState("");
+  const [field, setField] = useState("");
   const [day, setDay] = useState("");
   const [open, setOpen] = useState("");
   const [close, setClose] = useState("");
@@ -114,11 +117,14 @@ function ProgramView() {
 
   // 入力値をリセットする関数
   const resetForm = () => {
+    setProgramId("");
     setTitle("");
     setContent("");
     setPlace("");
     setOwner("");
     setPoint("");
+    setGip("");
+    setField("");
     setDay("");
     setOpen("");
     setClose("");
@@ -141,11 +147,14 @@ function ProgramView() {
     if (!result) return;
 
     const message = {
+      programId,
       title,
       content,
       place,
       owner,
       point,
+      gip,
+      field,
       day,
       open,
       close,
@@ -174,6 +183,15 @@ function ProgramView() {
   return (
     <div className="bg-orange-200 rounded p-5">
       <p className="text-xl font-bold mb-3">イベント画面</p>
+
+      {/* プログラムID */}
+      <InputField
+        id="programId"
+        label="プログラムID"
+        placeholder="例(フリーコーヒーの場合): fc010 fc + 01(全体のid) + 1(場所別)"
+        value={programId}
+        onChange={createChangeHandler(setProgramId)}
+      />
 
       {/* タイトル */}
       <InputField
@@ -214,10 +232,28 @@ function ProgramView() {
       {/* 点数 */}
       <InputField
         id="point"
-        label="点数"
+        label="得点"
         placeholder="Point"
         value={point}
         onChange={createChangeHandler(setPoint)}
+      />
+
+      {/* 点数(gip) */}
+      <InputField
+        id="gip"
+        label="GIP"
+        placeholder="Gip"
+        value={gip}
+        onChange={createChangeHandler(setGip)}
+      />
+
+      {/* ジャンル */}
+      <InputField
+        id="field"
+        label="ジャンル(3種類)"
+        placeholder="Field"
+        value={field}
+        onChange={createChangeHandler(setField)}
       />
 
       {/* 日 */}
@@ -233,7 +269,7 @@ function ProgramView() {
       <InputField
         id="open"
         label="開始"
-        placeholder="Open"
+        placeholder="例: 13:00"
         value={open}
         onChange={createChangeHandler(setOpen)}
       />
@@ -242,7 +278,7 @@ function ProgramView() {
       <InputField
         id="close"
         label="終了"
-        placeholder="Close"
+        placeholder="例: 14:00"
         value={close}
         onChange={createChangeHandler(setClose)}
       />
@@ -257,6 +293,21 @@ function ProgramView() {
     </div>
   );
 }
+
+type Program = {
+  id: string;
+  programId: string;
+  title: string;
+  content: string;
+  place: string;
+  owner: string;
+  point: string;
+  gip: string;
+  field: string;
+  day: string;
+  open: string;
+  close: string;
+};
   
 type ProgramRetouchViewProps = {
     program: Program; // 編集するプログラムデータ
@@ -264,11 +315,14 @@ type ProgramRetouchViewProps = {
   
 function ProgramRetouchView({ program }: ProgramRetouchViewProps) {
     const [isModalOpen, setIsModalOpen] = useState(false); // モーダル状態の管理
+    const [programId, setProgramId] = useState(program.programId);
     const [title, setTitle] = useState(program.title);
     const [content, setContent] = useState(program.content);
     const [place, setPlace] = useState(program.place);
     const [owner, setOwner] = useState(program.owner);
     const [point, setPoint] = useState(program.point);
+    const [gip, setGip] = useState(program.gip);
+    const [field, setField] = useState(program.field);
     const [day, setDay] = useState(program.day);
     const [open, setOpen] = useState(program.open);
     const [close, setClose] = useState(program.close);
@@ -283,11 +337,14 @@ function ProgramRetouchView({ program }: ProgramRetouchViewProps) {
       try {
         const docRef = doc(db, "test_program2", program.id);
         await updateDoc(docRef, {
+          programId,
           title,
           content,
           place,
           owner,
           point,
+          gip,
+          field,
           day,
           open,
           close,
@@ -323,13 +380,21 @@ function ProgramRetouchView({ program }: ProgramRetouchViewProps) {
               </button>
               <div className="flex flex-col space-y-4">
                 <p className="mt-1 text-lg font-bold">イベント更新画面</p>
+                <p className="mt-1 text-sm text-left">プログラムID</p>
+                <input
+                  type="text"
+                  value={programId}
+                  onChange={(e) => setTitle(e.target.value)}
+                  placeholder="programId"
+                  className="mt-1 text-sm w-full p-1 border rounded"
+                />
                 <p className="mt-1 text-sm text-left">タイトル</p>
                 <input
                   type="text"
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
                   placeholder="Title"
-                  className="text-sm w-full p-1 border rounded"
+                  className="mt-1 text-sm w-full p-1 border rounded"
                 />
                 <p className="mt-1 text-sm text-left">内容</p>
                 <input
@@ -337,7 +402,7 @@ function ProgramRetouchView({ program }: ProgramRetouchViewProps) {
                   value={content}
                   onChange={(e) => setContent(e.target.value)}
                   placeholder="Content"
-                  className="text-sm w-full p-1 border rounded"
+                  className="mt-1 text-sm w-full p-1 border rounded"
                 />
                 <p className="mt-1 text-sm text-left">場所</p>
                 <input
@@ -345,7 +410,7 @@ function ProgramRetouchView({ program }: ProgramRetouchViewProps) {
                   value={place}
                   onChange={(e) => setPlace(e.target.value)}
                   placeholder="Place"
-                  className="text-sm w-full p-1 border rounded"
+                  className="mt-1 text-sm w-full p-1 border rounded"
                 />
                 <p className="mt-1 text-sm text-left">運営</p>
                 <input
@@ -353,15 +418,31 @@ function ProgramRetouchView({ program }: ProgramRetouchViewProps) {
                   value={owner}
                   onChange={(e) => setOwner(e.target.value)}
                   placeholder="Owner"
-                  className="text-sm w-full p-1 border rounded"
+                  className="mt-1 text-sm w-full p-1 border rounded"
                 />
-                <p className="mt-1 text-sm text-left">点数</p>
+                <p className="mt-1 text-sm text-left">得点</p>
                 <input
                   type="text"
                   value={point}
                   onChange={(e) => setPoint(e.target.value)}
                   placeholder="Point"
-                  className="text-sm w-full p-1 border rounded"
+                  className="mt-1 text-sm w-full p-1 border rounded"
+                />
+                <p className="mt-1 text-sm text-left">GIP</p>
+                <input
+                  type="text"
+                  value={gip}
+                  onChange={(e) => setGip(e.target.value)}
+                  placeholder="Gip"
+                  className="mt-1 text-sm w-full p-1 border rounded"
+                />
+                <p className="mt-1 text-sm text-left">ジャンル</p>
+                <input
+                  type="text"
+                  value={field}
+                  onChange={(e) => setField(e.target.value)}
+                  placeholder="Field"
+                  className="mt-1 text-sm w-full p-1 border rounded"
                 />
                 <p className="mt-1 text-sm text-left">日</p>
                 <input
@@ -369,23 +450,23 @@ function ProgramRetouchView({ program }: ProgramRetouchViewProps) {
                   value={day}
                   onChange={(e) => setDay(e.target.value)}
                   placeholder="Day"
-                  className="text-sm w-full p-1 border rounded"
+                  className="mt-1 text-sm w-full p-1 border rounded"
                 />
                 <p className="mt-1 text-sm text-left">開始</p>
                 <input
                   type="text"
                   value={open}
                   onChange={(e) => setOpen(e.target.value)}
-                  placeholder="Open"
-                  className="text-sm w-full p-1 border rounded"
+                  placeholder="例: 13:00"
+                  className="mt-1 text-sm w-full p-1 border rounded"
                 />
                 <p className="mt-1 text-sm text-left">終了</p>
                 <input
                   type="text"
                   value={close}
                   onChange={(e) => setClose(e.target.value)}
-                  placeholder="Close"
-                  className="text-sm w-full p-1 border rounded"
+                  placeholder="例: 14:00"
+                  className="mt-1 text-sm w-full p-1 border rounded"
                 />
                 <button
                   onClick={handleUpdate}
@@ -565,6 +646,7 @@ const InputField: React.FC<InputFieldProps> = ({
   </div>
 );
 
+// プログラムリスト表示
 function ProgramListView() {
     return (
         <div className="bg-blue-500 rounded">
@@ -572,15 +654,15 @@ function ProgramListView() {
             <div className="p-2">
                 <div className="grid grid-cols-5 h-full p-2 gap-1">
                     <div className="bg-blue-200 h-full">
-                        <p className="mt-1 text-xl font-bold">1日目</p>
+                        <p className="mt-1 text-xl font-bold">1/8(水) 1日目</p>
                         <ProgramsView targetDay="1"/>
                     </div>
                     <div className="bg-blue-200 h-full">
-                        <p className="mt-1 text-xl font-bold">2日目</p>
+                        <p className="mt-1 text-xl font-bold">1/9(水) 2日目</p>
                         <ProgramsView targetDay="2"/>
                     </div>
                     <div className="bg-blue-200 h-full">
-                        <p className="mt-1 text-xl font-bold">3日目</p>
+                        <p className="mt-1 text-xl font-bold">1/10(水) 3日目</p>
                         <ProgramsView targetDay="3"/>
                     </div>
                     <div className="bg-blue-200 h-full">
@@ -597,18 +679,7 @@ function ProgramListView() {
     );
 }
 
-type Program = {
-  id: string;
-  title: string;
-  content: string;
-  place: string;
-  owner: string;
-  point: string;
-  day: string;
-  open: string;
-  close: string;
-};
-
+// 日単位のプログラムリスト取得と表示
 function ProgramsView({ targetDay }: Props) {
     const [programList, setProgramList] = useState<Program[]>([]);
   

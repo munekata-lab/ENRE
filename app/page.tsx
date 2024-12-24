@@ -4,7 +4,7 @@ import CharactorComponent from "./ui/charactor";
 import AllEventsCardComponent from "./ui/allEventsCard";
 import CheckinEventsCardComponent from "./ui/checkinEventsCard";
 import WatchCardComponent from "./ui/watchCard";
-import { fetchMode, fetchBoardInfo } from "@/lib/dbActions";
+import { fetchMode, fetchBoardInfo, fetchRewardProgressInfo } from "@/lib/dbActions";
 import ComingSoonComponent from "./ui/comingSoon";
 import { getUserFromCookie } from "@/lib/session";
 import { redirect } from "next/navigation";
@@ -15,18 +15,27 @@ import {
   CardSkeleton,
 } from "./ui/skeletons";
 import BoardComponent from "./ui/board";
+import RewardModalComponent from "./ui/rewardModal";
 import QuestionnaireComponent from "./ui/questionnaire";
+import React from "react";
 
 export default async function Home() {
   const user = await getUserFromCookie();
   user === null && redirect("/login");
   const mode = await fetchMode(user?.uid); //modecollectionのdevを取ってる、usersのdev(usermode)
   const boardInfo = await fetchBoardInfo();
-  const modalInfo = {
+  const rewardProgressInfo = await fetchRewardProgressInfo();
+  // console.log(rewardProgressInfo);
+  const modalInfo = { //アンケートモーダル用
     title: boardInfo?.title || "",
     message: boardInfo?.message || "",
     buttonTitle: boardInfo?.buttonTitle || "",
     link: boardInfo?.link || "",
+  };
+  const modalInfo2 = { //インセンティブまでの進捗表示用
+    title: rewardProgressInfo?.title || "",
+    message: rewardProgressInfo?.message || "",
+    progressId: rewardProgressInfo?.id || "",
   };
 
   return (
@@ -70,6 +79,7 @@ export default async function Home() {
             <FooterComponent />
           </main>
           {boardInfo !== null && <BoardComponent info={modalInfo} />}
+          {rewardProgressInfo !== null && <RewardModalComponent info={modalInfo2} />}
         </>
       ) : (
         <ComingSoonComponent />

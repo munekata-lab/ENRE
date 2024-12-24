@@ -15,7 +15,7 @@ export default function FooterComponent() {
 
   const icons = ["/home.png", "/map.png", "/album.png", "/qr.png"];
   const title = ["ホーム", "イベント", "アルバム", "QRコード"];
-  const paths = ["/", "/eventlist", "/photoalbum", "/qrreader"];
+  const paths = ["/", "/programList", "/photoalbum", "/qrreader"];
 
   const selectedIndex = paths.indexOf(currentPath);
   const [selectedIcon, setSelectedIcon] = useState(selectedIndex);

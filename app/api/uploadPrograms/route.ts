@@ -9,7 +9,7 @@ export async function POST(req: Request) {
     const text = buffer.toString('utf8').replace(/\r/g,"");
     const results: any = [];
     const lines = text.split('\n');
-    const headers = ["title", "content", "place", "owner", "point", "day", "open", "close"];
+    const headers = ["programId", "title", "content", "place", "owner", "point", "gip", "field", "day", "open", "close"];
     lines.slice(1).forEach((line) => {
       const values = line.split(',');
       if (values.length === headers.length) { 

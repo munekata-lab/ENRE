@@ -1,6 +1,8 @@
 "use server";
 
 import { adminDB } from "@/lib/firebase/server";
+import * as admin from 'firebase-admin';
+import { arrayUnion } from "firebase/firestore";
 import { getUserFromCookie } from "@/lib/session";
 import { number, z } from "zod";
 import type { Place } from "@/lib/type";
@@ -292,7 +294,21 @@ export async function patchReward(rewardPoint: string, rewardField: string, gipo
       nextO = rewardO + Number(rewardPoint);
     }
     if (currentReward === 0 && nextReward > 0) {
-      await postCollectionInLogs("初回報酬", "start", "start");
+      try {
+        // ログに記録
+        await postCollectionInLogs("初回報酬", "start", "start");
+    
+        // Firestoreのuids配列にUIDを追加
+        const rewardRef = await adminDB.collection("rewardProgress").doc("01");
+        await rewardRef.update({
+          uids: admin.firestore.FieldValue.arrayUnion(uid),
+        });
+      } catch (error) {
+        console.error("初回報酬の処理中にエラーが発生しました:", error);
+      }
+    }
+    if (nextReward >= 100 && currentReward < 100) {
+      await postCollectionInLogs("100ポイント達成", "100", "100");
     }
     if (nextReward >= 500 && currentReward < 500) {
       await postCollectionInLogs("500ポイント達成", "500", "500");
@@ -385,7 +401,7 @@ export async function fetchAllOnlinePrograms() {
 
 export async function fetchAllPrograms() {
   console.log("Program fetch Executed!")
-  const programRef = await adminDB.collection("program").get();
+  const programRef = await adminDB.collection("test_program2").get();
   const programList: any[] = programRef.docs.map((program: any) => {
     const programData = program.data();
     return programData;
@@ -465,15 +481,18 @@ export async function fetchPlace2(docId: string) {
   }
 }
 
-
 export async function fetchMode(uid: string) {
   try {
     const modeRef = await adminDB.collection("mode").doc("mode").get();
     const modeDev = modeRef.data().dev;
+    const modeProgramList = modeRef.data().programList;
+    const modePhotoalbum = modeRef.data().photoalbum;
     const userRef = await adminDB.collection("users").doc(uid).get();
     const userMode = userRef.data().dev;
     return {
       webMode: modeDev,
+      programListMode: modeProgramList,
+      photoalbumMode: modePhotoalbum,
       userMode: userMode,
     };
   } catch (error) {
@@ -667,6 +686,77 @@ export async function fetchBoardInfo(): Promise<any | null> {
   } catch (error) {
     console.log(error);
     return null;
+  }
+}
+
+export async function fetchRewardProgressInfo(): Promise<any | null> {
+  const user = await getUserFromCookie();
+  if (!user) return null;
+  const uid = user.uid;
+  // console.log("uid: ", uid);
+  try {
+    const rewardProgressRef = await adminDB
+      .collection("rewardProgress")
+      .orderBy("createdAt", "desc")
+      .get();
+    // console.log("rewardProgressRef: ", rewardProgressRef);
+    const rewardProgressInfo = rewardProgressRef.docs.map((doc: any) => {
+      const rewardProgressData = doc.data();
+      if (!rewardProgressData.uids.includes(uid)) {
+        return null;
+      }
+      return { ...rewardProgressData, id: doc.id };
+    });
+    // console.log("rewardProgressInfo: ",rewardProgressInfo)
+    const fileteredRewardProgressInfo = rewardProgressInfo.filter((rewardProgress: any) => rewardProgress !== null);
+    // console.log(fileteredRewardProgressInfo);
+    if (fileteredRewardProgressInfo.length === 0) return null;
+    return fileteredRewardProgressInfo[0];
+  } catch (error) {
+    console.log(error);
+    return null;
+  }
+}
+
+// UID に基づいてデータを削除
+export async function deleteDocumentByUID(collectionName: string) {
+  // console.log("通過");
+  const user = await getUserFromCookie(); // 現在のユーザーを取得
+  if (!user) return null; // ユーザーがいない場合は終了
+
+  const uid = user.uid; // 現在のユーザーの UID を取得
+
+  try {
+    // Firestore ドキュメントの参照を取得
+    const userRef = await adminDB.collection("rewardProgress").doc(collectionName).get();
+    // console.log("userRef: ", userRef);
+
+    // ドキュメントが存在しない場合
+    if (!userRef.exists) {
+      return { message: "Document does not exist" };
+    }
+
+    // uid フィールドの値を取得
+    const userData = userRef.data();
+    // console.log("userData: ", userData);
+    const userArray = userData?.uids || [];
+    // console.log("userArray: ", userArray);
+
+    // UID 配列に現在の UID が含まれている場合、その UID を削除
+    if (userArray.includes(uid)) {
+      // UID を削除
+      await adminDB.collection("rewardProgress")
+        .doc(collectionName)
+        .update({
+          uids: admin.firestore.FieldValue.arrayRemove(uid)
+        });
+      return { message: "UID deleted successfully" };
+    } else {
+      return { message: "UID not found in array" };
+    }
+  } catch (error) {
+    console.error(`Error deleting UID from document ${collectionName}: `, error);
+    return { message: "Deletion failed", error };
   }
 }
 

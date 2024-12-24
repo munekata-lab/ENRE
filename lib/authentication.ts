@@ -19,15 +19,23 @@ import { z } from "zod";
 import { postUserInfo, postSignature, postCollectionInLogs } from "./dbActions";
 
 const EMAIL_PATTERN = /^[\u0021-\u007e]+@cc\.kyoto-su\.ac\.jp+$/u;
+const EMAIL_PATTERN2 = /^[\u0021-\u007e]+@star\.kyoto-su\.ac\.jp+$/u;
 
 export async function createUser(prevState: any, formData: FormData) {
   const schema = z
     .object({
       sign: z.string().min(1, "署名を入力してください"),
+      // email: z
+      //   .string()
+      //   .email("大学のメールアドレスを入力してください")
+      //   .regex(EMAIL_PATTERN, "大学のメールアドレスを入力してください"),
       email: z
         .string()
         .email("大学のメールアドレスを入力してください")
-        .regex(EMAIL_PATTERN, "大学のメールアドレスを入力してください"),
+        .refine(
+          (email) => EMAIL_PATTERN.test(email) || EMAIL_PATTERN2.test(email),
+          "大学のメールアドレスを入力してください"
+        ),
       password: z
         .string()
         .min(8, "パスワードは8文字以上で入力してください")
@@ -91,10 +99,17 @@ export async function createUser(prevState: any, formData: FormData) {
 
 export async function login(prevState: any, formData: FormData) {
   const schema = z.object({
+    // email: z
+    //   .string()
+    //   .email("メールアドレスを入力してください")
+    //   .regex(EMAIL_PATTERN, "大学のメールアドレスを入力してください"),
     email: z
       .string()
       .email("メールアドレスを入力してください")
-      .regex(EMAIL_PATTERN, "大学のメールアドレスを入力してください"),
+      .refine(
+        (email) => EMAIL_PATTERN.test(email) || EMAIL_PATTERN2.test(email),
+        "大学のメールアドレスを入力してください"
+      ),
     password: z
       .string()
       .min(8, "パスワードは8文字以上で入力してください")
@@ -195,10 +210,17 @@ export async function sendEmailToResetPassword(
   formData: FormData
 ) {
   const schema = z.object({
-    email: z
+    // email: z
+    //   .string()
+    //   .email("メールアドレスを入力してください")
+    //   .regex(EMAIL_PATTERN, "大学のメールアドレスを入力してください"),
+      email: z
       .string()
       .email("メールアドレスを入力してください")
-      .regex(EMAIL_PATTERN, "大学のメールアドレスを入力してください"),
+      .refine(
+        (email) => EMAIL_PATTERN.test(email) || EMAIL_PATTERN2.test(email),
+        "大学のメールアドレスを入力してください"
+      ),
   });
 
   try {
