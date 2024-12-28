@@ -1,5 +1,9 @@
 import DetailCardComponent from "./detailCard";
-import { fetchCheckinProgramIds, fetchProgramInfo } from "@/lib/dbActions";
+import { 
+  fetchCheckinProgramIds, 
+  fetchProgramInfo,
+  fetchProgramInfo2 
+} from "@/lib/dbActions";
 import React from "react";
 
 export default async function CheckinDetailComponent() {
@@ -7,7 +11,8 @@ export default async function CheckinDetailComponent() {
   const checkinProgramList = await Promise.all(
     checkinProgramIdList.map(async (programId) => {
       const programInfo = await fetchProgramInfo(programId);
-      return { programId, programInfo };
+      const programInfo2 = await fetchProgramInfo2(programInfo.type);
+      return { programId, programInfo, programInfo2 };
     })
   );
   const spotsInfo = checkinProgramList.map((item) => {
@@ -15,26 +20,26 @@ export default async function CheckinDetailComponent() {
       return {
         title: item.programInfo.title,
         content: item.programInfo.content,
-        process: item.programInfo.process,
-        caution: item.programInfo.caution,
-        condition: item.programInfo.condition,
-        link: `${item.programInfo.link}?programId=${item.programId}&rewardPoint=${item.programInfo.rewardPoint}`,
+        process: item.programInfo2.process,
+        caution: item.programInfo2.caution,
+        condition: item.programInfo2.condition,
+        link: `${item.programInfo.link}?programId=${item.programId}&point=${item.programInfo.point}&type=${item.programInfo.type}`,
         owner: item.programInfo.owner,
-        schedule: item.programInfo.schedule,
-        isOpen: item.programInfo.isOpen,
-        exit: item.programInfo.exit,
+        // schedule: item.programInfo.schedule,
+        // isOpen: item.programInfo.isOpen,
+        // exit: item.programInfo.exit,
       };
     }
     return {
       title: item.programInfo.title,
       content: item.programInfo.content,
-      process: item.programInfo.process,
-      caution: item.programInfo.caution,
-      condition: item.programInfo.condition,
+      process: item.programInfo2.process,
+      caution: item.programInfo2.caution,
+      condition: item.programInfo2.condition,
       owner: item.programInfo.owner,
-      schedule: item.programInfo.schedule,
-      isOpen: item.programInfo.isOpen,
-      exit: item.programInfo.exit,
+      // schedule: item.programInfo.schedule,
+      // isOpen: item.programInfo.isOpen,
+      // exit: item.programInfo.exit,
     };
   });
 

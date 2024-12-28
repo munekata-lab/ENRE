@@ -10,7 +10,8 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   postCollectionInLogs,
   fetchProgramInfo,
-  patchReward,
+  fetchProgramInfo2,
+  patchReward2,
   patchParticipatedEvents,
 } from "@/lib/dbActions";
 import { postLogEvent } from "@/lib/firebase/client";
@@ -25,25 +26,27 @@ export default function UploadImage() {
   const [process, setProcess] = useState<string[]>([]);
   const [caution, setCaution] = useState<string[]>([]);
   const [condition, setCondition] = useState<string[]>([]);
-  const [rewardPoint, setRewardPoint] = useState("");
-  const [rewardField, setRewardField] = useState("");
-  const [rewardGIP, setRewardGIP] = useState("");
+  const [point, setPoint] = useState("");
+  const [field, setField] = useState("");
+  const [owner, setOwner] = useState("");
+  // const [rewardGIP, setRewardGIP] = useState("");
   const [photo, setPhoto] = useState<File | null>(null);
   const [error, setError] = useState("");
   const [createObjectURL, setCreateObjectURL] = useState("");
   const [isPushButton, setIsPushButton] = useState(false);
   const programId = searchParams.get("programId") || "";
+  const type = searchParams.get("type2") || "";
 
   useEffect(() => {
     (async () => {
       const programInfo = await fetchProgramInfo(programId);
+      const programInfo2 = await fetchProgramInfo2(type);
       setContent(programInfo.content);
-      setProcess(programInfo.process);
-      setCaution(programInfo.caution);
-      setCondition(programInfo.condition);
-      setRewardPoint(programInfo.rewardPoint);
-      setRewardField(programInfo.rewardField);
-      setRewardGIP(programInfo.rewardGIP);
+      setProcess(programInfo2.process);
+      setCaution(programInfo2.caution);
+      setCondition(programInfo2.condition);
+      setPoint(programInfo.rewardPoint);
+      setField(programInfo.rewardField);
     })();
   }, []);
 
@@ -175,7 +178,7 @@ export default function UploadImage() {
         body: JSON.stringify({ postData }),
       });
       if (resPostPhoto.ok) {
-        await patchReward(rewardPoint, rewardField, rewardGIP);
+        await patchReward2(point, field);
         const title = "写真を投稿しました";
         const state = "postPhoto";
         await postCollectionInLogs(title, place, state);

@@ -10,7 +10,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   postCollectionInLogs,
   patchCheckoutProgramIds,
-  patchReward,
+  patchReward2,
 } from "@/lib/dbActions";
 import { postLogEvent } from "@/lib/firebase/client";
 import Image from "next/image";
@@ -30,10 +30,9 @@ export default function PostBiomeComponent() {
   const [sendComplete, setSendComplete] = useState(false);
   const searchParams = useSearchParams();
   const programId = searchParams.get("programId") || "";
-  const rewardPoint = searchParams.get("rewardPoint") || "";
-  const rewardField = searchParams.get("rewardField") || "";
-  const rewardGIP = searchParams.get("rewardGIP") || "";
-  const href = `/biome?programId=${programId}&rewardPoint=${rewardPoint}`;
+  const point = searchParams.get("point") || "";
+  const field = searchParams.get("field") || "";
+  const href = `/biome?programId=${programId}&rewardPoint=${point}&field=${field}`;
 
   const uploadToClient = async (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.files && event.target.files[0]) {
@@ -186,14 +185,14 @@ export default function PostBiomeComponent() {
     rightTitle: "続けて投稿",
     leftOnClick: () => {
       (async () => {
-        await patchReward(rewardPoint, rewardField, rewardGIP);
+        await patchReward2(point, field);
         await patchCheckoutProgramIds(programId);
         router.push("/");
       })();
     },
     rightOnClick: () => {
       (async () => {
-        await patchReward(rewardPoint, rewardField, rewardGIP);
+        await patchReward2(point, field);
         setPhoto(null);
         setError("");
         setCreateObjectURL("");

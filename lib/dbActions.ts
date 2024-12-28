@@ -161,6 +161,7 @@ export async function postUserInfo(uid: string, nickName: string) {
     likes: [],
     createdAt: new Date(),
     reward: 0,
+    totalReward: 0,
     currentPlace: "none",
     notification: {
       isNotify: false,
@@ -182,6 +183,9 @@ export async function postUserInfo(uid: string, nickName: string) {
       C: 0,
       N: 0,
       O: 0,
+      field1: 0,
+      field2: 0,
+      field3: 0,
     },
     giPoint: 0,
   };
@@ -246,15 +250,22 @@ export async function fetchUserSettings() {
 }
 
 export async function fetchQrInfo(qrId: string) {
-  const qrRef = await adminDB.collection("QR").doc(qrId).get();
+  const qrRef = await adminDB.collection("test_QR2").doc(qrId).get();
   const qrInfo = qrRef.data();
   return qrInfo;
 }
 
+// 2025年1月実験用に作成
 export async function fetchProgramInfo(programId: string) {
-  const programRef = await adminDB.collection("program").doc(programId).get();
+  const programRef = await adminDB.collection("test_program2").doc(programId).get();
   const programInfo = programRef.data();
   return programInfo;
+}
+
+export async function fetchProgramInfo2(type: string) {
+  const programRef2 = await adminDB.collection("explain").doc(type).get();
+  const programInfo2 = programRef2.data();
+  return programInfo2;
 }
 
 export async function fetchReward() {
@@ -269,6 +280,7 @@ export async function fetchReward() {
   const rewardC: number = rewardFieldCNO.C || 0;
   const rewardN: number = rewardFieldCNO.N || 0;
   const rewardO: number = rewardFieldCNO.O || 0;
+
   const gip: number = userRef.data().giPoint || 0;
   return { currentReward, prevReward, rewardC, rewardN, rewardO, gip};
 }
@@ -323,6 +335,80 @@ export async function patchReward(rewardPoint: string, rewardField: string, gipo
           O: nextO,
         },
         giPoint: nextgip,
+      },
+      { merge: true }
+    );
+  } catch (error) {
+    console.log(error);
+  }
+}
+
+export async function fetchReward2() {
+  const user = await getUserFromCookie();
+  if (!user) return { currentReward: 0, prevReward: 0 , reward1: 0, reward2: 0, reward3: 0 , enre2024_7reward: 0 };
+  const uid = user.uid;
+  const userRef = await adminDB.collection("users").doc(uid).get();
+  const enre2024_7reward: number = userRef.data().reward || 0;
+  const currentReward: number = userRef.data().totalReward || enre2024_7reward;
+  const prevReward: number = userRef.data().prevReward || 0;
+  {/* 各属性のポイントを取得しないといけない */}
+  const rewardField = userRef.data().rewardField || {}; // rewardFieldが存在しない場合に空のオブジェクトをデフォルトで設定する
+  const reward1: number = rewardField.field1 || 0;
+  const reward2: number = rewardField.field2 || 0;
+  const reward3: number = rewardField.field3 || 0;
+  // console.log(currentReward, reward1, reward2, reward3, enre2024_7reward);
+
+  return { currentReward, prevReward, reward1, reward2, reward3, enre2024_7reward };
+}
+
+export async function patchReward2(point: string, field: string) {
+  const user = await getUserFromCookie();
+  if (!user) return;
+  const uid = user.uid;
+  try {
+    const { currentReward, reward1, reward2, reward3 } = await fetchReward2();
+    const nextReward = currentReward + Number(point);
+    let next1 = reward1;
+    let next2 = reward2;
+    let next3 = reward3;
+    if (field === "1") {
+      next1 = reward1 + Number(point);
+    }
+    if (field === "2") {
+      next2 = reward2 + Number(point);
+    }
+    if (field === "3") {
+      next3 = reward3 + Number(point);
+    }
+    if (currentReward === 0 && nextReward > 0) {
+      try {
+        // ログに記録
+        await postCollectionInLogs("初回報酬", "start", "start");
+    
+        // Firestoreのuids配列にUIDを追加
+        const rewardRef = await adminDB.collection("rewardProgress").doc("01");
+        await rewardRef.update({
+          uids: admin.firestore.FieldValue.arrayUnion(uid),
+        });
+      } catch (error) {
+        console.error("初回報酬の処理中にエラーが発生しました:", error);
+      }
+    }
+    if (nextReward >= 100 && currentReward < 100) {
+      await postCollectionInLogs("100ポイント達成", "100", "100");
+    }
+    if (nextReward >= 500 && currentReward < 500) {
+      await postCollectionInLogs("500ポイント達成", "500", "500");
+    }
+    await adminDB.collection("users").doc(uid).set(
+      {
+        totalReward: nextReward,
+        prevReward: currentReward,
+        rewardField: {
+          field1: next1,
+          field2: next2,
+          field3: next3,
+        },
       },
       { merge: true }
     );
@@ -858,37 +944,6 @@ export async function getUsers() {
 
   return users;
 }
-
-// export async function getPrograms() {
-//   const ProgramsCollection = await adminDB
-//     .collection("test_program2")
-//     .get();
-//   const programs = ProgramsCollection.docs.map((test_program2: any) => {
-//     const uid = test_program2.id;
-//     const title = test_program2.data().title
-//     const content = test_program2.data().content;
-//     const place = test_program2.data().place;
-//     const owner = test_program2.data().owner;
-//     const point = test_program2.data().point;
-//     const day = test_program2.data().day;
-//     const open = test_program2.data().open;
-//     const close = test_program2.data().close;
-
-//     return {
-//       uid: uid,
-//       title: title,
-//       content: content,
-//       place: place,
-//       owner: owner,
-//       point: point,
-//       day: day,
-//       open: open,
-//       close: close,
-//     };
-//   });
-
-//   return programs;
-// }
 
 export async function getProgramsByDay(targetDay: string) {
   const ProgramsCollection = await adminDB

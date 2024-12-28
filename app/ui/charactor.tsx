@@ -1,5 +1,5 @@
 import Image from "next/image";
-import { fetchReward } from "@/lib/dbActions";
+import { fetchReward2 } from "@/lib/dbActions";
 import ProgressBar from "react-bootstrap/ProgressBar";
 
 export default async function CharactorComponent() {
@@ -10,7 +10,7 @@ export default async function CharactorComponent() {
   };
 
   const quote = handleCharactorClick();
-  const { currentReward, prevReward, rewardC, rewardN, rewardO, gip } = await fetchReward();
+  const { currentReward, prevReward, reward1, reward2, reward3, enre2024_7reward } = await fetchReward2();
   // const currentReward =98
   // const prevReward = 110
   // const rewardC = 40
@@ -26,7 +26,7 @@ export default async function CharactorComponent() {
           evoThresholdList[3] <= currentReward && currentReward < evoThresholdList[4] ? 4 : 4;
   const nextEvoThreshold = evoThresholdList[evoState];
 
-  const currentRewordList = [rewardO, rewardN, rewardC];
+  const currentRewordList = [reward1, reward2, reward3];
   const gamaType = currentRewordList.indexOf(Math.max(...currentRewordList));
   const gamaTypeString = ["アウトドア", "ナレッジ", "コミュニティ"][gamaType];
   const gamaTypeStringColor = "font-bold " + ["text-red-600", "text-blue-600", "text-yellow-600"][gamaType];
@@ -85,7 +85,7 @@ export default async function CharactorComponent() {
           ) : (
             <span className="text-black">--pt</span>
           )})</div>
-        <div className="row-start-3 col-start-3 col-end-5 text-sm">GIポイント: <span className="font-bold text-green-600">{gip}pt</span></div>
+        {/* <div className="row-start-3 col-start-3 col-end-5 text-sm">GIポイント: <span className="font-bold text-green-600">{gip}pt</span></div> */}
 
         <div className="row-start-1 col-start-2 col-end-5 place-self-start self-center text-sm">
           {evoState != 4 && (
@@ -100,16 +100,23 @@ export default async function CharactorComponent() {
           )}
         </div>
         <div className="row-start-2 col-start-2 col-end-5 w-full">
-          {(evoState != 4) && (
+          <ProgressBar >
+            <ProgressBar variant="success" now={enre2024_7reward} key={0} max={500} />
+            <ProgressBar variant="danger" now={reward1} key={1} max={500} />
+            <ProgressBar variant="info" now={reward2} key={2} max={500} />
+            <ProgressBar variant="warning" now={reward3} key={3} max={500} />
+          </ProgressBar>
+          {/* {(evoState != 4) && (
             <ProgressBar variant="success" now={currentReward} max={nextEvoThreshold} />
           )}
           {(evoState == 4) && (
             <ProgressBar >
-              <ProgressBar variant="danger" now={rewardO} key={1} max={500} />
-              <ProgressBar variant="info" now={rewardN} key={2} max={500} />
-              <ProgressBar variant="warning" now={rewardC} key={3} max={500} />
+              <ProgressBar variant="success" now={enre2024_7reward} key={0} max={500} />
+              <ProgressBar variant="danger" now={reward1} key={1} max={500} />
+              <ProgressBar variant="info" now={reward2} key={2} max={500} />
+              <ProgressBar variant="warning" now={reward3} key={3} max={500} />
             </ProgressBar>
-          )}
+          )} */}
         </div>
       </div>
     </div>

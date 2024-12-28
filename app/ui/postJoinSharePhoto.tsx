@@ -10,7 +10,8 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   postCollectionInLogs,
   fetchProgramInfo,
-  patchReward,
+  fetchProgramInfo2,
+  patchReward2,
   patchParticipatedEvents,
 } from "@/lib/dbActions";
 import { postLogEvent } from "@/lib/firebase/client";
@@ -21,12 +22,12 @@ export default function PostJoinShareComponent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [tab, setTab] = useState<"detail" | "post">("detail");
-  // const [content, setContent] = useState("");
-  // const [process, setProcess] = useState<string[]>([]);
-  // const [caution, setCaution] = useState<string[]>([]);
-  // const [condition, setCondition] = useState<string[]>([]);
-  // const [rewardPoint, setRewardPoint] = useState("");
-  const [rewardField, setRewardField] = useState("");
+  const [content, setContent] = useState("");
+  const [process, setProcess] = useState<string[]>([]);
+  const [caution, setCaution] = useState<string[]>([]);
+  const [condition, setCondition] = useState<string[]>([]);
+  const [point, setPoint] = useState("");
+  const [field, setField] = useState("");
   const [photo, setPhoto] = useState<File | null>(null);
   const [error, setError] = useState("");
   const [createObjectURL, setCreateObjectURL] = useState("");
@@ -36,12 +37,13 @@ export default function PostJoinShareComponent() {
   useEffect(() => {
     (async () => {
       const programInfo = await fetchProgramInfo(programId);
-      // setContent(programInfo.content);
-      // setProcess(programInfo.process);
-      // setCaution(programInfo.caution);
-      // setCondition(programInfo.condition);
-      // setRewardPoint(programInfo.rewardPoint);
-      setRewardField(programInfo.rewardField);
+      const programInfo2 = await fetchProgramInfo2(programId);
+      setContent(programInfo.content);
+      setProcess(programInfo2.process);
+      setCaution(programInfo2.caution);
+      setCondition(programInfo2.condition);
+      setPoint(programInfo.point);
+      setField(programInfo.field);
     })();
   }, []);
 
@@ -173,7 +175,8 @@ export default function PostJoinShareComponent() {
         body: JSON.stringify({ postData }),
       });
       if (resPostPhoto.ok) {
-        await patchReward("5", rewardField, "0");
+        // 得点,ジャンル
+        await patchReward2("5", field);
         const title = "写真を共有しました";
         const state = "postPhoto";
         await postCollectionInLogs(title, place, state);

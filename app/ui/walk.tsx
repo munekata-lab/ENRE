@@ -4,11 +4,13 @@ import { useState, useEffect } from "react";
 import {
   fetchCurrentPlace,
   fetchProgramInfo,
+  fetchProgramInfo2,
   patchCurrentPlace,
-  patchReward,
+  patchReward2,
   patchParticipatedEvents,
   patchCheckinProgramIds,
   patchCheckoutProgramIds,
+  postCollectionInLogs,
 } from "@/lib/dbActions";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
@@ -22,19 +24,21 @@ export default function WalkComponent() {
   const [isWalking, setIsWalking] = useState<boolean | null>(null);
   const [isFinished, setIsFinished] = useState<boolean | null>(null);
   const searchParams = useSearchParams();
-  const reward = searchParams.get("rewardPoint") || "";
-  const rewardField = searchParams.get("rewardField") || "";
-  const rewardGIP = searchParams.get("rewardGIP") || "";
+  const point = searchParams.get("point") || "";
+  const field = searchParams.get("field") || "";
+  // const rewardGIP = searchParams.get("rewardGIP") || "";
   const programId = searchParams.get("programId") || "";
+  const type = searchParams.get("type") || "";
 
   useEffect(() => {
     (async () => {
       const programInfo = await fetchProgramInfo(programId);
+      const programInfo2 = await fetchProgramInfo2(type);
       setTitle(programInfo.title);
       setContent(programInfo.content);
-      setProcess(programInfo.process);
-      setCaution(programInfo.caution);
-      setCondition(programInfo.condition);
+      setProcess(programInfo2.process);
+      setCaution(programInfo2.caution);
+      setCondition(programInfo2.condition);
       const currentPlace = await fetchCurrentPlace();
       if (currentPlace === "walking") {
         setIsWalking(true);
@@ -62,7 +66,8 @@ export default function WalkComponent() {
       await patchCheckoutProgramIds(programId);
       await patchParticipatedEvents(programId);
       await patchCurrentPlace("Home");
-      await patchReward(reward, rewardField, rewardGIP);
+      await patchReward2(point, field);
+      await postCollectionInLogs("歩いて帰ろう", "ポイント付与", point);
       setIsWalking(false);
       setIsFinished(true);
     })();
@@ -125,7 +130,7 @@ export default function WalkComponent() {
         <div className="mb-2 text-left">
           {caution.map((caution, index) => (
             <p key={index} className="text-xs mb-0 ml-3">
-              {caution}
+              {`${index + 1}. ${caution}`}
             </p>
           ))}
         </div>
@@ -133,7 +138,7 @@ export default function WalkComponent() {
         <div className="mb-2">
           {condition.map((condition, index) => (
             <p key={index} className="text-xs mb-0 ml-3">
-              {condition}
+              {`${index + 1}. ${condition}: ${point}P`}
             </p>
           ))}
         </div>

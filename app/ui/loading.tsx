@@ -6,7 +6,8 @@ import { useRouter, useSearchParams } from "next/navigation";
 import {
   fetchQrInfo,
   fetchProgramInfo,
-  patchReward,
+  fetchProgramInfo2,
+  patchReward2,
   patchCheckinProgramIds,
   patchCheckoutProgramIds,
   postCollectionInLogs,
@@ -33,6 +34,7 @@ export default function LoadingComponent() {
   const ref = useRef(false);
   const [participated, setParticipated] = useState(false);
   const { parse } = useBudouX();
+  const [point, setPoint] = useState("");
 
   useEffect(() => {
     if (ref.current) return;
@@ -40,17 +42,19 @@ export default function LoadingComponent() {
       const qrId = searchParams.get("id") || "";
       const qrInfo = await fetchQrInfo(qrId);
       const programInfo = await fetchProgramInfo(`${qrInfo.programId}`);
+      const programInfo2 = await fetchProgramInfo2(`${programInfo.type}`);
       setTitle(programInfo.title);
       setContent(programInfo.content);
-      setProcess(programInfo.process);
-      setCaution(programInfo.caution);
-      setCondition(programInfo.condition);
+      setPoint(programInfo.point);
+      setProcess(programInfo2.process);
+      setCaution(programInfo2.caution);
+      setCondition(programInfo2.condition);
       const place = `${qrInfo.placeId}-${qrInfo.placeNumber}`;
       await postCollectionInLogs(programInfo.title, place, "QRコード読み取り");
       await patchCurrentPlace(place);
       const participatedEvents = await fetchParticipatedEvents();
       if (participatedEvents[Number(qrId)] <= 0) {
-        await patchReward(`${qrInfo.rewardPoint}`, `${qrInfo.rewardField}`, `${qrInfo.rewardGIP}`);
+        await patchReward2(`${qrInfo.loadingPoint}`, `${qrInfo.field}`);
       }
       if (qrInfo.type === "checkin") {
         if (participatedEvents[Number(qrId)] > 0) {
@@ -61,7 +65,7 @@ export default function LoadingComponent() {
         setLink(
           programInfo.link === null
             ? "/"
-            : `${programInfo.link}?programId=${qrInfo.programId}&rewardPoint=${programInfo.rewardPoint}&rewardField=${programInfo.rewardField}&rewardGIP=${programInfo.rewardGIP}`
+            : `${programInfo.link}?programId=${qrInfo.programId}&point=${programInfo.point}&field=${programInfo.field}&type=${qrInfo.type2}`
         );
       } else if (qrInfo.type === "checkout") {
         if (participatedEvents[Number(qrId)] > 0) {
@@ -72,7 +76,7 @@ export default function LoadingComponent() {
         await patchCheckoutProgramIds(`${qrInfo.programId}`);
         setCheckout(true);
         setLink(
-          `/photoalbum/postjoinshare?programId=${qrInfo.programId}&rewardPoint=${programInfo.rewardPoint}&rewardField=${programInfo.rewardField}&rewardGIP=${programInfo.rewardGIP}`
+          `/photoalbum/postjoinshare?programId=${qrInfo.programId}&point=${programInfo.point}&field=${programInfo.field}&type=${qrInfo.type2}`
         );
       } else {
         if (participatedEvents[Number(qrId)] > 0) {
@@ -80,7 +84,7 @@ export default function LoadingComponent() {
           return;
         }
         router.push(
-          `${qrInfo.type}?programId=${qrInfo.programId}&place=${place}&rewardPoint=${programInfo.rewardPoint}&rewardField=${programInfo.rewardField}&rewardGIP=${programInfo.rewardGIP}`
+          `${qrInfo.type}?programId=${qrInfo.programId}&place=${place}&point=${programInfo.point}&field=${programInfo.field}&type=${qrInfo.type2}`
         );
       }
     })();
@@ -146,7 +150,7 @@ export default function LoadingComponent() {
                 <div className="mb-2 ml-3">
                   {caution.map((caution, index) => (
                     <p key={index} className="text-sm mb-0 ml-3">
-                      {caution}
+                      {`${index + 1}. ${caution}`}
                     </p>
                   ))}
                 </div>
@@ -193,7 +197,7 @@ export default function LoadingComponent() {
 
 
                   <hr />
-                  <p className="text-xs mb-0 ml-3 font-bold">【手順】</p>
+                  {/* <p className="text-xs mb-0 ml-3 font-bold">【手順】</p>
                   <div className="mb-2 ml-3">
                     {process.map((process, index) => (
                       <p key={index} className="text-xs mb-0 ml-3">
@@ -207,7 +211,7 @@ export default function LoadingComponent() {
                         {condition}
                       </p>
                     ))}
-                  </div>
+                  </div> */}
                 </Card.Body>
               </Card>
 
