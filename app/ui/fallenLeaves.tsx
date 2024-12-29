@@ -13,6 +13,7 @@ import {
   fetchProgramInfo2,
   patchReward2,
   patchParticipatedEvents,
+  patchCheckoutProgramIds,
 } from "@/lib/dbActions";
 import { postLogEvent } from "@/lib/firebase/client";
 import Image from "next/image";
@@ -181,6 +182,7 @@ export default function FallenLeavesComponent() {
       });
       if (resPostPhoto.ok) {
         await patchReward2(point, field);
+        await patchCheckoutProgramIds(programId);
         const title = "落ち葉を投稿しました";
         const state = "fallenLeaves";
         await postCollectionInLogs(title, place, state);

@@ -41,13 +41,8 @@ export default function ProgramsList() {
     useEffect(() => {
         // クエリを動的に構築
         let q = targetDay === "0"
-        ? query(collection(db, "test_program2"))
-        : query(collection(db, "test_program2"), where("day", "==", targetDay));
-
-        // const q = query(
-        // collection(db, "test_program2"),
-        // where("day", "==", targetDay)
-        // );
+        ? query(collection(db, "program2025_1"))
+        : query(collection(db, "program2025_1"), where("day", "==", targetDay));
 
         if (sortOrder === "pointDesc") {
             q = query(q, orderBy("point", "desc"));

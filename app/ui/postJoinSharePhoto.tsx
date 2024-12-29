@@ -39,10 +39,10 @@ export default function PostJoinShareComponent() {
       const programInfo = await fetchProgramInfo(programId);
       const programInfo2 = await fetchProgramInfo2(programId);
       setContent(programInfo.content);
-      setProcess(programInfo2.process);
-      setCaution(programInfo2.caution);
-      setCondition(programInfo2.condition);
-      setPoint(programInfo.point);
+      // setProcess(programInfo2.process);
+      // setCaution(programInfo2.caution);
+      // setCondition(programInfo2.condition);
+      // setPoint(programInfo.point);
       setField(programInfo.field);
     })();
   }, []);
@@ -180,7 +180,6 @@ export default function PostJoinShareComponent() {
         const title = "写真を共有しました";
         const state = "postPhoto";
         await postCollectionInLogs(title, place, state);
-        // await patchParticipatedEvents(`${programId}`);
         postLogEvent("写真投稿成功");
         router.push("/photoalbum");
       } else {
@@ -225,14 +224,16 @@ export default function PostJoinShareComponent() {
             </p>
             <p className="text-lg mb-0 font-bold mt-2">手順</p>
             <div className="mb-2 text-left">
-              説明
+              1. カメラボタンから撮影へ<br/>
+              2. イベントに参加している様子を撮影！素敵な写真を撮ってください<br/>
+              3. 撮影した写真をEnreに投稿
             </div>
             <p className="text-lg mb-0 font-bold">注意事項</p>
             <div className="mb-2 text-left">
-              本イベントは「学内」で実施して下さい<br/>
-              安全に配慮して行って下さい<br/>
-              公序良俗に反する写真の投稿は禁止です<br/>
-              プライバシー侵害に十分注意して下さい
+              1. 本イベントは「学内」で実施して下さい<br/>
+              2. 安全に配慮して行って下さい<br/>
+              3. 公序良俗に反する写真の投稿は禁止です<br/>
+              4. プライバシー侵害に十分注意して下さい
             </div>
             <p className="text-lg mb-0 font-bold">付与条件</p>
             <div className="mb-2">

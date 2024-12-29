@@ -29,7 +29,7 @@ export default function BiomeComponent() {
   const point = searchParams.get("point") || "";
   const field = searchParams.get("field") || "";
   const type = searchParams.get("type") || "";
-  const href = `/biome/postbiome?programId=${programId}&point=${point}&field=${field}$type=${type}`;
+  const href = `/biome/postbiome?programId=${programId}&point=${point}&field=${field}&type=${type}`;
 
   useEffect(() => {
     if (error.message === "success" || userName !== "") {

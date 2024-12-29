@@ -42,13 +42,17 @@ export default function LoadingComponent() {
       const qrId = searchParams.get("id") || "";
       const qrInfo = await fetchQrInfo(qrId);
       const programInfo = await fetchProgramInfo(`${qrInfo.programId}`);
-      const programInfo2 = await fetchProgramInfo2(`${programInfo.type}`);
+      if (programInfo.type) {
+        const programInfo2 = await fetchProgramInfo2(`${programInfo.type}`);
+        setProcess(programInfo2.process);
+        setCaution(programInfo2.caution);
+        setCondition(programInfo2.condition);
+      } else {
+        console.warn("Type is empty, skipping fetchProgramInfo2.");
+      }
       setTitle(programInfo.title);
       setContent(programInfo.content);
       setPoint(programInfo.point);
-      setProcess(programInfo2.process);
-      setCaution(programInfo2.caution);
-      setCondition(programInfo2.condition);
       const place = `${qrInfo.placeId}-${qrInfo.placeNumber}`;
       await postCollectionInLogs(programInfo.title, place, "QRコード読み取り");
       await patchCurrentPlace(place);
@@ -65,7 +69,7 @@ export default function LoadingComponent() {
         setLink(
           programInfo.link === null
             ? "/"
-            : `${programInfo.link}?programId=${qrInfo.programId}&point=${programInfo.point}&field=${programInfo.field}&type=${qrInfo.type2}`
+            : `${programInfo.link}?programId=${qrInfo.programId}&point=${programInfo.point}&field=${programInfo.field}&type=${programInfo.type}`
         );
       } else if (qrInfo.type === "checkout") {
         if (participatedEvents[Number(qrId)] > 0) {
@@ -76,7 +80,7 @@ export default function LoadingComponent() {
         await patchCheckoutProgramIds(`${qrInfo.programId}`);
         setCheckout(true);
         setLink(
-          `/photoalbum/postjoinshare?programId=${qrInfo.programId}&point=${programInfo.point}&field=${programInfo.field}&type=${qrInfo.type2}`
+          `/photoalbum/postjoinshare?programId=${qrInfo.programId}&point=${programInfo.point}&field=${programInfo.field}`
         );
       } else {
         if (participatedEvents[Number(qrId)] > 0) {
@@ -84,7 +88,7 @@ export default function LoadingComponent() {
           return;
         }
         router.push(
-          `${qrInfo.type}?programId=${qrInfo.programId}&place=${place}&point=${programInfo.point}&field=${programInfo.field}&type=${qrInfo.type2}`
+          `${qrInfo.type}?programId=${qrInfo.programId}&place=${place}&point=${programInfo.point}&field=${programInfo.field}&type=${programInfo.type}`
         );
       }
     })();
@@ -158,7 +162,7 @@ export default function LoadingComponent() {
                 <div className="mb-2 ml-3">
                   {condition.map((condition, index) => (
                     <p key={index} className="text-xs mb-0 ml-3">
-                      {condition}
+                      {`${condition}: ${point}P`}
                     </p>
                   ))}
                 </div>

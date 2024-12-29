@@ -105,38 +105,42 @@ export default function Admin() {
 }
 
 function ProgramView() {
-  const [programId, setProgramId] = useState("");
+  const [programPass, setProgramPass] = useState("");
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
   const [place, setPlace] = useState("");
   const [owner, setOwner] = useState("");
+  const [loadingPoint, setLoadingPoint] = useState("");
   const [point, setPoint] = useState("");
   const [type, setType] = useState("");
   const [field, setField] = useState("");
   const [day, setDay] = useState("");
   const [open, setOpen] = useState("");
   const [close, setClose] = useState("");
+  const [thema, setThema] = useState("");
   const [loading, setLoading] = useState(false); // ローディング状態を追加
 
   // 入力値をリセットする関数
   const resetForm = () => {
-    setProgramId("");
+    setProgramPass("");
     setTitle("");
     setContent("");
     setPlace("");
     setOwner("");
+    setLoadingPoint("");
     setPoint("");
     setType("");
     setField("");
     setDay("");
     setOpen("");
     setClose("");
+    setThema("");
   };
 
   // バリデーションチェック
   const validateForm = () => {
-    if (!title || !content || !day) {
-      alert("タイトル、内容、日付は必須です。");
+    if (!title || !content || !day || !place || !owner || !loadingPoint || !point || !field) {
+      alert("記入漏れがあります");
       return false;
     }
     return true;
@@ -175,25 +179,46 @@ function ProgramView() {
       // ドキュメント番号を取得
       const programNumber = await getNextDocumentNumber();
 
+      // type が空の場合 link を null に、それ以外は /type の形式
+      const link = type ? `/${type}` : null;
+
+      // 3桁形式で programNumber をフォーマット
+      const programIdFormatted = String(programNumber).padStart(3, "0");
+      const placeId = `P${programIdFormatted}`;
+
       // メッセージの作成
       const message = {
-        programId,
+        programPass,
         title,
         content,
         place,
         owner,
-        point,
+        point: Number(point),
         type,
         field,
         day,
         open,
         close,
+        link,
       };
 
       // Firestoreに追加
-      const query = collection(db, "test_program2");
+      const query = collection(db, "program2025_1");
       const docRef = doc(query, `${programNumber}`); // ドキュメントIDを手動で設定
       await setDoc(docRef, message);
+
+      // QR2025_1 にもデータを追加
+      const queryQR = collection(db, "QR2025_1");
+      const docRefQR = doc(queryQR, `${programNumber}`); // 同じドキュメントID
+      const qrData = {
+        placeId,
+        placeNumber: 1,
+        loadingPoint: Number(loadingPoint),
+        field,
+        programId: programNumber, // ドキュメント番号をそのまま利用
+        type: type ? "checkin" : "checkout", // type が空の場合は "checkout"、それ以外は "checkin"
+      };
+      await setDoc(docRefQR, qrData); // QR用に必要なデータを設定
 
       alert("イベントが正常に追加されました！");
       resetForm(); // フォームのリセット
@@ -217,11 +242,11 @@ function ProgramView() {
 
       {/* プログラムID */}
       <InputField
-        id="programId"
-        label="プログラムID"
-        placeholder="例(フリーコーヒーの場合): fc010 fc + 01(全体のid) + 1(場所別)"
-        value={programId}
-        onChange={createChangeHandler(setProgramId)}
+        id="programPass"
+        label="プログラムパスワード"
+        placeholder="空けておいていてください"
+        value={programPass}
+        onChange={createChangeHandler(setProgramPass)}
       />
 
       {/* タイトル */}
@@ -236,10 +261,19 @@ function ProgramView() {
       {/* 内容 */}
       <InputField
         id="content"
-        label="内容"
+        label="概要"
         placeholder="Content"
         value={content}
         onChange={createChangeHandler(setContent)}
+      />
+
+      {/* お題 */}
+      <InputField
+        id="thema"
+        label="お題"
+        placeholder="任意"
+        value={thema}
+        onChange={createChangeHandler(setThema)}
       />
 
       {/* 場所 */}
@@ -261,58 +295,101 @@ function ProgramView() {
       />
 
       {/* 点数 */}
-      <InputField
-        id="point"
-        label="得点"
-        placeholder="Point"
-        value={point}
-        onChange={createChangeHandler(setPoint)}
-      />
+      <div className="flex space-x-4">
+        <div className="flex flex-col w-full">
+          <InputField
+            id="loadingPoint"
+            label="得点1(QR読み取り時付与)"
+            placeholder="半角数字"
+            value={loadingPoint}
+            onChange={createChangeHandler(setLoadingPoint)}
+          />
+        </div>
+        <div className="flex flex-col w-full">
+          <InputField
+            id="point"
+            label="得点2(イベント完遂時付与)"
+            placeholder="半角数字"
+            value={point}
+            onChange={createChangeHandler(setPoint)}
+          />
+        </div>
+      </div>
 
       {/* 形式(type) */}
-      <InputField
-        id="type"
-        label="イベント形式"
-        placeholder="(biome: bime, 写真投稿系: postphoto, 歩いて帰ろう: walk, qr読取のみ: checkout)"
-        value={type}
-        onChange={createChangeHandler(setType)}
-      />
+      <div className="mb-2">
+        <label htmlFor="type" className="block text-left">イベント形式</label>
+        <select
+          id="type"
+          value={field}
+          onChange={(e) => setType((e.target.value))}
+          className="bg-gray-50 border border-gray-300 text-sm rounded-lg w-full p-2.5"
+        >
+          <option value="">イベント形式を選択</option>
+          <option value="biome">biome</option>
+          <option value="fallenleaves">落ち葉投稿</option>
+          <option value="postphoto">写真投稿系</option>
+          <option value="expressfeelings">文章投稿系</option>
+          <option value="walk">帰宅</option>
+          <option value="">QR読み取りのみ(例：フリーコーヒー)</option>
+        </select>
+      </div>
 
       {/* ジャンル */}
-      <InputField
-        id="field"
-        label="ジャンル(3種類)"
-        placeholder="Field"
-        value={field}
-        onChange={createChangeHandler(setField)}
-      />
+      <div className="mb-2">
+        <label htmlFor="field" className="block text-left">ジャンル(3種類)</label>
+        <select
+          id="field"
+          value={field}
+          onChange={(e) => setField((e.target.value))}
+          className="bg-gray-50 border border-gray-300 text-sm rounded-lg w-full p-2.5"
+        >
+          <option value="">ジャンルを選択</option>
+          <option value="1">知る</option>
+          <option value="2">使う</option>
+          <option value="3">守る</option>
+        </select>
+      </div>
 
-      {/* 日 */}
-      <InputField
-        id="day"
-        label="日"
-        placeholder="Day"
-        value={day}
-        onChange={createChangeHandler(setDay)}
-      />
+      {/* Day (選択式) */}
+      <div className="mb-2">
+        <label htmlFor="day" className="block text-left">日</label>
+        <select
+          id="day"
+          value={day}
+          onChange={(e) => setDay((e.target.value))}
+          className="bg-gray-50 border border-gray-300 text-sm rounded-lg w-full p-2.5"
+        >
+          <option value="">開催日を選択</option>
+          <option value="1">1/8(水)</option>
+          <option value="2">1/9(木)</option>
+          <option value="3">1/10(金)</option>
+          {/* <option value="4">4</option> */}
+          {/* <option value="5">5</option> */}
+        </select>
+      </div>
 
       {/* 開始 */}
-      <InputField
-        id="open"
-        label="開始"
-        placeholder="例: 13:00"
-        value={open}
-        onChange={createChangeHandler(setOpen)}
-      />
-
-      {/* 終了 */}
-      <InputField
-        id="close"
-        label="終了"
-        placeholder="例: 14:00"
-        value={close}
-        onChange={createChangeHandler(setClose)}
-      />
+      <div className="flex space-x-4">
+        <div className="flex flex-col w-full">
+          <InputField
+            id="open"
+            label="開始"
+            placeholder="例: 13:00"
+            value={open}
+            onChange={createChangeHandler(setOpen)}
+          />
+        </div>
+        <div className="flex flex-col w-full">
+          <InputField
+            id="close"
+            label="終了"
+            placeholder="例: 14:00"
+            value={close}
+            onChange={createChangeHandler(setClose)}
+          />
+        </div>
+      </div>
 
       <button
         className="mt-3 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
@@ -327,11 +404,13 @@ function ProgramView() {
 
 type Program = {
   id: string;
-  programId: string;
+  programPass: string;
   title: string;
   content: string;
+  thema: string;
   place: string;
   owner: string;
+  // loadingPoint: string;
   point: string;
   type: string;
   field: string;
@@ -346,11 +425,13 @@ type ProgramRetouchViewProps = {
   
 function ProgramRetouchView({ program }: ProgramRetouchViewProps) {
     const [isModalOpen, setIsModalOpen] = useState(false); // モーダル状態の管理
-    const [programId, setProgramId] = useState(program.programId);
+    const [programPass, setProgramPass] = useState(program.programPass);
     const [title, setTitle] = useState(program.title);
     const [content, setContent] = useState(program.content);
+    const [thema, setThema] = useState(program.thema);
     const [place, setPlace] = useState(program.place);
     const [owner, setOwner] = useState(program.owner);
+    // const [loadingPoint, setLoadingPoint] = useState(program.loadingPoint);
     const [point, setPoint] = useState(program.point);
     const [type, setType] = useState(program.type);
     const [field, setField] = useState(program.field);
@@ -366,11 +447,12 @@ function ProgramRetouchView({ program }: ProgramRetouchViewProps) {
       if (!result) return;
   
       try {
-        const docRef = doc(db, "test_program2", program.id);
+        const docRef = doc(db, "program2025_1", program.id);
         await updateDoc(docRef, {
-          programId,
+          programPass,
           title,
           content,
+          thema,
           place,
           owner,
           point,
@@ -380,6 +462,11 @@ function ProgramRetouchView({ program }: ProgramRetouchViewProps) {
           open,
           close,
         });
+
+        // const docRefQR = doc(db, "QR2025_1", program.id);
+        // await updateDoc(docRefQR, {
+        //   loadingPoint,
+        // });
   
         alert("プログラムが更新されました！");
         handleCloseModal(); // 更新成功後にモーダルを閉じる
@@ -414,9 +501,9 @@ function ProgramRetouchView({ program }: ProgramRetouchViewProps) {
                 <p className="mt-1 text-sm text-left">プログラムID</p>
                 <input
                   type="text"
-                  value={programId}
-                  onChange={(e) => setTitle(e.target.value)}
-                  placeholder="programId"
+                  value={programPass}
+                  onChange={(e) => setProgramPass(e.target.value)}
+                  placeholder="programPass"
                   className="mt-1 text-sm w-full p-1 border rounded"
                 />
                 <p className="mt-1 text-sm text-left">タイトル</p>
@@ -427,7 +514,7 @@ function ProgramRetouchView({ program }: ProgramRetouchViewProps) {
                   placeholder="Title"
                   className="mt-1 text-sm w-full p-1 border rounded"
                 />
-                <p className="mt-1 text-sm text-left">内容</p>
+                <p className="mt-1 text-sm text-left">概要</p>
                 <input
                   type="text"
                   value={content}
@@ -435,30 +522,66 @@ function ProgramRetouchView({ program }: ProgramRetouchViewProps) {
                   placeholder="Content"
                   className="mt-1 text-sm w-full p-1 border rounded"
                 />
-                <p className="mt-1 text-sm text-left">場所</p>
+                <p className="mt-1 text-sm text-left">お題</p>
                 <input
                   type="text"
-                  value={place}
-                  onChange={(e) => setPlace(e.target.value)}
-                  placeholder="Place"
+                  value={thema}
+                  onChange={(e) => setThema(e.target.value)}
+                  placeholder="Thema"
                   className="mt-1 text-sm w-full p-1 border rounded"
                 />
-                <p className="mt-1 text-sm text-left">運営</p>
-                <input
-                  type="text"
-                  value={owner}
-                  onChange={(e) => setOwner(e.target.value)}
-                  placeholder="Owner"
-                  className="mt-1 text-sm w-full p-1 border rounded"
-                />
-                <p className="mt-1 text-sm text-left">得点</p>
+                <div className="flex space-x-4 items-center mt-1">
+                  <div className="flex flex-col w-full">
+                    <p className="mt-0 text-sm text-left mb-0">場所</p>
+                    <input
+                      type="text"
+                      value={place}
+                      onChange={(e) => setPlace(e.target.value)}
+                      placeholder="Place"
+                      className="mt-1 text-sm w-full p-1 border rounded"
+                    />
+                  </div>
+                  <div className="flex flex-col w-full">
+                    <p className="mt-0 text-sm text-left mb-0">運営</p>
+                    <input
+                      type="text"
+                      value={owner}
+                      onChange={(e) => setOwner(e.target.value)}
+                      placeholder="Owner"
+                      className="mt-1 text-sm w-full p-1 border rounded"
+                    />
+                  </div>
+                </div>
+                <p className="mt-0 text-sm text-left mb-0">得点2</p>
                 <input
                   type="text"
                   value={point}
                   onChange={(e) => setPoint(e.target.value)}
-                  placeholder="Point"
+                  placeholder=""
                   className="mt-1 text-sm w-full p-1 border rounded"
                 />
+                {/* <div className="flex space-x-4 items-center mt-1">
+                  <div className="flex flex-col w-full">
+                    <p className="mt-0 text-sm text-left mb-0">得点1</p>
+                    <input
+                      type="text"
+                      value={loadingPoint}
+                      onChange={(e) => setLoadingPoint(e.target.value)}
+                      placeholder=""
+                      className="mt-1 text-sm w-full p-1 border rounded"
+                    />
+                  </div>
+                  <div className="flex flex-col w-full">
+                    <p className="mt-0 text-sm text-left mb-0">得点2</p>
+                    <input
+                      type="text"
+                      value={point}
+                      onChange={(e) => setPoint(e.target.value)}
+                      placeholder=""
+                      className="mt-1 text-sm w-full p-1 border rounded"
+                    />
+                  </div>
+                </div> */}
                 <p className="mt-1 text-sm text-left">形式</p>
                 <input
                   type="text"
@@ -483,22 +606,28 @@ function ProgramRetouchView({ program }: ProgramRetouchViewProps) {
                   placeholder="Day"
                   className="mt-1 text-sm w-full p-1 border rounded"
                 />
-                <p className="mt-1 text-sm text-left">開始</p>
-                <input
-                  type="text"
-                  value={open}
-                  onChange={(e) => setOpen(e.target.value)}
-                  placeholder="例: 13:00"
-                  className="mt-1 text-sm w-full p-1 border rounded"
-                />
-                <p className="mt-1 text-sm text-left">終了</p>
-                <input
-                  type="text"
-                  value={close}
-                  onChange={(e) => setClose(e.target.value)}
-                  placeholder="例: 14:00"
-                  className="mt-1 text-sm w-full p-1 border rounded"
-                />
+                <div className="flex space-x-4 items-center mt-1">
+                  <div className="flex flex-col w-full">
+                    <p className="mt-0 text-sm text-left mb-0">開始</p>
+                    <input
+                      type="text"
+                      value={open}
+                      onChange={(e) => setOpen(e.target.value)}
+                      placeholder="例: 13:00"
+                      className="mt-1 text-sm w-full p-1 border rounded"
+                    />
+                  </div>
+                  <div className="flex flex-col w-full">
+                    <p className="mt-0 text-sm text-left mb-0">終了</p>
+                    <input
+                      type="text"
+                      value={close}
+                      onChange={(e) => setClose(e.target.value)}
+                      placeholder="例: 14:00"
+                      className="mt-1 text-sm w-full p-1 border rounded"
+                    />
+                  </div>
+                </div>
                 <button
                   onClick={handleUpdate}
                   className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-700"
@@ -512,139 +641,6 @@ function ProgramRetouchView({ program }: ProgramRetouchViewProps) {
       </>
     );
 }
-  
-
-// type ProgramRetouchViewProps = {
-//     documentId: string;
-//     initialData: {
-//       title: string;
-//       content: string;
-//       place: string;
-//       owner: string;
-//       point: string;
-//       day: string;
-//       open: string;
-//       close: string;
-//     };
-//     onClose: () => void;
-//   };
-  
-//   // 更新画面
-//   function ProgramRetouchView({
-//     documentId,
-//     initialData,
-//     onClose,
-//   }: ProgramRetouchViewProps) {
-//     const [title, setTitle] = useState(initialData.title);
-//     const [content, setContent] = useState(initialData.content);
-//     const [place, setPlace] = useState(initialData.place);
-//     const [owner, setOwner] = useState(initialData.owner);
-//     const [point, setPoint] = useState(initialData.point);
-//     const [day, setDay] = useState(initialData.day);
-//     const [open, setOpen] = useState(initialData.open);
-//     const [close, setClose] = useState(initialData.close);
-  
-//     const handleUpdate = async () => {
-//       const result = confirm("プログラムを更新しますか？");
-//       if (!result) return;
-  
-//       try {
-//         const docRef = doc(db, "test_program2", documentId);
-//         await updateDoc(docRef, {
-//           title,
-//           content,
-//           place,
-//           owner,
-//           point,
-//           day,
-//           open,
-//           close,
-//         });
-  
-//         alert("プログラムが更新されました！");
-//         onClose(); // 更新が成功したらモーダルを閉じる
-//       } catch (error) {
-//         console.error("更新中にエラーが発生しました:", error);
-//         alert("更新に失敗しました。");
-//       }
-//     };
-  
-//     return (
-//       <div className="flex flex-col space-y-4">
-//         <p className="mt-1 text-lg font-bold">イベント更新画面</p>
-//         <p className="text-base text-left">タイトル</p>
-//         <input
-//           type="text"
-//           value={title}
-//           onChange={(e) => setTitle(e.target.value)}
-//           placeholder="title"
-//           className="text-sm w-full p-1 border rounded"
-//         />
-//         <p className="text-base text-left">内容</p>
-//         <input
-//           type="text"
-//           value={content}
-//           onChange={(e) => setContent(e.target.value)}
-//           placeholder="content"
-//           className="text-sm w-full p-1 border rounded"
-//         />
-//         <p className="text-base text-left">場所</p>
-//         <input
-//           type="text"
-//           value={place}
-//           onChange={(e) => setPlace(e.target.value)}
-//           placeholder="place"
-//           className="text-sm w-full p-1 border rounded"
-//         />
-//         <p className="text-base text-left">運営</p>
-//         <input
-//           type="text"
-//           value={owner}
-//           onChange={(e) => setOwner(e.target.value)}
-//           placeholder="owner"
-//           className="text-sm w-full p-1 border rounded"
-//         />
-//         <p className="text-base text-left">点数</p>
-//         <input
-//           type="text"
-//           value={point}
-//           onChange={(e) => setPoint(e.target.value)}
-//           placeholder="point"
-//           className="text-sm w-full p-1 border rounded"
-//         />
-//         <p className="text-base text-left">日</p>
-//         <input
-//           type="text"
-//           value={day}
-//           onChange={(e) => setDay(e.target.value)}
-//           placeholder="day"
-//           className="text-sm w-full p-1 border rounded"
-//         />
-//         <p className="text-base text-left">開始</p>
-//         <input
-//           type="text"
-//           value={open}
-//           onChange={(e) => setOpen(e.target.value)}
-//           placeholder="open"
-//           className="text-sm w-full p-1 border rounded"
-//         />
-//         <p className="text-base text-left">終了</p>
-//         <input
-//           type="text"
-//           value={close}
-//           onChange={(e) => setClose(e.target.value)}
-//           placeholder="close"
-//           className="text-sm w-full p-1 border rounded"
-//         />
-//         <button
-//           onClick={handleUpdate}
-//           className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-700"
-//         >
-//           更新
-//         </button>
-//       </div>
-//     );
-// }
 
 // 再利用可能な入力フィールドコンポーネント
 type InputFieldProps = {
@@ -683,7 +679,7 @@ function ProgramListView() {
         <div className="bg-blue-500 rounded">
             <p className="mt-1 text-xl font-bold">イベント一覧</p>
             <div className="p-2">
-                <div className="grid grid-cols-5 h-full p-2 gap-1">
+                <div className="grid grid-cols-3 h-full p-2 gap-1">
                     <div className="bg-blue-200 h-full">
                         <p className="mt-1 text-xl font-bold">1/8(水) 1日目</p>
                         <ProgramsView targetDay="1"/>
@@ -696,27 +692,28 @@ function ProgramListView() {
                         <p className="mt-1 text-xl font-bold">1/10(水) 3日目</p>
                         <ProgramsView targetDay="3"/>
                     </div>
-                    <div className="bg-blue-200 h-full">
+                    {/* <div className="bg-blue-200 h-full">
                         <p className="mt-1 text-xl font-bold">4日目</p>
                         <ProgramsView targetDay="4"/>
                     </div>
                     <div className="bg-blue-200 h-full">
                         <p className="mt-1 text-xl font-bold">5日目</p>
                         <ProgramsView targetDay="5"/>
-                    </div>
+                    </div> */}
                 </div>
             </div>
         </div>
     );
 }
 
-// 日単位のプログラムリスト取得と表示
+// // 日単位のプログラムリスト取得と表示
 function ProgramsView({ targetDay }: Props) {
     const [programList, setProgramList] = useState<Program[]>([]);
+    // const [qrList, setQrList] = useState<Record<string, any>[]>([]); // QR2025_1 データ用
   
     useEffect(() => {
       const q = query(
-        collection(db, "test_program2"),
+        collection(db, "program2025_1"),
         where("day", "==", targetDay)
       );
   
@@ -745,6 +742,7 @@ function ProgramsView({ targetDay }: Props) {
               <div className="flex justify-between text-sm mt-2">
                 <p className="text-gray-600">得点: {program.point}</p>
                 <p className="text-gray-600">運営: {program.owner}</p>
+                <p className="text-gray-600">場所: {program.place}</p>
               </div>
               <div className="grid grid-cols-2 mt-2 text-sm">
                 <div className="text-center">開始: {program.open}</div>
@@ -760,94 +758,81 @@ function ProgramsView({ targetDay }: Props) {
       </div>
     );
 }
-  
 
-// export function ProgramsView({ targetDay }: Props) {
-//     const [programList, setProgramList] = useState<Program[]>([]);
-//     const [retouchData, setRetouchData] = useState<Program | null>(null);
-//     const [isModalOpen, setIsModalOpen] = useState(false);
-  
-//     useEffect(() => {
-//       const q = query(
-//         collection(db, "test_program2"),
-//         where("day", "==", targetDay)
-//       );
-  
-//       const unsubscribe = onSnapshot(q, (snapshot) => {
-//         const programs = snapshot.docs.map((doc) => ({
-//           id: doc.id,
-//           ...doc.data(),
-//         })) as Program[];
-//         setProgramList(programs);
-//       });
-  
-//       return () => unsubscribe();
-//     }, [targetDay]);
-  
-//     const handleEditClick = useCallback((program: Program) => {
-//       setRetouchData(program);
-//       setIsModalOpen(true);
-//     }, []);
-  
-//     const handleCloseModal = () => {
-//       setRetouchData(null);
-//       setIsModalOpen(false);
-//     };
-  
-//     return (
-//       <div className="grid grid-cols-1 w-full min-h-[98%] overflow-scroll">
-//         {programList.map((program) => (
-//           <div key={program.id} className="z-0 relative w-full p-[3%]">
-//             <div className="bg-white rounded p-4 flex flex-col leading-normal">
-//               <div className="w-full">
-//                 <div className="text-gray-900 font-bold text-xl">{program.title}</div>
-//                 <p className="text-gray-700">{program.content}</p>
-//               </div>
-//               <div className="flex justify-between text-sm mt-2">
-//                 <p className="text-gray-600">得点: {program.point}</p>
-//                 <button
-//                   className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-700"
-//                   onClick={() => handleEditClick(program)}
-//                 >
-//                   編集
-//                 </button>
-//               </div>
-//               <div className="grid grid-cols-2 mt-2">
-//                 <div className="text-center">開始: {program.open}</div>
-//                 <div className="text-center">終了: {program.close}</div>
-//               </div>
-//             </div>
-//           </div>
-//         ))}
-  
-//         {isModalOpen && retouchData && (
-//           <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex justify-center items-center">
-//             <div className="relative w-full max-w-3xl bg-white p-6 rounded-lg">
-//               <button
-//                 className="absolute top-3 right-3 text-gray-500 hover:text-gray-800"
-//                 onClick={handleCloseModal}
-//               >
-//                 ✕
-//               </button>
-//               <ProgramRetouchView
-//                 documentId={retouchData.id}
-//                 initialData={{
-//                   title: retouchData.title,
-//                   content: retouchData.content,
-//                   place: retouchData.place,
-//                   owner: retouchData.owner,
-//                   point: retouchData.point,
-//                   day: retouchData.day,
-//                   open: retouchData.open,
-//                   close: retouchData.close,
-//                 }}
-//                 onClose={handleCloseModal}
-//               />
-//             </div>
-//           </div>
-//         )}
-//       </div>
+// function ProgramsView({ targetDay }: Props) {
+//   const [programList, setProgramList] = useState<Program[]>([]);
+//   const [qrList, setQrList] = useState<Record<string, any>[]>([]); // QR2025_1 データ用
+
+//   useEffect(() => {
+//     const qProgram = query(
+//       collection(db, "program2025_1"),
+//       where("day", "==", targetDay)
 //     );
+
+//     const unsubscribeProgram = onSnapshot(qProgram, (snapshot) => {
+//       const programs = snapshot.docs.map((doc) => ({
+//         id: doc.id,
+//         ...doc.data(),
+//       })) as Program[];
+//       setProgramList(programs);
+//     });
+
+//     return () => unsubscribeProgram();
+//   }, [targetDay]);
+
+//   useEffect(() => {
+//     // QR2025_1 コレクションの全データを取得
+//     const qQR = collection(db, "QR2025_1");
+
+//     const unsubscribeQR = onSnapshot(qQR, (snapshot) => {
+//       const qrData = snapshot.docs.map((doc) => ({
+//         id: doc.id,
+//         ...doc.data(),
+//       }));
+//       setQrList(qrData);
+//     });
+
+//     return () => unsubscribeQR();
+//   }, []);
+
+//   // `programList` と `qrList` を結合して表示する
+//   const combinedList = programList.map((program) => {
+//     const qrData = qrList.find((qr) => qr.id === program.id) || {};
+//     return { ...program, ...qrData };
+//   });
+
+//   return (
+//     <div className="w-full min-h-[98%] overflow-scroll">
+//       {combinedList.map((program) => (
+//         <div key={program.id} className="mb-3 w-full p-[3%]">
+//           <div className="bg-white rounded p-4 flex flex-col leading-normal">
+//             <div className="w-full">
+//               <div className="text-gray-900 font-bold text-xl">
+//                 {program.title}
+//               </div>
+//               <p className="text-gray-700 text-sm">{program.content}</p>
+//             </div>
+//             <div className="flex justify-between text-sm mt-2">
+//               {program.loadingPoint !== undefined && (
+//                 <p className="text-gray-600">得点1: {program.loadingPoint}</p>
+//               )}
+//               <p className="text-gray-600">得点2: {program.point}</p>
+//               <p className="text-gray-600">運営: {program.owner}</p>
+//               <p className="text-gray-600">場所: {program.place}</p>
+//             </div>
+//             <div className="grid grid-cols-2 mt-2 text-sm">
+//               <div className="text-center">開始: {program.open}</div>
+//               <div className="text-center">終了: {program.close}</div>
+//             </div>
+//             <div className="font-bold mt-2 text-sm">
+//               {/* 各プログラムごとに編集ボタンを表示 */}
+//               <ProgramRetouchView program={program} />
+//             </div>
+//           </div>
+//         </div>
+//       ))}
+//     </div>
+//   );
 // }
 
 function Home() {

@@ -250,14 +250,14 @@ export async function fetchUserSettings() {
 }
 
 export async function fetchQrInfo(qrId: string) {
-  const qrRef = await adminDB.collection("test_QR2").doc(qrId).get();
+  const qrRef = await adminDB.collection("QR2025_1").doc(qrId).get();
   const qrInfo = qrRef.data();
   return qrInfo;
 }
 
 // 2025年1月実験用に作成
 export async function fetchProgramInfo(programId: string) {
-  const programRef = await adminDB.collection("test_program2").doc(programId).get();
+  const programRef = await adminDB.collection("program2025_1").doc(programId).get();
   const programInfo = programRef.data();
   return programInfo;
 }
@@ -487,17 +487,7 @@ export async function fetchAllOnlinePrograms() {
 
 export async function fetchAllPrograms() {
   console.log("Program fetch Executed!")
-  const programRef = await adminDB.collection("test_program2").get();
-  const programList: any[] = programRef.docs.map((program: any) => {
-    const programData = program.data();
-    return programData;
-  });
-  return programList;
-}
-
-export async function newFetchAllPrograms() {
-  console.log("Program fetch Executed!")
-  const programRef = await adminDB.collection("test_program2").get();
+  const programRef = await adminDB.collection("program2025_1").get();
   const programList: any[] = programRef.docs.map((program: any) => {
     const programData = program.data();
     return programData;
@@ -947,7 +937,7 @@ export async function getUsers() {
 
 export async function getProgramsByDay(targetDay: string) {
   const ProgramsCollection = await adminDB
-    .collection("test_program2")
+    .collection("program2025_1")
     .where("day", "==", targetDay) // dayフィールドでフィルタリング
     .get();
 
