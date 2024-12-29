@@ -10,7 +10,8 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   postCollectionInLogs,
   fetchProgramInfo,
-  patchReward,
+  fetchProgramInfo2,
+  patchReward2,
   patchParticipatedEvents,
 } from "@/lib/dbActions";
 import { postLogEvent } from "@/lib/firebase/client";
@@ -32,17 +33,22 @@ export default function FallenLeavesComponent() {
   const [createObjectURL, setCreateObjectURL] = useState("");
   const [isPushButton, setIsPushButton] = useState(false);
   const programId = searchParams.get("programId") || "";
+  const point = searchParams.get("point") || "";
+  const field = searchParams.get("field") || "";
+  const type = searchParams.get("type") || "";
+  const href = `/biome?programId=${programId}&point=${point}&field=${field}$type=${type}`;
 
   useEffect(() => {
     (async () => {
       const programInfo = await fetchProgramInfo(programId);
+      const programInfo2 = await fetchProgramInfo2(type);
       setContent(programInfo.content);
-      setProcess(programInfo.process);
-      setCaution(programInfo.caution);
-      setCondition(programInfo.condition);
-      setRewardPoint(programInfo.rewardPoint);
-      setRewardField(programInfo.rewardField);
-      setRewardGIP(programInfo.rewardGIP);
+      setProcess(programInfo2.process);
+      setCaution(programInfo2.caution);
+      setCondition(programInfo2.condition);
+      setRewardPoint(programInfo.point);
+      setRewardField(programInfo.field);
+      // setRewardGIP(programInfo.rewardGIP);
     })();
   }, []);
 
@@ -174,7 +180,7 @@ export default function FallenLeavesComponent() {
         body: JSON.stringify({ postData }),
       });
       if (resPostPhoto.ok) {
-        await patchReward(rewardPoint, rewardField, rewardGIP);
+        await patchReward2(point, field);
         const title = "落ち葉を投稿しました";
         const state = "fallenLeaves";
         await postCollectionInLogs(title, place, state);
@@ -231,7 +237,7 @@ export default function FallenLeavesComponent() {
             <div className="mb-2 text-left">
               {caution.map((caution, index) => (
                 <p key={index} className="text-sm mb-0 ml-3">
-                  {caution}
+                  {`${index + 1}. ${caution}`}
                 </p>
               ))}
             </div>
@@ -239,7 +245,7 @@ export default function FallenLeavesComponent() {
             <div className="mb-2">
               {condition.map((condition, index) => (
                 <p key={index} className="text-sm mb-0 ml-3">
-                  {condition}
+                  {`${condition}: ${point}P`}
                 </p>
               ))}
             </div>

@@ -32,7 +32,8 @@ export default function PostBiomeComponent() {
   const programId = searchParams.get("programId") || "";
   const point = searchParams.get("point") || "";
   const field = searchParams.get("field") || "";
-  const href = `/biome?programId=${programId}&rewardPoint=${point}&field=${field}`;
+  const type = searchParams.get("type") || "";
+  const href = `/biome?programId=${programId}&point=${point}&field=${field}$type=${type}`;
 
   const uploadToClient = async (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.files && event.target.files[0]) {

@@ -8,12 +8,15 @@ import {
   collection,
   doc,
   getDoc,
+  getDocs,
   updateDoc,
   onSnapshot,
   orderBy,
   query,
   serverTimestamp,
   where,
+  runTransaction, 
+  setDoc,
 } from "firebase/firestore";
 import { useEffect, useRef, useState, FormEvent, useCallback, ChangeEvent } from "react";
 
@@ -139,31 +142,73 @@ function ProgramView() {
     return true;
   };
 
-  // 送信処理
+  // ドキュメント番号を決める関数
+  const getNextDocumentNumber = async () => {
+    const counterDocRef = doc(db, "counter", "programCounter");
+
+    return await runTransaction(db, async (transaction) => {
+      const counterDoc = await transaction.get(counterDocRef);
+
+      if (!counterDoc.exists()) {
+        // カウンターが存在しない場合は初期化
+        transaction.set(counterDocRef, { count: 1 });
+        return 1; // 最初の番号を返す
+      } else {
+        const currentCount = counterDoc.data().count;
+        const nextCount = currentCount + 1;
+        transaction.update(counterDocRef, { count: nextCount });
+        return nextCount;
+      }
+    });
+  };
+
+  // // ドキュメント番号決める関数
+  // const getNextDocumentNumber = async () => {
+  //   const collectionRef = collection(db, "test_program2");
+  
+  //   try {
+  //     const snapshot = await getDocs(collectionRef);
+  //     const documentCount = snapshot.size; // コレクション内のドキュメント数を取得
+  //     return documentCount + 1; // 次のドキュメント番号を計算
+  //   } catch (error) {
+  //     console.error("Failed to retrieve document count:", error);
+  //     throw new Error("ドキュメント番号を取得できませんでした。");
+  //   }
+  // };
+
+  // イベントを追加する関数
   const onNotify = async () => {
     if (!validateForm()) return;
 
     const result = confirm("イベントを追加しますか？");
     if (!result) return;
 
-    const message = {
-      programId,
-      title,
-      content,
-      place,
-      owner,
-      point,
-      gip,
-      field,
-      day,
-      open,
-      close,
-    };
-
     setLoading(true); // ローディング開始
+
     try {
+      // ドキュメント番号を取得
+      const programNumber = await getNextDocumentNumber();
+
+      // メッセージの作成
+      const message = {
+        programId,
+        title,
+        content,
+        place,
+        owner,
+        point,
+        gip,
+        field,
+        day,
+        open,
+        close,
+      };
+
+      // Firestoreに追加
       const query = collection(db, "test_program2");
-      await addDoc(query, message); // Firestoreに追加
+      const docRef = doc(query, `${programNumber}`); // ドキュメントIDを手動で設定
+      await setDoc(docRef, message);
+
       alert("イベントが正常に追加されました！");
       resetForm(); // フォームのリセット
     } catch (error) {

@@ -8,6 +8,7 @@ import {
   patchBiomeUserName,
   fetchBiomeUserName,
   fetchProgramInfo,
+  fetchProgramInfo2,
 } from "@/lib/dbActions";
 import { useFormState } from "react-dom";
 
@@ -25,9 +26,10 @@ export default function BiomeComponent() {
   const [error, action] = useFormState(patchBiomeUserName, initialState);
   const searchParams = useSearchParams();
   const programId = searchParams.get("programId") || "";
-  const rewardPoint = searchParams.get("rewardPoint") || "";
-  const rewardField = searchParams.get("rewardField") || "";
-  const href = `/biome/postbiome?programId=${programId}&rewardPoint=${rewardPoint}&rewardField=${rewardField}`;
+  const point = searchParams.get("point") || "";
+  const field = searchParams.get("field") || "";
+  const type = searchParams.get("type") || "";
+  const href = `/biome/postbiome?programId=${programId}&point=${point}&field=${field}$type=${type}`;
 
   useEffect(() => {
     if (error.message === "success" || userName !== "") {
@@ -38,10 +40,11 @@ export default function BiomeComponent() {
   useEffect(() => {
     (async () => {
       const programInfo = await fetchProgramInfo(programId);
+      const programInfo2 = await fetchProgramInfo2(type);
       setContent(programInfo.content);
-      setProcess(programInfo.process);
-      setCaution(programInfo.caution);
-      setCondition(programInfo.condition);
+      setProcess(programInfo2.process);
+      setCaution(programInfo2.caution);
+      setCondition(programInfo2.condition);
       const userName = await fetchBiomeUserName();
       setUserName(userName);
     })();
@@ -69,7 +72,7 @@ export default function BiomeComponent() {
         <div className="mb-2 text-left">
           {caution.map((caution, index) => (
             <p key={index} className="text-sm mb-0 ml-3">
-              {caution}
+              {`${index + 1}. ${caution}`}
             </p>
           ))}
         </div>
@@ -77,7 +80,7 @@ export default function BiomeComponent() {
         <div className="mb-2">
           {condition.map((condition, index) => (
             <p key={index} className="text-sm mb-0 ml-3">
-              {condition}
+              {`${condition}: ${point}P`}
             </p>
           ))}
         </div>

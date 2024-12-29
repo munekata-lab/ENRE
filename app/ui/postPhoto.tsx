@@ -35,7 +35,7 @@ export default function UploadImage() {
   const [createObjectURL, setCreateObjectURL] = useState("");
   const [isPushButton, setIsPushButton] = useState(false);
   const programId = searchParams.get("programId") || "";
-  const type = searchParams.get("type2") || "";
+  const type = searchParams.get("type") || "";
 
   useEffect(() => {
     (async () => {
