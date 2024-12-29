@@ -111,7 +111,7 @@ function ProgramView() {
   const [place, setPlace] = useState("");
   const [owner, setOwner] = useState("");
   const [point, setPoint] = useState("");
-  const [gip, setGip] = useState("");
+  const [type, setType] = useState("");
   const [field, setField] = useState("");
   const [day, setDay] = useState("");
   const [open, setOpen] = useState("");
@@ -126,7 +126,7 @@ function ProgramView() {
     setPlace("");
     setOwner("");
     setPoint("");
-    setGip("");
+    setType("");
     setField("");
     setDay("");
     setOpen("");
@@ -162,20 +162,6 @@ function ProgramView() {
     });
   };
 
-  // // ドキュメント番号決める関数
-  // const getNextDocumentNumber = async () => {
-  //   const collectionRef = collection(db, "test_program2");
-  
-  //   try {
-  //     const snapshot = await getDocs(collectionRef);
-  //     const documentCount = snapshot.size; // コレクション内のドキュメント数を取得
-  //     return documentCount + 1; // 次のドキュメント番号を計算
-  //   } catch (error) {
-  //     console.error("Failed to retrieve document count:", error);
-  //     throw new Error("ドキュメント番号を取得できませんでした。");
-  //   }
-  // };
-
   // イベントを追加する関数
   const onNotify = async () => {
     if (!validateForm()) return;
@@ -197,7 +183,7 @@ function ProgramView() {
         place,
         owner,
         point,
-        gip,
+        type,
         field,
         day,
         open,
@@ -283,13 +269,13 @@ function ProgramView() {
         onChange={createChangeHandler(setPoint)}
       />
 
-      {/* 点数(gip) */}
+      {/* 形式(type) */}
       <InputField
-        id="gip"
-        label="GIP"
-        placeholder="Gip"
-        value={gip}
-        onChange={createChangeHandler(setGip)}
+        id="type"
+        label="イベント形式"
+        placeholder="(biome: bime, 写真投稿系: postphoto, 歩いて帰ろう: walk, qr読取のみ: checkout)"
+        value={type}
+        onChange={createChangeHandler(setType)}
       />
 
       {/* ジャンル */}
@@ -347,7 +333,7 @@ type Program = {
   place: string;
   owner: string;
   point: string;
-  gip: string;
+  type: string;
   field: string;
   day: string;
   open: string;
@@ -366,7 +352,7 @@ function ProgramRetouchView({ program }: ProgramRetouchViewProps) {
     const [place, setPlace] = useState(program.place);
     const [owner, setOwner] = useState(program.owner);
     const [point, setPoint] = useState(program.point);
-    const [gip, setGip] = useState(program.gip);
+    const [type, setType] = useState(program.type);
     const [field, setField] = useState(program.field);
     const [day, setDay] = useState(program.day);
     const [open, setOpen] = useState(program.open);
@@ -388,7 +374,7 @@ function ProgramRetouchView({ program }: ProgramRetouchViewProps) {
           place,
           owner,
           point,
-          gip,
+          type,
           field,
           day,
           open,
@@ -473,12 +459,12 @@ function ProgramRetouchView({ program }: ProgramRetouchViewProps) {
                   placeholder="Point"
                   className="mt-1 text-sm w-full p-1 border rounded"
                 />
-                <p className="mt-1 text-sm text-left">GIP</p>
+                <p className="mt-1 text-sm text-left">形式</p>
                 <input
                   type="text"
-                  value={gip}
-                  onChange={(e) => setGip(e.target.value)}
-                  placeholder="Gip"
+                  value={type}
+                  onChange={(e) => setType(e.target.value)}
+                  placeholder="イベント形式"
                   className="mt-1 text-sm w-full p-1 border rounded"
                 />
                 <p className="mt-1 text-sm text-left">ジャンル</p>
