@@ -22,6 +22,7 @@ import {
 } from "firebase/firestore";
 import { useEffect, useRef, useState, FormEvent } from "react";
 import axios from "axios";
+import { redirect } from "next/navigation";
 
 export default function Admin() {
   const [isAdmin, setIsAdmin] = useState(false);
@@ -31,6 +32,7 @@ export default function Admin() {
   useEffect(() => {
     (async () => {
       const user = await getUserFromCookie();
+      user === null && redirect("/login");
       const uid = user.uid;
       if (!uid) return;
 

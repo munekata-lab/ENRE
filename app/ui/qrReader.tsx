@@ -27,7 +27,14 @@ export default function BarcodeScanner() {
     if (eventId) {
       // 手動で入力されたイベントIDで遷移
       // router.push(`https://www.enre-official.com/loading?id=${eventId}`);
-      router.push(`https://localhost:3000/loading?id=${eventId}`);
+      // 現在の URL を取得
+      const currentUrl = window.location.href;
+
+      // メインディレクトリ部分（例えば "https://localhost:3000"）を抽出
+      const baseUrl = currentUrl.split("/").slice(0, 3).join("/");
+
+      // 新しい URL へリダイレクト
+      router.push(`${baseUrl}/loading?id=${eventId}`);
     }
   };
 

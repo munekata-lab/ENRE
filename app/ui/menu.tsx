@@ -8,7 +8,15 @@ import Link from "next/link";
 import packageJson from "../../package.json";
 import Image from "next/image";
 
-export default function MenuComponent({ nickName }: { nickName: string }) {
+type Props = {
+  nickName: string;
+  dev: boolean;
+};
+
+export default function MenuComponent({
+  nickName,
+  dev,
+}: Props) {
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement | null>(null);
   const version = packageJson.version;
@@ -70,6 +78,26 @@ export default function MenuComponent({ nickName }: { nickName: string }) {
                 パスワード変更
               </button>
             </Link>
+            {dev && (
+              <>
+                <Link href="/admin" className="text-right">
+                  <button
+                    className="inline-block px-4 py-2 text-sm w-full text-black hover:bg-white text-right"
+                    role="menuitem"
+                  >
+                    管理画面
+                  </button>
+                </Link>
+                <Link href="/admin/register" className="text-right">
+                  <button
+                    className="inline-block px-4 py-2 text-sm w-full text-black hover:bg-white text-right"
+                    role="menuitem"
+                  >
+                    管理画面(イベント編集)
+                  </button>
+                </Link>
+              </>
+            )}
             <button
               onClick={() => logout()}
               className="inline-block px-4 py-2 text-sm w-full text-red-500 hover:bg-white text-right"

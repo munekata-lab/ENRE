@@ -19,21 +19,30 @@ import {
   setDoc,
 } from "firebase/firestore";
 import { useEffect, useRef, useState, FormEvent, useCallback, ChangeEvent } from "react";
+import { fetchMode } from "@/lib/dbActions";
+import { redirect } from "next/navigation";
+import NotFound from "../../not-found";
+import { LoadingAnimation } from "../../ui/skeletons";
 
 type Props = {
     targetDay: string;
   };
 
 export default function Admin() {
-  const [isAdmin, setIsAdmin] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(true); // 最初のパスワード入力スキップ
   const [login, setLogin] = useState(false);
   const [password, setPassword] = useState("");
+  const [userMode, setUserMode] = useState(undefined);
 
   useEffect(() => {
     (async () => {
-      const program = await getUserFromCookie();
-      const uid = program.uid;
+      const user = await getUserFromCookie();
+      user === null && redirect("/login");
+      const uid = user.uid;
       if (!uid) return;
+
+      const mode = await fetchMode(user?.uid); //modecollectionのdevを取ってる、usersのdev(usermode)
+      setUserMode(mode?.userMode);
 
       const userDocRef = doc(db, "users", uid);
       const docSnap = await getDoc(userDocRef);
@@ -68,7 +77,7 @@ export default function Admin() {
 
   return (
     <main className="flex min-h-screen flex-col items-center justify-between p-0 text-center">
-      {login && (
+      {/* {login && (
         <div className="flex flex-col justify-center items-center">
           <form onSubmit={handleSubmit}>
             <input
@@ -85,20 +94,24 @@ export default function Admin() {
             </button>
           </form>
         </div>
-      )}
-      {isAdmin ? (
+      )} */}
+      {userMode === false ? (
+        <NotFound />
+      ) : userMode === undefined ? (
+        <div className="flex min-h-screen flex-col items-center justify-between pb-20">
+          <LoadingAnimation />
+        </div>
+      ) : (
         <div className="justify-center mt-24 w-full h-full">
           <div className="text-2xl font-bold top-24 w-full">
             <h1 className="text-center">管理画面</h1>
             <ProgramView />
             <Home />
             <div className="h-full">
-                <ProgramListView />
+              <ProgramListView />
             </div>
           </div>
         </div>
-      ) : (
-        <></>
       )}
     </main>
   );

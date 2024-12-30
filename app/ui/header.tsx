@@ -5,7 +5,7 @@ import MenuComponent from "./menu";
 import { getUserFromCookie, getIPAddress } from "@/lib/session";
 import { useRouter } from "next/navigation";
 import { NotificationComponent } from "./notification";
-import { fetchUserSettings } from "@/lib/dbActions";
+import { fetchUserSettings, fetchMode } from "@/lib/dbActions";
 // import { fetchNotificationInfo } from "@/lib/dbActions";
 // import { collection, onSnapshot, query } from "firebase/firestore";
 // import { db } from "@/lib/firebase/client";
@@ -15,6 +15,7 @@ import Link from "next/link";
 export default function HeaderComponent() {
   const router = useRouter();
   const [nickName, setNickName] = useState("");
+  const [dev, setDev] = useState(false);
   const [ipAddress, setIPAddress] = useState<string | null>("");
 
   // TODO できれば 通知アイコン
@@ -75,8 +76,11 @@ export default function HeaderComponent() {
       const user = await getUserFromCookie();
       !user && router.push("/login");
       const userSettings = await fetchUserSettings();
+      const mode = await fetchMode(user?.uid);
       const nickName = userSettings.nickName;
+      const dev = mode?.userMode;
       setNickName(nickName);
+      setDev(dev);
       const ipAddress = await getIPAddress();
       setIPAddress(ipAddress);
     })();
@@ -99,7 +103,7 @@ export default function HeaderComponent() {
       </Link>
       </div>
       <div className="col-start-3 font-mono text-sm justify-self-end mr-3">
-        <MenuComponent nickName={nickName} />
+        <MenuComponent nickName={nickName} dev={dev} />
       </div>
     </div >
   );
