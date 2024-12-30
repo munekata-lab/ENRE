@@ -6,6 +6,7 @@ import { arrayUnion } from "firebase/firestore";
 import { getUserFromCookie } from "@/lib/session";
 import { number, z } from "zod";
 import type { Place } from "@/lib/type";
+import packageJson from "../../package.json";
 
 export async function fetchPhotosInfo() {
   const photosCollection = await adminDB
