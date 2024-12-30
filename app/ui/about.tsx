@@ -209,7 +209,7 @@ export default function AboutComponent() {
         className="flex flex-col items-center justify-center bg-white"
         style={{
           width: '105%', 
-    maxWidth: '100vw',
+          maxWidth: '100vw',
           height: '160px',
           textAlign: 'center', // 居中文本
         }}
@@ -220,7 +220,7 @@ export default function AboutComponent() {
             height: '75%',
           }}
         >
-          Enre（ver 3.0.0）では、遂にイベント情報可視化機能が再実装されます！
+          Enre（ver{version}）では、遂にイベント情報可視化機能が再実装されます！
         </p>
       </div>
 
@@ -256,7 +256,7 @@ export default function AboutComponent() {
       <p className="text-base font-bold text-center">
         「みんなのアルバム」
       </p>
-      <p className="text-base text-center mt-5 mb-0">
+      {/* <p className="text-base text-center mt-5 mb-0">
         ・あなたのイベント参加を記録する
       </p>
       <p className="text-base font-bold text-center">
@@ -267,7 +267,7 @@ export default function AboutComponent() {
       </p>
       <p className="text-base font-bold text-center">
         「ユーザーランキング」
-      </p>
+      </p> */}
       <p className="text-base text-center mt-5 mb-0">
         ・3つのジャンルのイベントへの参加度合いで3種類の分岐成長を可能に！
       </p>
@@ -278,7 +278,7 @@ export default function AboutComponent() {
         className="flex flex-col items-center justify-center bg-white"
         style={{
           width: '105%', 
-    maxWidth: '100vw',
+          maxWidth: '100vw',
           height: '100px',
           textAlign: 'center', // 居中文本
         }}

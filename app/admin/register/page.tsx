@@ -118,6 +118,7 @@ function ProgramView() {
   const [open, setOpen] = useState("");
   const [close, setClose] = useState("");
   const [thema, setThema] = useState("");
+  const [completionMessage, setCompletionMessage] = useState("");
   const [loading, setLoading] = useState(false); // ローディング状態を追加
 
   // 入力値をリセットする関数
@@ -135,6 +136,7 @@ function ProgramView() {
     setOpen("");
     setClose("");
     setThema("");
+    setCompletionMessage("");
   };
 
   // バリデーションチェック
@@ -191,8 +193,11 @@ function ProgramView() {
         programPass,
         title,
         content,
+        thema,
+        completionMessage,
         place,
         owner,
+        loadingPoint: Number(loadingPoint),
         point: Number(point),
         type,
         field,
@@ -276,23 +281,36 @@ function ProgramView() {
         onChange={createChangeHandler(setThema)}
       />
 
-      {/* 場所 */}
+      {/* クリア後表示文 */}
       <InputField
-        id="place"
-        label="場所"
-        placeholder="Place"
-        value={place}
-        onChange={createChangeHandler(setPlace)}
+        id="completionMessage"
+        label="ミッションクリア時に表示する文章"
+        placeholder="任意"
+        value={completionMessage}
+        onChange={createChangeHandler(setCompletionMessage)}
       />
 
-      {/* 運営 */}
-      <InputField
-        id="owner"
-        label="運営"
-        placeholder="Owner"
-        value={owner}
-        onChange={createChangeHandler(setOwner)}
-      />
+      {/* 場所, 運営 */}
+      <div className="flex space-x-4">
+        <div className="flex flex-col w-full">
+          <InputField
+            id="place"
+            label="場所"
+            placeholder="Place"
+            value={place}
+            onChange={createChangeHandler(setPlace)}
+          />
+        </div>
+        <div className="flex flex-col w-full">
+          <InputField
+            id="owner"
+            label="運営"
+            placeholder="Owner"
+            value={owner}
+            onChange={createChangeHandler(setOwner)}
+          />
+        </div>
+      </div>
 
       {/* 点数 */}
       <div className="flex space-x-4">
@@ -316,61 +334,62 @@ function ProgramView() {
         </div>
       </div>
 
-      {/* 形式(type) */}
-      <div className="mb-2">
-        <label htmlFor="type" className="block text-left">イベント形式</label>
-        <select
-          id="type"
-          value={field}
-          onChange={(e) => setType((e.target.value))}
-          className="bg-gray-50 border border-gray-300 text-sm rounded-lg w-full p-2.5"
-        >
-          <option value="">イベント形式を選択</option>
-          <option value="biome">biome</option>
-          <option value="fallenleaves">落ち葉投稿</option>
-          <option value="postphoto">写真投稿系</option>
-          <option value="expressfeelings">文章投稿系</option>
-          <option value="walk">帰宅</option>
-          <option value="">QR読み取りのみ(例：フリーコーヒー)</option>
-        </select>
-      </div>
-
-      {/* ジャンル */}
-      <div className="mb-2">
-        <label htmlFor="field" className="block text-left">ジャンル(3種類)</label>
-        <select
-          id="field"
-          value={field}
-          onChange={(e) => setField((e.target.value))}
-          className="bg-gray-50 border border-gray-300 text-sm rounded-lg w-full p-2.5"
-        >
-          <option value="">ジャンルを選択</option>
-          <option value="1">知る</option>
-          <option value="2">使う</option>
-          <option value="3">守る</option>
-        </select>
+      <div className="flex space-x-4">
+        {/* 形式(type) */}
+        <div className="flex flex-col w-full">
+          <label htmlFor="type" className="block text-left">イベント形式</label>
+          <select
+            id="type"
+            value={field}
+            onChange={(e) => setType((e.target.value))}
+            className="bg-gray-50 border border-gray-300 text-sm rounded-lg w-full p-2.5"
+          >
+            <option value="">イベント形式を選択</option>
+            <option value="biome">biome</option>
+            <option value="fallenleaves">落ち葉投稿</option>
+            <option value="postphoto">写真投稿系</option>
+            <option value="expressfeelings">文章投稿系</option>
+            <option value="walk">帰宅</option>
+            <option value="">QR読み取りのみ(例：フリーコーヒー)</option>
+          </select>
+        </div>
+        {/* ジャンル */}
+        <div className="flex flex-col w-full">
+          <label htmlFor="field" className="block text-left">ジャンル(3種類)</label>
+          <select
+            id="field"
+            value={field}
+            onChange={(e) => setField((e.target.value))}
+            className="bg-gray-50 border border-gray-300 text-sm rounded-lg w-full p-2.5"
+          >
+            <option value="">ジャンルを選択</option>
+            <option value="1">知る</option>
+            <option value="2">使う</option>
+            <option value="3">守る</option>
+          </select>
+        </div>
       </div>
 
       {/* Day (選択式) */}
-      <div className="mb-2">
-        <label htmlFor="day" className="block text-left">日</label>
-        <select
-          id="day"
-          value={day}
-          onChange={(e) => setDay((e.target.value))}
-          className="bg-gray-50 border border-gray-300 text-sm rounded-lg w-full p-2.5"
-        >
-          <option value="">開催日を選択</option>
-          <option value="1">1/8(水)</option>
-          <option value="2">1/9(木)</option>
-          <option value="3">1/10(金)</option>
-          {/* <option value="4">4</option> */}
-          {/* <option value="5">5</option> */}
-        </select>
-      </div>
+      <div className="flex space-x-4 mt-2">
+        <div className="flex flex-col w-full">
+          <label htmlFor="day" className="block text-left">日</label>
+          <select
+            id="day"
+            value={day}
+            onChange={(e) => setDay((e.target.value))}
+            className="bg-gray-50 border border-gray-300 text-sm rounded-lg w-full p-2.5"
+          >
+            <option value="">開催日を選択</option>
+            <option value="1">1/8(水)</option>
+            <option value="2">1/9(木)</option>
+            <option value="3">1/10(金)</option>
+            {/* <option value="4">4</option> */}
+            {/* <option value="5">5</option> */}
+          </select>
+        </div>
 
-      {/* 開始 */}
-      <div className="flex space-x-4">
+        {/* 開始 */}
         <div className="flex flex-col w-full">
           <InputField
             id="open"
@@ -380,6 +399,7 @@ function ProgramView() {
             onChange={createChangeHandler(setOpen)}
           />
         </div>
+        {/* 終了 */}
         <div className="flex flex-col w-full">
           <InputField
             id="close"
@@ -408,9 +428,10 @@ type Program = {
   title: string;
   content: string;
   thema: string;
+  completionMessage: string;
   place: string;
   owner: string;
-  // loadingPoint: string;
+  loadingPoint: string;
   point: string;
   type: string;
   field: string;
@@ -429,9 +450,10 @@ function ProgramRetouchView({ program }: ProgramRetouchViewProps) {
     const [title, setTitle] = useState(program.title);
     const [content, setContent] = useState(program.content);
     const [thema, setThema] = useState(program.thema);
+    const [completionMessage, setCompletionMessage] = useState(program.completionMessage);
     const [place, setPlace] = useState(program.place);
     const [owner, setOwner] = useState(program.owner);
-    // const [loadingPoint, setLoadingPoint] = useState(program.loadingPoint);
+    const [loadingPoint, setLoadingPoint] = useState(program.loadingPoint);
     const [point, setPoint] = useState(program.point);
     const [type, setType] = useState(program.type);
     const [field, setField] = useState(program.field);
@@ -439,8 +461,34 @@ function ProgramRetouchView({ program }: ProgramRetouchViewProps) {
     const [open, setOpen] = useState(program.open);
     const [close, setClose] = useState(program.close);
   
-    const handleOpenModal = () => setIsModalOpen(true);
-    const handleCloseModal = () => setIsModalOpen(false);
+    const handleOpenModal = () => {
+      // 初期状態にリセット
+      setProgramPass(program.programPass);
+      setTitle(program.title);
+      setContent(program.content);
+      setThema(program.thema);
+      setCompletionMessage(program.completionMessage);
+      setPlace(program.place);
+      setOwner(program.owner);
+      setLoadingPoint(program.loadingPoint);
+      setPoint(program.point);
+      setType(program.type);
+      setField(program.field);
+      setDay(program.day);
+      setOpen(program.open);
+      setClose(program.close);
+  
+      setIsModalOpen(true); // モーダルを開く
+    };
+    const handleCancelModal = () => {
+      const confirmClose = window.confirm("編集した内容は破棄されますがよろしいですか？");
+      if (confirmClose) {
+          setIsModalOpen(false); // モーダルを閉じる
+      }
+    };
+    const handleCloseModal = () => {
+        setIsModalOpen(false); // 警告なしでモーダルを閉じる
+    };
   
     const handleUpdate = async () => {
       const result = confirm("プログラムを更新しますか？");
@@ -453,8 +501,10 @@ function ProgramRetouchView({ program }: ProgramRetouchViewProps) {
           title,
           content,
           thema,
+          completionMessage,
           place,
           owner,
+          loadingPoint,
           point,
           type,
           field,
@@ -462,11 +512,6 @@ function ProgramRetouchView({ program }: ProgramRetouchViewProps) {
           open,
           close,
         });
-
-        // const docRefQR = doc(db, "QR2025_1", program.id);
-        // await updateDoc(docRefQR, {
-        //   loadingPoint,
-        // });
   
         alert("プログラムが更新されました！");
         handleCloseModal(); // 更新成功後にモーダルを閉じる
@@ -492,7 +537,7 @@ function ProgramRetouchView({ program }: ProgramRetouchViewProps) {
             <div className="relative w-full max-w-3xl bg-white p-6 rounded-lg shadow-lg">
               <button
                 className="absolute top-3 right-3 text-gray-500 hover:text-gray-800"
-                onClick={handleCloseModal}
+                onClick={handleCancelModal}
               >
                 ✕
               </button>
@@ -530,6 +575,14 @@ function ProgramRetouchView({ program }: ProgramRetouchViewProps) {
                   placeholder="Thema"
                   className="mt-1 text-sm w-full p-1 border rounded"
                 />
+                <p className="mt-1 text-sm text-left">ミッションクリア時に表示する文章</p>
+                <input
+                  type="text"
+                  value={completionMessage}
+                  onChange={(e) => setCompletionMessage(e.target.value)}
+                  placeholder="任意"
+                  className="mt-1 text-sm w-full p-1 border rounded"
+                />
                 <div className="flex space-x-4 items-center mt-1">
                   <div className="flex flex-col w-full">
                     <p className="mt-0 text-sm text-left mb-0">場所</p>
@@ -552,15 +605,7 @@ function ProgramRetouchView({ program }: ProgramRetouchViewProps) {
                     />
                   </div>
                 </div>
-                <p className="mt-0 text-sm text-left mb-0">得点2</p>
-                <input
-                  type="text"
-                  value={point}
-                  onChange={(e) => setPoint(e.target.value)}
-                  placeholder=""
-                  className="mt-1 text-sm w-full p-1 border rounded"
-                />
-                {/* <div className="flex space-x-4 items-center mt-1">
+                <div className="flex space-x-4 items-center mt-1">
                   <div className="flex flex-col w-full">
                     <p className="mt-0 text-sm text-left mb-0">得点1</p>
                     <input
@@ -581,32 +626,40 @@ function ProgramRetouchView({ program }: ProgramRetouchViewProps) {
                       className="mt-1 text-sm w-full p-1 border rounded"
                     />
                   </div>
-                </div> */}
-                <p className="mt-1 text-sm text-left">形式</p>
-                <input
-                  type="text"
-                  value={type}
-                  onChange={(e) => setType(e.target.value)}
-                  placeholder="イベント形式"
-                  className="mt-1 text-sm w-full p-1 border rounded"
-                />
-                <p className="mt-1 text-sm text-left">ジャンル</p>
-                <input
-                  type="text"
-                  value={field}
-                  onChange={(e) => setField(e.target.value)}
-                  placeholder="Field"
-                  className="mt-1 text-sm w-full p-1 border rounded"
-                />
-                <p className="mt-1 text-sm text-left">日</p>
-                <input
-                  type="text"
-                  value={day}
-                  onChange={(e) => setDay(e.target.value)}
-                  placeholder="Day"
-                  className="mt-1 text-sm w-full p-1 border rounded"
-                />
+                </div>
                 <div className="flex space-x-4 items-center mt-1">
+                  <div className="flex flex-col w-full">
+                    <p className="mt-0 mb-0 text-sm text-left">形式</p>
+                    <input
+                      type="text"
+                      value={type}
+                      onChange={(e) => setType(e.target.value)}
+                      placeholder="イベント形式"
+                      className="mt-1 text-sm w-full p-1 border rounded"
+                    />
+                  </div>
+                  <div className="flex flex-col w-full">
+                    <p className="mt-0 mb-0 text-sm text-left">ジャンル(半角数字)</p>
+                    <input
+                      type="text"
+                      value={field}
+                      onChange={(e) => setField(e.target.value)}
+                      placeholder="1:知る 2:使う 3:守る"
+                      className="mt-1 text-sm w-full p-1 border rounded"
+                    />
+                  </div>
+                </div>
+                <div className="flex space-x-4 items-center mt-1">
+                  <div className="flex flex-col w-full">
+                    <p className="mt-0 text-sm text-left mb-0">日</p>
+                    <input
+                      type="text"
+                      value={day}
+                      onChange={(e) => setDay(e.target.value)}
+                      placeholder="1と入力してください"
+                      className="mt-1 text-sm w-full p-1 border rounded"
+                    />
+                  </div>
                   <div className="flex flex-col w-full">
                     <p className="mt-0 text-sm text-left mb-0">開始</p>
                     <input
@@ -709,7 +762,6 @@ function ProgramListView() {
 // // 日単位のプログラムリスト取得と表示
 function ProgramsView({ targetDay }: Props) {
     const [programList, setProgramList] = useState<Program[]>([]);
-    // const [qrList, setQrList] = useState<Record<string, any>[]>([]); // QR2025_1 データ用
   
     useEffect(() => {
       const q = query(
@@ -739,8 +791,12 @@ function ProgramsView({ targetDay }: Props) {
                 </div>
                 <p className="text-gray-700 text-sm">{program.content}</p>
               </div>
-              <div className="flex justify-between text-sm mt-2">
-                <p className="text-gray-600">得点: {program.point}</p>
+              {/* <div className="flex justify-between text-sm mt-2"> */}
+              <div className="grid grid-cols-2 mt-2 text-sm">
+                <p className="text-gray-600">得点1: {program.loadingPoint}</p>
+                <p className="text-gray-600">得点2: {program.point}</p>
+              </div>
+              <div className="grid grid-cols-2 mt-2 text-sm">
                 <p className="text-gray-600">運営: {program.owner}</p>
                 <p className="text-gray-600">場所: {program.place}</p>
               </div>

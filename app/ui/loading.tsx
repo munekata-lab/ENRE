@@ -58,7 +58,7 @@ export default function LoadingComponent() {
       await patchCurrentPlace(place);
       const participatedEvents = await fetchParticipatedEvents();
       if (participatedEvents[Number(qrId)] <= 0) {
-        await patchReward2(`${qrInfo.loadingPoint}`, `${qrInfo.field}`);
+        await patchReward2(`${programInfo.loadingPoint}`, `${qrInfo.field}`);
       }
       if (qrInfo.type === "checkin") {
         if (participatedEvents[Number(qrId)] > 0) {
