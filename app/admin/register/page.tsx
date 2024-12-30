@@ -106,7 +106,7 @@ export default function Admin() {
           <div className="text-2xl font-bold top-24 w-full">
             <h1 className="text-center">管理画面</h1>
             <ProgramView />
-            <Home />
+            {/* <Home /> */}
             <div className="h-full">
               <ProgramListView />
             </div>
