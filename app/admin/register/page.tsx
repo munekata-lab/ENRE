@@ -353,15 +353,15 @@ function ProgramView() {
           <label htmlFor="type" className="block text-left">イベント形式</label>
           <select
             id="type"
-            value={field}
+            value={type}
             onChange={(e) => setType((e.target.value))}
             className="bg-gray-50 border border-gray-300 text-sm rounded-lg w-full p-2.5"
           >
             <option value="">イベント形式を選択</option>
             <option value="biome">biome</option>
-            <option value="fallenleaves">落ち葉投稿</option>
+            <option value="fallenleaves">コンポスト</option>
             <option value="postphoto">写真投稿系</option>
-            <option value="expressfeelings">文章投稿系</option>
+            <option value="expressfeelings">文字投稿系</option>
             <option value="walk">帰宅</option>
             <option value="">QR読み取りのみ(例：フリーコーヒー)</option>
           </select>
@@ -800,9 +800,11 @@ function ProgramsView({ targetDay }: Props) {
             <div className="bg-white rounded p-4 flex flex-col leading-normal">
               <div className="w-full">
                 <div className="text-gray-900 font-bold text-xl">
-                  {program.title}
+                  No.{program.id} : {program.title}
                 </div>
                 <p className="text-gray-700 text-sm">{program.content}</p>
+                <p className="text-gray-700 text-sm">{program.thema}</p>
+                <p className="text-gray-700 text-sm">{program.completionMessage}</p>
               </div>
               {/* <div className="flex justify-between text-sm mt-2"> */}
               <div className="grid grid-cols-2 mt-2 text-sm">
