@@ -20,7 +20,7 @@ export default function TimeTableComponent({
         <br />
         タップしてください
       </h1>
-      <div className="grid grid-cols-6 text-center text-xs">
+      <div className="grid grid-cols-4 text-center text-xs">
         <div className="border p-6 border-white rounded-sm m-0.5 bg-green-600"></div>
         {days.map((day) => (
           <div

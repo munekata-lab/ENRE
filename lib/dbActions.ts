@@ -155,7 +155,7 @@ export async function postCollectionInLogs(
 
 export async function postUserInfo(uid: string, nickName: string) {
   const initialTimeTable: { [key: number]: boolean[] } = Object.fromEntries(
-    Array.from({ length: 6 }, (_, i) => [i, Array(5).fill(false)])
+    Array.from({ length: 6 }, (_, i) => [i, Array(3).fill(false)])
   );
   const userInfo = {
     checkinProgramIds: [],
