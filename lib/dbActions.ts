@@ -153,6 +153,28 @@ export async function postCollectionInLogs(
     });
 }
 
+// 文章投稿系
+export async function postDocument(
+  programId: string,
+  document: string,
+) {
+  const user = await getUserFromCookie();
+  if (!user) throw new Error("ログインしてください");
+  const uid = user.uid;
+  const logData = {
+    programId: programId,
+    document: document,
+    date: new Date(),
+    uid: uid,
+  };
+  await adminDB
+    .collection("expressFeelings")
+    .add(logData)
+    .catch((error: Error) => {
+      throw new Error(error.message);
+    });
+}
+
 export async function postUserInfo(uid: string, nickName: string) {
   const initialTimeTable: { [key: number]: boolean[] } = Object.fromEntries(
     Array.from({ length: 6 }, (_, i) => [i, Array(3).fill(false)])
@@ -765,6 +787,32 @@ export async function fetchBoardInfo(): Promise<any | null> {
     return null;
   }
 }
+
+// // 設定したらuidを追加して今後表示しないようにする
+// export async function fetchSettingInfo(): Promise<any | null> {
+//   const user = await getUserFromCookie();
+//   if (!user) return null;
+//   const uid = user.uid;
+//   try {
+//     const boardRef = await adminDB
+//       .collection("board")
+//       .orderBy("createdAt", "desc")
+//       .get();
+//     const boardInfo = boardRef.docs.map((doc: any) => {
+//       const boardData = doc.data();
+//       if (!boardData.uids.includes(uid)) {
+//         return null;
+//       }
+//       return boardData;
+//     });
+//     const fileteredBoardInfo = boardInfo.filter((board: any) => board !== null);
+//     if (fileteredBoardInfo.length === 0) return null;
+//     return fileteredBoardInfo[0];
+//   } catch (error) {
+//     console.log(error);
+//     return null;
+//   }
+// }
 
 export async function fetchRewardProgressInfo(): Promise<any | null> {
   const user = await getUserFromCookie();

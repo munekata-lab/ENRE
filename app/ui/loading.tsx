@@ -71,7 +71,7 @@ export default function LoadingComponent() {
         setLink(
           programInfo.link === null
             ? "/"
-            : `${programInfo.link}?programId=${qrInfo.programId}&content=${programInfo.content}&thema=${programInfo.thema}&point=${programInfo.point}&field=${programInfo.field}&type=${programInfo.type}`
+            : `${programInfo.link}?programId=${qrInfo.programId}&place=${place}&title=${programInfo.title}&content=${programInfo.content}&thema=${programInfo.thema}&completionMessage=${programInfo.completionMessage}&point=${programInfo.point}&field=${programInfo.field}&type=${programInfo.type}`
         );
       } else if (qrInfo.type === "checkout") {
         if (participatedEvents[Number(qrId)] > 0) {
@@ -82,7 +82,7 @@ export default function LoadingComponent() {
         await patchCheckoutProgramIds(`${qrInfo.programId}`);
         setCheckout(true);
         setLink(
-          `/photoalbum/postjoinshare?programId=${qrInfo.programId}&point=${programInfo.point}&field=${programInfo.field}`
+          `/photoalbum/postjoinshare?programId=${qrInfo.programId}&place=${place}&point=${programInfo.point}&field=${programInfo.field}`
         );
       } else { //今回使ってない
         if (participatedEvents[Number(qrId)] > 0) {

@@ -37,6 +37,8 @@ export default function UploadImage() {
   const field = searchParams.get("field") || "";
   const type = searchParams.get("type") || "";
   const imageName = "/programpicture" + programId + ".webp";
+  const programTitle = searchParams.get("title") || ""; //クリア画面で使用
+  const completionMessage = searchParams.get("completionMessage") || ""; //クリア画面で使用
 
   useEffect(() => {
     (async () => {
@@ -184,7 +186,7 @@ export default function UploadImage() {
         await postCollectionInLogs(title, place, state);
         await patchParticipatedEvents(`${programId}`);
         postLogEvent("写真投稿成功");
-        router.push("/photoalbum");
+        router.push(`/complete?&programId=${programId}&title=${programTitle}&completionMessage=${completionMessage}&point=${point}&field=${field}`);
       } else {
         setError("投稿に失敗しました");
       }

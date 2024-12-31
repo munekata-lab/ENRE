@@ -25,7 +25,7 @@ export default async function CheckinDetailComponent() {
         process: item.programInfo2.process,
         caution: item.programInfo2.caution,
         condition: item.programInfo2.condition,
-        link: `${item.programInfo.link}?programId=${item.programId}&content=${item.programInfo.content}&thema=${item.programInfo.thema}&point=${item.programInfo.point}&type=${item.programInfo.type}`,
+        link: `${item.programInfo.link}?programId=${item.programId}&title=${item.programInfo.title}&completionMessage=${item.programInfo.completionMessage}&content=${item.programInfo.content}&thema=${item.programInfo.thema}&point=${item.programInfo.point}&type=${item.programInfo.type}`,
         owner: item.programInfo.owner,
         loadingPoint: item.programInfo.loadingPoint,
         point: item.programInfo.point,

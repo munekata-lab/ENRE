@@ -33,7 +33,9 @@ export default function PostBiomeComponent() {
   const point = searchParams.get("point") || "";
   const field = searchParams.get("field") || "";
   const type = searchParams.get("type") || "";
-  const href = `/biome?programId=${programId}&point=${point}&field=${field}$type=${type}`;
+  const programTitle = searchParams.get("title") || ""; //クリア画面で使用
+  const completionMessage = searchParams.get("completionMessage") || ""; //クリア画面で使用
+  const href = `/biome?programId=${programId}&title=${programTitle}&completionMessage=${completionMessage}&point=${point}&field=${field}$type=${type}`;
 
   const uploadToClient = async (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.files && event.target.files[0]) {
@@ -188,7 +190,7 @@ export default function PostBiomeComponent() {
       (async () => {
         await patchReward2(point, field);
         await patchCheckoutProgramIds(programId);
-        router.push("/");
+        router.push(`/complete?&programId=${programId}&title=${programTitle}&completionMessage=${completionMessage}&point=${point}&field=${field}`);
       })();
     },
     rightOnClick: () => {
