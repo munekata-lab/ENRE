@@ -37,7 +37,7 @@ export default function UploadImage() {
   const [isPushButton, setIsPushButton] = useState(false);
   const programId = searchParams.get("programId") || "";
   const type = searchParams.get("type") || "";
-  const imageName = "/programpicture" + programId + ".png";
+  const imageName = "/programpicture" + programId + ".webp";
 
   useEffect(() => {
     (async () => {
