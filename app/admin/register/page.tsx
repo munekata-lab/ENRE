@@ -194,8 +194,12 @@ function ProgramView() {
       // ドキュメント番号を取得
       const programNumber = await getNextDocumentNumber();
 
-      // type が空の場合 link を null に、それ以外は /type の形式
-      const link = type ? `/${type}` : null;
+      // type が空の場合 link を null に、それ以外は条件によってリンク形式を設定
+      const link = !type
+        ? null
+        : type === "postphoto"
+        ? `/photoalbum/${type}`
+        : `/${type}`;
 
       // 3桁形式で programNumber をフォーマット
       const programIdFormatted = String(programNumber).padStart(3, "0");
@@ -447,6 +451,7 @@ type Program = {
   loadingPoint: string;
   point: string;
   type: string;
+  link: string;
   field: string;
   day: string;
   open: string;
@@ -469,6 +474,7 @@ function ProgramRetouchView({ program }: ProgramRetouchViewProps) {
     const [loadingPoint, setLoadingPoint] = useState(program.loadingPoint);
     const [point, setPoint] = useState(program.point);
     const [type, setType] = useState(program.type);
+    const [link, setLink] = useState(program.link);
     const [field, setField] = useState(program.field);
     const [day, setDay] = useState(program.day);
     const [open, setOpen] = useState(program.open);
@@ -486,6 +492,7 @@ function ProgramRetouchView({ program }: ProgramRetouchViewProps) {
       setLoadingPoint(program.loadingPoint);
       setPoint(program.point);
       setType(program.type);
+      setLink(program.link);
       setField(program.field);
       setDay(program.day);
       setOpen(program.open);
@@ -509,6 +516,13 @@ function ProgramRetouchView({ program }: ProgramRetouchViewProps) {
   
       try {
         const docRef = doc(db, "program2025_1", program.id);
+        // type が空または特定の値の場合に応じてリンク形式を設定
+        const updatedLink = !type
+          ? null
+          : type === "postphoto"
+          ? `/photoalbum/${type}`
+          : `/${type}`;
+
         await updateDoc(docRef, {
           programPass,
           title,
@@ -520,6 +534,7 @@ function ProgramRetouchView({ program }: ProgramRetouchViewProps) {
           loadingPoint,
           point,
           type,
+          link: updatedLink, // 動的に生成されたリンクを設定
           field,
           day,
           open,
