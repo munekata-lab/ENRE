@@ -23,6 +23,7 @@ export default function UploadImage() {
   const searchParams = useSearchParams();
   const [tab, setTab] = useState<"detail" | "post">("detail");
   const [content, setContent] = useState("");
+  const [thema, setThema] = useState("");
   const [process, setProcess] = useState<string[]>([]);
   const [caution, setCaution] = useState<string[]>([]);
   const [condition, setCondition] = useState<string[]>([]);
@@ -36,17 +37,19 @@ export default function UploadImage() {
   const [isPushButton, setIsPushButton] = useState(false);
   const programId = searchParams.get("programId") || "";
   const type = searchParams.get("type") || "";
+  const imageName = "/programpicture" + programId + ".png";
 
   useEffect(() => {
     (async () => {
       const programInfo = await fetchProgramInfo(programId);
       const programInfo2 = await fetchProgramInfo2(type);
       setContent(programInfo.content);
+      setThema(programInfo.thema);
       setProcess(programInfo2.process);
       setCaution(programInfo2.caution);
       setCondition(programInfo2.condition);
-      setPoint(programInfo.rewardPoint);
-      setField(programInfo.rewardField);
+      setPoint(programInfo.point); 
+      setField(programInfo.field);
     })();
   }, []);
 
@@ -221,21 +224,37 @@ export default function UploadImage() {
           </button>
         </div>
         {tab === "detail" && (
-          <div className="p-2 overflow-auto">
+          <div className="p-2 overflow-auto bg-white mx-2">
             <p className="text-sm mb-0 text-left">{content}</p>
-            <p className="text-lg mb-0 font-bold mt-2">手順</p>
-            <div className="mb-2 text-left">
-              {process.map((process, index) => (
-                <p key={index} className="text-sm mb-0 ml-3">
-                  {`${index + 1}. ${process}`}
-                </p>
-              ))}
+            <div className="flex justify-between items-start mt-3">
+              <div className="w-1/2 flex flex-col justify-center pr-4">
+                <p className="text-lg mb-0 font-bold mt-2">お題</p>
+                <p className="text-sm mb-0 text-left">{thema}</p>
+              </div>
+              <div className="w-1/2 flex flex-col items-center mt-2">
+                <Image
+                  src={imageName}
+                  width={300}
+                  height={300}
+                  alt="picture"
+                  priority
+                />
+                <p className="text-sm mb-0 mt-1">写真例</p>
+              </div>
             </div>
+            <p className="text-lg mb-0 font-bold mt-2">手順</p>
+                <div className="mb-2 text-left">
+                  {process.map((process, index) => (
+                    <p key={index} className="text-sm mb-0 ml-3">
+                      {`${index + 1}. ${process}`}
+                    </p>
+                  ))}
+                </div>
             <p className="text-lg mb-0 font-bold">注意事項</p>
             <div className="mb-2 text-left">
               {caution.map((caution, index) => (
                 <p key={index} className="text-sm mb-0 ml-3">
-                  {caution}
+                  {`${index + 1}. ${caution}`}
                 </p>
               ))}
             </div>
@@ -243,7 +262,7 @@ export default function UploadImage() {
             <div className="mb-2">
               {condition.map((condition, index) => (
                 <p key={index} className="text-sm mb-0 ml-3">
-                  {condition}
+                  {`${condition}: ${point}P`}
                 </p>
               ))}
             </div>
