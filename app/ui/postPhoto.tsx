@@ -22,34 +22,28 @@ export default function UploadImage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [tab, setTab] = useState<"detail" | "post">("detail");
-  const [content, setContent] = useState("");
-  const [thema, setThema] = useState("");
   const [process, setProcess] = useState<string[]>([]);
   const [caution, setCaution] = useState<string[]>([]);
   const [condition, setCondition] = useState<string[]>([]);
-  const [point, setPoint] = useState("");
-  const [field, setField] = useState("");
-  const [owner, setOwner] = useState("");
-  // const [rewardGIP, setRewardGIP] = useState("");
   const [photo, setPhoto] = useState<File | null>(null);
   const [error, setError] = useState("");
   const [createObjectURL, setCreateObjectURL] = useState("");
   const [isPushButton, setIsPushButton] = useState(false);
+  const [isCompressing, setIsCompressing] = useState(false);  // 圧縮中フラグ
   const programId = searchParams.get("programId") || "";
+  const content = searchParams.get("content") || "";
+  const thema = searchParams.get("thema") || "";
+  const point = searchParams.get("point") || "";
+  const field = searchParams.get("field") || "";
   const type = searchParams.get("type") || "";
   const imageName = "/programpicture" + programId + ".webp";
 
   useEffect(() => {
     (async () => {
-      const programInfo = await fetchProgramInfo(programId);
       const programInfo2 = await fetchProgramInfo2(type);
-      setContent(programInfo.content);
-      setThema(programInfo.thema);
       setProcess(programInfo2.process);
       setCaution(programInfo2.caution);
       setCondition(programInfo2.condition);
-      setPoint(programInfo.point); 
-      setField(programInfo.field);
     })();
   }, []);
 
@@ -67,6 +61,7 @@ export default function UploadImage() {
       }
      
       try {
+        setIsCompressing(true);  // 圧縮開始時にフラグを立てる
         // 初期の圧縮オプション設定
         let options = {
           maxSizeMB: 1, // 最大1MB
@@ -92,9 +87,11 @@ export default function UploadImage() {
         // 圧縮および変換されたファイルを状態にセット
         setPhoto(avifFile);
         setCreateObjectURL(URL.createObjectURL(avifFile));
+        setIsCompressing(false);  // 圧縮完了後にフラグを下げる
       } catch (error) {
         console.error('圧縮エラー:', error);
         setError('画像の圧縮中にエラーが発生しました。');
+        setIsCompressing(false);  // エラー発生時にもフラグを下げる
       }
     }
   };
@@ -258,13 +255,11 @@ export default function UploadImage() {
                 </p>
               ))}
             </div>
-            <p className="text-lg mb-0 font-bold">付与条件</p>
+            <p className="text-lg mb-0 font-bold">付与</p>
             <div className="mb-2">
-              {condition.map((condition, index) => (
-                <p key={index} className="text-sm mb-0 ml-3">
-                  {`${condition}: ${point}P`}
-                </p>
-              ))}
+              <p className="text-sm mb-0 ml-3">
+                {`${point}P`}
+              </p>
             </div>
           </div>
         )}
@@ -289,7 +284,7 @@ export default function UploadImage() {
               )}
             </div>
             <div className="text-black">
-              {createObjectURL && (
+              {/* {createObjectURL && (
                 <Image
                   src={createObjectURL}
                   alt="Uploaded image"
@@ -298,7 +293,22 @@ export default function UploadImage() {
                   priority
                   className="bg-gray-800 w-full pt-10 pb-10 pr-5 pl-5"
                 />
-              )}
+              )} */}
+              {isCompressing ? (
+                <div className="m-2">
+                  <p className="text-center">写真を圧縮しています...</p> 
+                  <p className="text-sm text-left">※画像サイズが大きい場合、時間がかかる可能性があります</p>
+                </div>
+              ) : createObjectURL ? (
+                <Image
+                  src={createObjectURL}
+                  alt="Uploaded image"
+                  width={100}
+                  height={100}
+                  priority
+                  className="bg-gray-800 w-full pt-10 pb-10 pr-5 pl-5"
+                />
+              ) : null}
               <label
                 htmlFor="file-input"
                 className="flex justify-center items-center px-4 py-2 rounded mb-6 w-full"

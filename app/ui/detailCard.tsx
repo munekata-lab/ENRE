@@ -7,12 +7,17 @@ import Link from "next/link";
 type Spots = {
   title: string;
   content: string;
+  thema: string;
+  completionMessage: string;
   place?: string;
   link?: string;
   process: string[];
   caution: string[];
   condition: string[];
   owner: string,
+  loadingPoint: number;
+  point: number;
+  field: string;
   // schedule: {open: string, close: string, day: string}[];
   // isOpen: boolean,
   // exit: string,
@@ -107,13 +112,21 @@ export default function DetailCardComponent({
                   {`${index + 1}. ${process}`}
                 </p>))}
             </div>
-            <p className="text-xs mb-0 ml-3 font-bold">【付与条件】</p>
+            {/* loadingPointとppoint表示する場合は修正の必要あり */}
+            <p className="text-xs mb-0 ml-3 font-bold">【付与条件】</p> 
             <div className="mb-2 ml-3">
-              {spotInfo.condition.map((condition, index) => (
-                <p key={index} className="text-xs mb-0 ml-3">
-                  {`${index + 1}. ${condition}`}
-                </p>
-              ))}
+              {/* spotInfo.loadingPoint が 0 の場合、spotInfo.point を表示 */}
+              <p className="text-xs mb-0 ml-3">
+                  {`1. ${spotInfo.condition[0]}: ${
+                      spotInfo.loadingPoint === 0 ? spotInfo.point : spotInfo.loadingPoint
+                  }P`}
+              </p>
+              {/* spotInfo.condition[1] が存在する場合に表示 */}
+              {spotInfo.condition[1] && (
+                  <p className="text-xs mb-0 ml-3">
+                      {`2. ${spotInfo.condition[1]}: ${spotInfo.point}P`}
+                  </p>
+              )}
             </div>
           </>
         )}

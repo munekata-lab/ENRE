@@ -35,6 +35,7 @@ export default function LoadingComponent() {
   const [participated, setParticipated] = useState(false);
   const { parse } = useBudouX();
   const [point, setPoint] = useState("");
+  const [loadingPoint, setLoadingPoint] = useState("");
 
   useEffect(() => {
     if (ref.current) return;
@@ -42,6 +43,10 @@ export default function LoadingComponent() {
       const qrId = searchParams.get("id") || "";
       const qrInfo = await fetchQrInfo(qrId);
       const programInfo = await fetchProgramInfo(`${qrInfo.programId}`);
+      setTitle(programInfo.title);
+      setContent(programInfo.content);
+      setPoint(programInfo.point);
+      setLoadingPoint(programInfo.loadingPoint);
       if (programInfo.type) {
         const programInfo2 = await fetchProgramInfo2(`${programInfo.type}`);
         setProcess(programInfo2.process);
@@ -50,15 +55,12 @@ export default function LoadingComponent() {
       } else {
         console.warn("Type is empty, skipping fetchProgramInfo2.");
       }
-      setTitle(programInfo.title);
-      setContent(programInfo.content);
-      setPoint(programInfo.point);
       const place = `${qrInfo.placeId}-${qrInfo.placeNumber}`;
       await postCollectionInLogs(programInfo.title, place, "QRコード読み取り");
       await patchCurrentPlace(place);
       const participatedEvents = await fetchParticipatedEvents();
       if (participatedEvents[Number(qrId)] <= 0) {
-        await patchReward2(`${programInfo.loadingPoint}`, `${qrInfo.field}`);
+        await patchReward2(`${loadingPoint}`, `${qrInfo.field}`);
       }
       if (qrInfo.type === "checkin") {
         if (participatedEvents[Number(qrId)] > 0) {
@@ -69,7 +71,7 @@ export default function LoadingComponent() {
         setLink(
           programInfo.link === null
             ? "/"
-            : `${programInfo.link}?programId=${qrInfo.programId}&point=${programInfo.point}&field=${programInfo.field}&type=${programInfo.type}`
+            : `${programInfo.link}?programId=${qrInfo.programId}&content=${programInfo.content}&thema=${programInfo.thema}&point=${programInfo.point}&field=${programInfo.field}&type=${programInfo.type}`
         );
       } else if (qrInfo.type === "checkout") {
         if (participatedEvents[Number(qrId)] > 0) {
@@ -82,7 +84,7 @@ export default function LoadingComponent() {
         setLink(
           `/photoalbum/postjoinshare?programId=${qrInfo.programId}&point=${programInfo.point}&field=${programInfo.field}`
         );
-      } else {
+      } else { //今回使ってない
         if (participatedEvents[Number(qrId)] > 0) {
           setParticipated(true);
           return;
@@ -153,18 +155,25 @@ export default function LoadingComponent() {
                 <p className="text-xs mb-0 ml-3 font-bold">【注意事項】</p>
                 <div className="mb-2 ml-3">
                   {caution.map((caution, index) => (
-                    <p key={index} className="text-sm mb-0 ml-3">
+                    <p key={index} className="text-xs mb-0 ml-3">
                       {`${index + 1}. ${caution}`}
                     </p>
                   ))}
                 </div>
                 <p className="text-xs mb-0 ml-3 font-bold">【付与条件】</p>
                 <div className="mb-2 ml-3">
-                  {condition.map((condition, index) => (
-                    <p key={index} className="text-xs mb-0 ml-3">
-                      {`${condition}: ${point}P`}
-                    </p>
-                  ))}
+                  {/* loadingPoint が 0 の場合、point を表示 */}
+                  <p className="text-xs mb-0 ml-3">
+                      {`1. ${condition[0]}: ${
+                          `${loadingPoint}` === "0" ? point : loadingPoint
+                      }P`}
+                  </p>
+                  {/* condition[1] が存在する場合に表示 */}
+                  {condition[1] && (
+                      <p className="text-xs mb-0 ml-3">
+                          {`2. ${condition[1]}: ${point}P`}
+                      </p>
+                  )}
                 </div>
               </Card.Body>
             </Card>
