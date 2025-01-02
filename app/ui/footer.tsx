@@ -6,7 +6,7 @@ import Link from "next/link";
 import { NotificationComponent } from "./notification";
 import Image from "next/image";
 import { getUserFromCookie } from "@/lib/session";
-import { fetchNotificationInfo } from "@/lib/dbActions";
+import { fetchNotificationInfo, postCollectionInLogs } from "@/lib/dbActions";
 import { collection, onSnapshot, query } from "firebase/firestore";
 import { db } from "@/lib/firebase/client";
 
@@ -20,6 +20,17 @@ export default function FooterComponent() {
   const selectedIndex = paths.indexOf(currentPath);
   const [selectedIcon, setSelectedIcon] = useState(selectedIndex);
 
+  const handleLogPost = async (previousTitle: string, newTitle: string) => {
+    try {
+      await postCollectionInLogs(
+        "ページ移動",
+        `${previousTitle} → ${newTitle}`,
+        "成功"
+      );
+    } catch (error: any) {
+      console.error("ログ記録中にエラーが発生しました:", error.message);
+    }
+  };
   // const [notificationUpdateFlag, setNotificationUpdateFlag] = useState(true);
   // const [isReadAllNotification, setIsReadAllNotification] = useState(true);
 
@@ -75,7 +86,15 @@ export default function FooterComponent() {
       <div className="flex justify-around pt-2 pb-3 mx-4">
         {icons.map((icon, index) => (
           <Link href={paths[index]} key={index} className="justify-self-center items-self-center" >
-            <button key={index} onClick={() => { setSelectedIcon(index); }} >
+            <button
+              key={index}
+              onClick={() => {
+                const previousTitle = title[selectedIcon];
+                const newTitle = title[index];
+                setSelectedIcon(index);
+                handleLogPost(previousTitle, newTitle); // ログ記録を実行
+              }}
+            >
               <Image src={icon} width={45} height={45} alt={icon}  />
               <div
                 className={`text-xs mb-2 ${selectedIcon === index
