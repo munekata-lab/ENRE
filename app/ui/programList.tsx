@@ -37,21 +37,28 @@ export default function ProgramsList() {
       targetField === "0"
         ? query(collection(db, programData))
         : query(collection(db, programData), where("field", "==", targetField));
-
+  
     if (sortOrder === "pointDesc") {
       q = query(q, orderBy("point", "desc"));
-    } else if (sortOrder === "pointAsc") {
-      q = query(q, orderBy("point", "asc"));
     }
-
+  
     const unsubscribe = onSnapshot(q, (snapshot) => {
-      const programs = snapshot.docs.map((doc) => ({
-        id: doc.id,
-        ...doc.data(),
-      })) as Program[];
-      setProgramList(programs);
+      const programs = snapshot.docs
+        .map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+        })) as Program[];
+  
+      // idを数字の小さい順に並び替え
+      const sortedPrograms = programs.sort((a, b) => {
+        const idA = parseInt(a.id, 10); // idを整数に変換
+        const idB = parseInt(b.id, 10); // idを整数に変換
+        return idA - idB; // idの数値が小さい順にソート
+      });
+  
+      setProgramList(sortedPrograms);
     });
-
+  
     return () => unsubscribe();
   }, [targetField, sortOrder]);
 
@@ -75,7 +82,7 @@ export default function ProgramsList() {
                 <option value="2">使う</option>
                 <option value="3">守る</option>
                 </select>
-                <label htmlFor="sort-select" className="mr-2 ml-3">得点:</label>
+                <label htmlFor="sort-select" className="mr-2 ml-3">並び替え:</label>
                 <select
                 id="sort-select"
                 value={sortOrder}
@@ -83,8 +90,7 @@ export default function ProgramsList() {
                 className="p-2 border rounded"
                 >
                 <option value="none">指定なし</option>
-                <option value="pointDesc">高い順</option>
-                <option value="pointAsc">低い順</option>
+                <option value="pointDesc">得点順</option>
                 </select>
             </div>
             {programList.map((program) => (
@@ -110,14 +116,14 @@ export default function ProgramsList() {
                         </button>
                         <h2 className="text-2xl font-bold mb-2">{visibleProgram.title}</h2>
                         <hr className="border-t-2 border-green-700 my-2" />
-                        <p>{visibleProgram.content}</p>
-                        <p>
+                        <p className="text-left">{visibleProgram.content}</p>
+                        <p className="text-left">
                             <strong>開催時間:</strong>{" "}
                             {visibleProgram.open && visibleProgram.close
                                 ? `${visibleProgram.open} ~ ${visibleProgram.close}`
                                 : "全日"}
                         </p>
-                        <p><strong>得点:</strong> {visibleProgram.point + visibleProgram.loadingPoint}P</p>
+                        <p className="text-left"><strong>得点:</strong> {visibleProgram.point + visibleProgram.loadingPoint}P</p>
                         <p className="text-right"><strong>運営:</strong> {visibleProgram.owner}</p>
                         <p className="text-right"><strong>場所:</strong> {visibleProgram.place}</p>
                         <div className="w-full mt-4 flex justify-center">
