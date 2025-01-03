@@ -3,11 +3,16 @@
 import { useState, useEffect } from "react";
 import { useZxing } from "react-zxing";
 import { useRouter } from "next/navigation";
+import { db } from "@/lib/firebase/client"; // Firebaseの初期化ファイルをインポート
+import { collection, query, where, getDocs } from "firebase/firestore"; // Firestore関連の関数をインポート
+import packageJson from "../../package.json";
 
 export default function BarcodeScanner() {
   const router = useRouter();
   const [result, setResult] = useState("");
-  const [eventId, setEventId] = useState(""); // 手動で入力されたイベントID
+  const [programPass, setProgramPass] = useState(""); // 手動で入力されたイベントパス
+  const [noResult, setNoResult] = useState(false); // 結果がない場合のフラグ
+  const programData = packageJson.program_data;
   const { ref } = useZxing({
     onDecodeResult(result) {
       setResult(result.getText());
@@ -19,50 +24,58 @@ export default function BarcodeScanner() {
     router.push(result);
   }, [router, result]);
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setEventId(e.target.value); // 手動入力のイベントIDを状態にセット
-  };
+  const handleSubmit = async () => {
+    if (programPass) {
+      const q = query(collection(db, programData), where("programPass", "==", programPass));
 
-  const handleSubmit = () => {
-    if (eventId) {
-      // 手動で入力されたイベントIDで遷移
-      // router.push(`https://www.enre-official.com/loading?id=${eventId}`);
-      // 現在の URL を取得
-      const currentUrl = window.location.href;
-
-      // メインディレクトリ部分（例えば "https://localhost:3000"）を抽出
-      const baseUrl = currentUrl.split("/").slice(0, 3).join("/");
-
-      // 新しい URL へリダイレクト
-      router.push(`${baseUrl}/loading?id=${eventId}`);
+      try {
+        const querySnapshot = await getDocs(q);
+        if (querySnapshot.empty) {
+          setNoResult(true); // 結果が空の場合はフラグを立てる
+        } else {
+          // 一致するドキュメントがあれば、ドキュメント名を取得
+          const doc = querySnapshot.docs[0]; // 最初の一致するドキュメントを取得
+          const documentName = doc.id; // ドキュメントID（ドキュメント名として使う）
+          
+          // 新しい URL へリダイレクト
+          router.push(`/loading?id=${documentName}`);
+        }
+      } catch (error) {
+        console.error("Error getting documents: ", error);
+      }
     }
   };
 
   return (
     <main className="flex min-h-screen flex-col items-center justify-between p-0 text-center">
       <div className="justify-center mt-24">
-        <h1 className="text-2xl font-bold mb-4">QRコードリーダー</h1>
-        <video ref={ref} className="m-auto w-full h-22" />
-        <p className="pt-5 pl-5 pr-5">QRコードを読み取ってください</p>
-        <p className="pt-5 pl-5 pr-5">
+        <h1 className="text-2xl font-bold mb-2">QRコードリーダー</h1>
+        <video ref={ref} className="m-auto w-full h-22 p-2" />
+        <p className="pt-2 pl-5 pr-5">QRコードを読み取ってください</p>
+        <p className="pt-2 pl-5 pr-5">
           カメラが起動しない場合は、ブラウザの設定からカメラを許可してください。
         </p>
-        <p className="pt-5 pl-5 pr-5">
-          それでも起動しない場合は、QRコードの下にあるイベントIDを以下に入力してください。
+        <p className="pt-2 pl-5 pr-5">
+          それでも起動しない場合は、QRコードの下にあるイベントパスを以下に入力してください。
         </p>
-        <input
-          type="text"
-          placeholder="Event Id"
-          className="text-sm w-full p-1 border rounded"
-          value={eventId} // 入力フィールドにイベントIDをバインド
-          onChange={handleInputChange} // 入力の変更を管理
-        />
+        <div className="px-4">
+          <input
+            type="text"
+            placeholder="Event Pass"
+            className="text-sm w-full p-2 border rounded"
+            value={programPass} // 入力フィールドにイベントパスをバインド
+            onChange={(e) => setProgramPass(e.target.value)} // 入力の変更を管理
+          />
+        </div>
         <button
           onClick={handleSubmit} // 送信ボタンで遷移処理
-          className="mt-4 bg-green-700 text-white px-4 py-2 rounded"
+          className="mt-2 bg-green-700 hover:bg-green-900 text-white px-4 py-2 rounded"
         >
-          イベントIDで遷移
+          決定
         </button>
+        {noResult && (
+          <p className="mt-2 text-red-500">イベントパスが正しくありません</p> // メッセージを表示
+        )}
       </div>
     </main>
   );
