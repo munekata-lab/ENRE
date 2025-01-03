@@ -152,8 +152,10 @@ export default function ProgramsList() {
                                 ? `${visibleProgram.open} ~ ${visibleProgram.close}`
                                 : "全日"}
                         </p>
-                        <p className="text-left mb-2"><strong>得点:</strong> {visibleProgram.totalPoint}P</p>
-                        <p className="text-right mb-0"><strong>運営:</strong> {visibleProgram.owner}</p>
+                        <div className="flex justify-between mb-0">
+                            <p className="text-left mb-0"><strong>得点:</strong> {visibleProgram.totalPoint}P</p>
+                            <p className="text-right mb-0"><strong>運営:</strong> {visibleProgram.owner}</p>
+                        </div>
                         <div className="mt-auto mb-auto">
                             <div className="grid grid-cols-4 text-center border-b-2 border-green-700">
                                 <p className="col-start-1 text-center bg-green-700 text-white mb-0 rounded-t-lg"><strong>場所</strong></p>
