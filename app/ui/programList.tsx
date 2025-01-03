@@ -98,7 +98,7 @@ export default function ProgramsList() {
                     <div className="bg-green-700 rounded-sm p-2 flex flex-col leading-normal">
                         <button
                             onClick={() => setVisibleProgram(program)}
-                            className="text-gray-900 font-bold text-xl text-center bg-white p-2 rounded-sm hover:bg-blue-600"
+                            className="text-gray-900 font-bold text-xl text-center bg-white p-2 rounded-sm hover:bg-gray-400"
                         >
                             {program.title}
                         </button>
@@ -107,36 +107,41 @@ export default function ProgramsList() {
             ))}
             {visibleProgram && (
                 <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-                    <div className="bg-white rounded-lg w-[90%] max-w-5x h-4/5 p-6 relative overflow-auto">
-                        <button
-                        onClick={closeDetails}
-                        className="absolute top-1 right-2 text-xl font-bold"
-                        >
-                        ×
-                        </button>
-                        <h2 className="text-2xl font-bold mb-2">{visibleProgram.title}</h2>
+                    <div className="bg-white rounded-lg w-[95%] max-w-5x h-4/5 p-2 relative overflow-auto flex flex-col">
+                        <h2 className="text-2xl font-bold mt-1 mb-1">{visibleProgram.title}</h2>
                         <hr className="border-t-2 border-green-700 my-2" />
-                        <p className="text-left">{visibleProgram.content}</p>
-                        <p className="text-left">
+                        <p className="text-left mb-2">{visibleProgram.content}</p>
+                        <p className="text-left mb-2">
                             <strong>開催時間:</strong>{" "}
                             {visibleProgram.open && visibleProgram.close
                                 ? `${visibleProgram.open} ~ ${visibleProgram.close}`
                                 : "全日"}
                         </p>
-                        <p className="text-left"><strong>得点:</strong> {visibleProgram.point + visibleProgram.loadingPoint}P</p>
-                        <p className="text-right"><strong>運営:</strong> {visibleProgram.owner}</p>
-                        <p className="text-right"><strong>場所:</strong> {visibleProgram.place}</p>
-                        <div className="w-full mt-4 flex justify-center">
-                            <Image
-                                src={"/programPlace" + visibleProgram.id + ".jpg"}
-                                layout="responsive"
-                                width={0}
-                                height={0}
-                                alt="picture"
-                                priority
-                                className="w-full h-auto rounded-lg"
-                            />
+                        <p className="text-left mb-2"><strong>得点:</strong> {visibleProgram.point + visibleProgram.loadingPoint}P</p>
+                        <p className="text-right mb-0"><strong>運営:</strong> {visibleProgram.owner}</p>
+                        <div className="mt-auto mb-auto">
+                            <div className="grid grid-cols-4 text-center border-b-2 border-green-700">
+                                <p className="col-start-1 text-center bg-green-700 text-white mb-0 rounded-t-lg"><strong>場所</strong></p>
+                            </div>
+                            <p className="text-left mb-2">{visibleProgram.place}</p>
+                            <div className="w-full flex justify-center">
+                                <Image
+                                    src={"/programPlace" + visibleProgram.id + ".jpg"}
+                                    layout="responsive"
+                                    width={0}
+                                    height={0}
+                                    alt="picture"
+                                    priority
+                                    className="w-full h-auto rounded-lg"
+                                />
+                            </div>
                         </div>
+                        <button
+                        onClick={closeDetails}
+                        className="mt-auto px-4 py-2 bg-green-700 text-white text-xl font-bold rounded hover:bg-green-900"
+                        >
+                        とじる
+                        </button>
                     </div>
                 </div>
             )}

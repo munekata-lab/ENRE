@@ -271,7 +271,7 @@ export default function PhotoAlbumComponent() {
         {hasMorePhotos && (
           <button
             onClick={handleLoadMore}
-            className="mt-4 px-6 py-2 bg-green-700 text-white rounded hover:bg-blue-700 text-center"
+            className="mt-4 px-6 py-2 bg-green-700 text-white rounded hover:bg-green-900 text-center"
           >
             さらに表示
           </button>
