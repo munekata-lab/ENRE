@@ -4,7 +4,7 @@ import ProgressBar from "react-bootstrap/ProgressBar";
 
 export default async function CharactorComponent() {
   const handleCharactorClick = () => {
-    const quoteList = ["おはよ", "暑いね", "お腹すいた"];
+    const quoteList = ["おはよ", "寒いね", "お腹すいた"];
     const randomIndex = Math.floor(Math.random() * quoteList.length);
     return quoteList[randomIndex];
   };
@@ -28,10 +28,10 @@ export default async function CharactorComponent() {
 
   const currentRewordList = [reward1, reward2, reward3];
   const gamaType = currentRewordList.indexOf(Math.max(...currentRewordList));
-  const gamaTypeString = ["アウトドア", "ナレッジ", "コミュニティ"][gamaType];
+  const gamaTypeString = ["しる", "つかう", "まもる"][gamaType];
   const gamaTypeStringColor = "font-bold " + ["text-red-600", "text-blue-600", "text-yellow-600"][gamaType];
 
-  const imageName = "/icon" + evoState + ( evoState==4 ? "-"+gamaType : "" ) + ".png";
+  const imageName = "/icon" + evoState + ( evoState==4 ? "-"+gamaType+"-winter" : "" ) + ".png";
 
   return (
     <div className="w-full">

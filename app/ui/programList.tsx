@@ -69,7 +69,7 @@ export default function ProgramsList() {
   return (
     <main className="flex min-h-screen flex-col items-center justify-between p-0 text-center">
         <div className="justify-center mt-24 w-full h-full">
-            <div className="fixed font-bold mb-20 top-24 w-full">
+            <div className="fixed font-bold mb-0 top-24 w-full">
                 <label htmlFor="day-select" className="mr-2 ml-2">ジャンル:</label>
                 <select
                 id="day-select"
@@ -78,9 +78,9 @@ export default function ProgramsList() {
                 className="p-2 border rounded"
                 >
                 <option value="0">すべて</option>
-                <option value="1">知る</option>
-                <option value="2">使う</option>
-                <option value="3">守る</option>
+                <option value="1">しる</option>
+                <option value="2">つかう</option>
+                <option value="3">まもる</option>
                 </select>
                 <label htmlFor="sort-select" className="mr-2 ml-3">並び替え:</label>
                 <select
@@ -93,18 +93,20 @@ export default function ProgramsList() {
                 <option value="pointDesc">得点順</option>
                 </select>
             </div>
-            {programList.map((program) => (
-                <div key={program.id} className="mb-3 w-full p-[3%] overflow-auto mt-20">
-                    <div className="bg-green-700 rounded-sm p-2 flex flex-col leading-normal">
-                        <button
-                            onClick={() => setVisibleProgram(program)}
-                            className="text-gray-900 font-bold text-xl text-center bg-white p-2 rounded-sm hover:bg-gray-400"
-                        >
-                            {program.title}
-                        </button>
+            <div className="mt-20 mb-20">
+                {programList.map((program) => (
+                    <div key={program.id} className="mt-0 mb-0 w-full p-[2%] overflow-auto">
+                        <div className="bg-green-700 rounded-sm p-1 flex flex-col leading-normal">
+                            <button
+                                onClick={() => setVisibleProgram(program)}
+                                className="text-gray-900 font-bold text-base text-center bg-white p-1 rounded-sm hover:bg-gray-400"
+                            >
+                                {program.title}
+                            </button>
+                        </div>
                     </div>
-                </div>
-            ))}
+                ))}
+            </div>
             {visibleProgram && (
                 <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
                     <div className="bg-white rounded-lg w-[95%] max-w-5x h-4/5 p-2 relative overflow-auto flex flex-col">
@@ -145,9 +147,6 @@ export default function ProgramsList() {
                     </div>
                 </div>
             )}
-            {/* <div className="w-full text-center mt-10">
-                これ以上はありません
-            </div> */}
         </div>
     </main>
   );

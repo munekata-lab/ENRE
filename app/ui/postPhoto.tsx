@@ -36,7 +36,7 @@ export default function UploadImage() {
   const point = searchParams.get("point") || "";
   const field = searchParams.get("field") || "";
   const type = searchParams.get("type") || "";
-  const imageName = "/programpicture" + programId + ".webp";
+  const imageName = "/programpicture" + programId + ".png";
   const programTitle = searchParams.get("title") || ""; //クリア画面で使用
   const completionMessage = searchParams.get("completionMessage") || ""; //クリア画面で使用
 

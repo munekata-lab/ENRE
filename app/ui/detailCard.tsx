@@ -59,7 +59,7 @@ export default function DetailCardComponent({
   // }, [spotInfo.schedule])
 
   return (
-    <Card border="light" bg={thema} text={textColor} className="w-full drop-shadow">
+    <Card border="light" bg={thema} text={textColor} className="w-full drop-shadow mb-2">
       <Card.Header className="text-sm font-bold px-2 py-2.5 text-center">
         {spotInfo.title}
       </Card.Header>
