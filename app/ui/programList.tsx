@@ -12,6 +12,7 @@ import {
   orderBy,
   where,
 } from "firebase/firestore";
+import { LoadingAnimation } from "./skeletons";
 import packageJson from "../../package.json";
 
 type Program = {
@@ -119,26 +120,32 @@ export default function ProgramsList() {
                 </select>
             </div>
             <div className="mt-20 mb-20">
-                {programList.map((program) => (
+            {programList.length === 0 ? (
+                <div className="flex min-h-screen flex-col items-center justify-between pb-20">
+                    <LoadingAnimation />
+                </div>
+                ) : (
+                programList.map((program) => (
                     <div key={program.id} className="mt-0 mb-0 w-full p-[2%] overflow-auto">
-                        <div className="bg-green-700 rounded-sm p-1 flex flex-col leading-normal">
-                            <button
-                                onClick={() => setVisibleProgram(program)}
-                                className="grid grid-cols-12 text-gray-900 font-bold text-base text-center bg-white p-1 rounded-sm hover:bg-gray-400"
-                            >
-                                <FontAwesomeIcon 
-                                    icon={program.icon} 
-                                    width={0}
-                                    height={0}
-                                    className="col-start-1 w-auto h-6 text-green-700"
-                                />
-                                <div className="col-start-2 col-span-11">
-                                    {program.title}
-                                </div>
-                            </button>
+                    <div className="bg-green-700 rounded-sm p-1 flex flex-col leading-normal">
+                        <button
+                        onClick={() => setVisibleProgram(program)}
+                        className="grid grid-cols-12 text-gray-900 font-bold text-base text-center bg-white p-1 rounded-sm hover:bg-gray-400"
+                        >
+                        <FontAwesomeIcon 
+                            icon={program.icon} 
+                            width={0}
+                            height={0}
+                            className="col-start-1 w-auto h-6 text-green-700"
+                        />
+                        <div className="col-start-2 col-span-11">
+                            {program.title}
                         </div>
+                        </button>
                     </div>
-                ))}
+                    </div>
+                ))
+)           }  
             </div>
             {visibleProgram && (
                 <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
