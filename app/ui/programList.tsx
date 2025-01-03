@@ -1,121 +1,143 @@
 "use client";
 
-import React from "react";
+import Image from "next/image";
+import React, { useEffect, useState } from "react";
 import { db } from "@/lib/firebase/client";
 import {
-  addDoc,
   collection,
-  doc,
-  getDoc,
-  updateDoc,
   onSnapshot,
-  orderBy,
   query,
-  serverTimestamp,
+  orderBy,
   where,
 } from "firebase/firestore";
-import { useEffect, useRef, useState, FormEvent, useCallback, ChangeEvent } from "react";
 import packageJson from "../../package.json";
-import { getProgramsByDay } from "@/lib/dbActions";
-
-type Props = {
-    targetDay: string;
-  };
 
 type Program = {
-    id: string;
-    title: string;
-    content: string;
-    place: string;
-    owner: string;
-    point: string;
-    day: string;
-    open: string;
-    close: string;
-  };
-  
-export default function ProgramsList() {
-    const [programList, setProgramList] = useState<Program[]>([]);
-    const [targetDay, setTargetDay] = useState<string>("0");
-    const [sortOrder, setSortOrder] = useState<string>("none"); // 並び替え基準
-    const programData = packageJson.program_data;
-    
-    useEffect(() => {
-        // クエリを動的に構築
-        let q = targetDay === "0"
-        ? query(collection(db, programData))
-        : query(collection(db, programData), where("day", "==", targetDay));
+  id: string;
+  title: string;
+  content: string;
+  place: string;
+  owner: string;
+  loadingPoint: number;
+  point: number;
+  day: string;
+  open: string;
+  close: string;
+};
 
-        if (sortOrder === "pointDesc") {
-            q = query(q, orderBy("point", "desc"));
-          } else if (sortOrder === "pointAsc") {
-            q = query(q, orderBy("point", "asc"));
-          }
-    
-        const unsubscribe = onSnapshot(q, (snapshot) => {
-        const programs = snapshot.docs.map((doc) => ({
-            id: doc.id,
-            ...doc.data(),
-        })) as Program[];
-        setProgramList(programs);
-        });
-    
-        return () => unsubscribe();
-    }, [targetDay, sortOrder]);
-    
-    return (
-        <div className="mt-10 h-full w-full">
-            <div className="mb-4">
-                <label htmlFor="day-select" className="mr-2 ml-2">対象日:</label>
+export default function ProgramsList() {
+  const [programList, setProgramList] = useState<Program[]>([]);
+  const [targetField, setTargetField] = useState<string>("0");
+  const [sortOrder, setSortOrder] = useState<string>("none");
+  const [visibleProgram, setVisibleProgram] = useState<Program | null>(null); // Full-screen modal data
+  const programData = packageJson.program_data;
+
+  useEffect(() => {
+    let q =
+      targetField === "0"
+        ? query(collection(db, programData))
+        : query(collection(db, programData), where("field", "==", targetField));
+
+    if (sortOrder === "pointDesc") {
+      q = query(q, orderBy("point", "desc"));
+    } else if (sortOrder === "pointAsc") {
+      q = query(q, orderBy("point", "asc"));
+    }
+
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const programs = snapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      })) as Program[];
+      setProgramList(programs);
+    });
+
+    return () => unsubscribe();
+  }, [targetField, sortOrder]);
+
+  const closeDetails = () => {
+    setVisibleProgram(null);
+  };
+
+  return (
+    <main className="flex min-h-screen flex-col items-center justify-between p-0 text-center">
+        <div className="justify-center mt-24 w-full h-full">
+            <div className="fixed font-bold mb-20 top-24 w-full">
+                <label htmlFor="day-select" className="mr-2 ml-2">ジャンル:</label>
                 <select
-                    id="day-select"
-                    value={targetDay}
-                    onChange={(e) => setTargetDay(e.target.value)}
-                    className="p-2 border rounded"
+                id="day-select"
+                value={targetField}
+                onChange={(e) => setTargetField(e.target.value)}
+                className="p-2 border rounded"
                 >
-                    <option value="0">すべて</option>
-                    <option value="1">1/8(水)</option>
-                    <option value="2">1/9(木)</option>
-                    <option value="3">1/10(金)</option>
-                    {/* <option value="4">4日目</option>
-                    <option value="5">5日目</option> */}
+                <option value="0">すべて</option>
+                <option value="1">知る</option>
+                <option value="2">使う</option>
+                <option value="3">守る</option>
                 </select>
-                {/* 並び替え条件選択 */}
                 <label htmlFor="sort-select" className="mr-2 ml-3">得点:</label>
-                    <select
-                    id="sort-select"
-                    value={sortOrder}
-                    onChange={(e) => setSortOrder(e.target.value)}
-                    className="p-2 border rounded"
-                    >
-                    <option value="none">指定なし</option>
-                    <option value="pointDesc">高い順</option>
-                    <option value="pointAsc">低い順</option>
+                <select
+                id="sort-select"
+                value={sortOrder}
+                onChange={(e) => setSortOrder(e.target.value)}
+                className="p-2 border rounded"
+                >
+                <option value="none">指定なし</option>
+                <option value="pointDesc">高い順</option>
+                <option value="pointAsc">低い順</option>
                 </select>
             </div>
             {programList.map((program) => (
-                <div key={program.id} className="mb-3 w-full p-[3%]">
-                    <div className="bg-white rounded p-4 flex flex-col leading-normal">
-                        <div className="w-full">
-                            <div className="text-gray-900 font-bold text-xl text-center">
-                                {program.title}
-                            </div>
-                            <p className="text-gray-700 text-sm">{program.content}</p>
-                        </div>
-                        <div className="flex justify-between text-sm mt-2">
-                            <p className="text-gray-600">得点: {program.point}</p>
-                            <p className="text-gray-600">運営: {program.owner}</p>
-                        </div>
-                        <div className="grid grid-cols-2 mt-2 text-sm">
-                            <div className="text-center">開始: {program.open}</div>
-                            <div className="text-center">終了: {program.close}</div>
-                        </div>
+                <div key={program.id} className="mb-3 w-full p-[3%] overflow-auto mt-20">
+                    <div className="bg-green-700 rounded-sm p-2 flex flex-col leading-normal">
+                        <button
+                            onClick={() => setVisibleProgram(program)}
+                            className="text-gray-900 font-bold text-xl text-center bg-white p-2 rounded-sm hover:bg-blue-600"
+                        >
+                            {program.title}
+                        </button>
                     </div>
                 </div>
             ))}
-            <div className="w-full text-center mt-10">
+            {visibleProgram && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                    <div className="bg-white rounded-lg w-[90%] max-w-5x h-4/5 p-6 relative overflow-auto">
+                        <button
+                        onClick={closeDetails}
+                        className="absolute top-1 right-2 text-xl font-bold"
+                        >
+                        ×
+                        </button>
+                        <h2 className="text-2xl font-bold mb-2">{visibleProgram.title}</h2>
+                        <hr className="border-t-2 border-green-700 my-2" />
+                        <p>{visibleProgram.content}</p>
+                        <p>
+                            <strong>開催時間:</strong>{" "}
+                            {visibleProgram.open && visibleProgram.close
+                                ? `${visibleProgram.open} ~ ${visibleProgram.close}`
+                                : "全日"}
+                        </p>
+                        <p><strong>得点:</strong> {visibleProgram.point + visibleProgram.loadingPoint}P</p>
+                        <p className="text-right"><strong>運営:</strong> {visibleProgram.owner}</p>
+                        <p className="text-right"><strong>場所:</strong> {visibleProgram.place}</p>
+                        <div className="w-full mt-4 flex justify-center">
+                            <Image
+                                src={"/programPlace" + visibleProgram.id + ".jpg"}
+                                layout="responsive"
+                                width={0}
+                                height={0}
+                                alt="picture"
+                                priority
+                                className="w-full h-auto rounded-lg"
+                            />
+                        </div>
+                    </div>
+                </div>
+            )}
+            {/* <div className="w-full text-center mt-10">
                 これ以上はありません
-            </div>
+            </div> */}
         </div>
-    );
+    </main>
+  );
 }

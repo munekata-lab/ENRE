@@ -33,7 +33,7 @@ type Props = {
     const mode = await fetchMode(user?.uid);
 
     return (
-        <main className="grid grid-rows-base-layout min-h-screen w-full pb-40 overflow-auto justify-items-center items-center mt-20">
+        <main>
             <Suspense fallback={<HeaderSkeleton />}>
                 <HeaderComponent />
             </Suspense>
