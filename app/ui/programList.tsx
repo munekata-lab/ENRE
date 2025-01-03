@@ -1,5 +1,7 @@
 "use client";
 
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faCamera, faPen, faLeaf, faMugHot, faPersonWalking, faMagnifyingGlass } from '@fortawesome/free-solid-svg-icons';
 import Image from "next/image";
 import React, { useEffect, useState } from "react";
 import { db } from "@/lib/firebase/client";
@@ -20,9 +22,13 @@ type Program = {
   owner: string;
   loadingPoint: number;
   point: number;
+  totalPoint: number;
+  field: string;
+  type: string;
   day: string;
   open: string;
   close: string;
+  icon: any;
 };
 
 export default function ProgramsList() {
@@ -39,22 +45,41 @@ export default function ProgramsList() {
         : query(collection(db, programData), where("field", "==", targetField));
   
     if (sortOrder === "pointDesc") {
-      q = query(q, orderBy("point", "desc"));
-    }
+        q = query(q); // Firestore で計算フィールドは直接並び替えできないためクライアント側で処理
+        }
   
     const unsubscribe = onSnapshot(q, (snapshot) => {
-      const programs = snapshot.docs
-        .map((doc) => ({
-          id: doc.id,
-          ...doc.data(),
-        })) as Program[];
-  
-      // idを数字の小さい順に並び替え
-      const sortedPrograms = programs.sort((a, b) => {
-        const idA = parseInt(a.id, 10); // idを整数に変換
-        const idB = parseInt(b.id, 10); // idを整数に変換
-        return idA - idB; // idの数値が小さい順にソート
-      });
+        const programs = snapshot.docs
+            .map((doc) => ({
+            id: doc.id,
+            ...doc.data(),
+            totalPoint: Number(doc.data().point) + Number(doc.data().loadingPoint),
+            icon:
+                doc.data().type === "postphoto"
+                    ? faCamera // 例: FontAwesomeのアイコン
+                    : doc.data().type === "expressfeelings"
+                    ? faPen
+                    : doc.data().type === "fallenleaves"
+                    ? faLeaf
+                    : doc.data().type === "walk"
+                    ? faPersonWalking
+                    : doc.data().type === "biome"
+                    ? faMagnifyingGlass
+                    : faMugHot
+            
+            })) as Program[];
+    
+        // idを数字の小さい順に並び替え
+        let sortedPrograms = programs.sort((a, b) => {
+            const idA = parseInt(a.id, 10); // idを整数に変換
+            const idB = parseInt(b.id, 10); // idを整数に変換
+            return idA - idB; // idの数値が小さい順にソート
+        });
+
+            // クライアント側で並び替え
+        if (sortOrder === "pointDesc") {
+            sortedPrograms = sortedPrograms.sort((a, b) => b.totalPoint - a.totalPoint);
+        }
   
       setProgramList(sortedPrograms);
     });
@@ -99,9 +124,17 @@ export default function ProgramsList() {
                         <div className="bg-green-700 rounded-sm p-1 flex flex-col leading-normal">
                             <button
                                 onClick={() => setVisibleProgram(program)}
-                                className="text-gray-900 font-bold text-base text-center bg-white p-1 rounded-sm hover:bg-gray-400"
+                                className="grid grid-cols-12 text-gray-900 font-bold text-base text-center bg-white p-1 rounded-sm hover:bg-gray-400"
                             >
-                                {program.title}
+                                <FontAwesomeIcon 
+                                    icon={program.icon} 
+                                    width={0}
+                                    height={0}
+                                    className="col-start-1 w-auto h-6 text-green-700"
+                                />
+                                <div className="col-start-2 col-span-11">
+                                    {program.title}
+                                </div>
                             </button>
                         </div>
                     </div>
@@ -119,7 +152,7 @@ export default function ProgramsList() {
                                 ? `${visibleProgram.open} ~ ${visibleProgram.close}`
                                 : "全日"}
                         </p>
-                        <p className="text-left mb-2"><strong>得点:</strong> {visibleProgram.point + visibleProgram.loadingPoint}P</p>
+                        <p className="text-left mb-2"><strong>得点:</strong> {visibleProgram.totalPoint}P</p>
                         <p className="text-right mb-0"><strong>運営:</strong> {visibleProgram.owner}</p>
                         <div className="mt-auto mb-auto">
                             <div className="grid grid-cols-4 text-center border-b-2 border-green-700">
