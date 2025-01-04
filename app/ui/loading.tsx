@@ -41,6 +41,7 @@ export default function LoadingComponent() {
   const [loadingPoint, setLoadingPoint] = useState("");
   const randomIds = [1, 3, 7];
   const [showModal, setShowModal] = useState(true); // モーダルの表示状態
+  const [modalInfo, setModalInfo] = useState(false); // モーダル
   const [modalProgramId, setModalProgramId] = useState("0"); // モーダルのプログラムID
   const [modalTitle, setModalTitle] = useState(""); // モーダルのタイトル
   const [modalContent, setModalContent] = useState(""); // モーダルの内容
@@ -98,7 +99,7 @@ export default function LoadingComponent() {
           setModalContent(programInfo3.content);
           setModalPlace(programInfo3.place);
           setShowModal(true);
-        }, 3000);
+        }, 2000);
         setLink(
           `/photoalbum/postjoinshare?programId=${qrInfo.programId}&place=${place}&point=${programInfo.point}&field=${programInfo.field}`
         );
@@ -256,47 +257,56 @@ export default function LoadingComponent() {
               </Link>
             </div>
 
+            {/* オーバーレイ */}
+            {showModal && (
+              <div className="fixed inset-0 bg-opacity-90 z-40 pointer-events-auto">
+                <LoadingAnimation />
+              </div>
+            )}
+
             {/* モーダル */}
-            <Modal show={showModal} onHide={() => {
-              setShowModal(false),
-              handleLogPost("フリーコーヒー後の誘導モーダル閉じ", `ProgramId=${modalProgramId}へ案内`);
-              }}
-              centered
-            >
-              <Modal.Header closeButton>
-                <Modal.Title>{modalTitle}</Modal.Title>
-              </Modal.Header>
-              <Modal.Body>
-                <p>{modalContent}</p>
-                <div className="mt-auto mb-auto">
-                    <div className="grid grid-cols-4 text-center border-b-2 border-green-700">
-                        <p className="col-start-1 text-center bg-green-700 text-white mb-0 rounded-t-lg"><strong>場所</strong></p>
-                    </div>
-                    <p className="text-left mb-2">{modalPlace}</p>
-                    <div className="w-full flex justify-center">
-                        <Image
-                            src={"/programPlace" + modalProgramId + ".jpg"}
-                            layout="responsive"
-                            width={0}
-                            height={0}
-                            alt="placePicture"
-                            priority
-                            className="w-full h-auto rounded-lg"
-                        />
-                    </div>
-                </div>
-              </Modal.Body>
-              <Modal.Footer>
-                <button onClick={() => {
-                  setShowModal(false), 
-                  handleLogPost("フリーコーヒー後の誘導モーダル閉じ", `ProgramId=${modalProgramId}へ案内`);
-                  }} 
-                  className="px-4 py-2 bg-green-700 hover:bg-green-900 text-white text-gl font-bold rounded"
-                >
-                  とじる
-                </button>
-              </Modal.Footer>
-            </Modal>
+            { modalTitle && (
+              <Modal show={showModal} onHide={() => {
+                setShowModal(false),
+                handleLogPost("フリーコーヒー後の誘導モーダル閉じ", `ProgramId=${modalProgramId}へ案内`);
+                }}
+                centered
+              >
+                <Modal.Header closeButton>
+                  <Modal.Title>{modalTitle}</Modal.Title>
+                </Modal.Header>
+                <Modal.Body>
+                  <p>{modalContent}</p>
+                  <div className="mt-auto mb-auto">
+                      <div className="grid grid-cols-4 text-center border-b-2 border-green-700">
+                          <p className="col-start-1 text-center bg-green-700 text-white mb-0 rounded-t-lg"><strong>場所</strong></p>
+                      </div>
+                      <p className="text-left mb-2">{modalPlace}</p>
+                      <div className="w-full flex justify-center">
+                          <Image
+                              src={"/programPlace" + modalProgramId + ".jpg"}
+                              layout="responsive"
+                              width={0}
+                              height={0}
+                              alt="placePicture"
+                              priority
+                              className="w-full h-auto rounded-lg"
+                          />
+                      </div>
+                  </div>
+                </Modal.Body>
+                <Modal.Footer>
+                  <button onClick={() => {
+                    setShowModal(false), 
+                    handleLogPost("フリーコーヒー後の誘導モーダル閉じ", `ProgramId=${modalProgramId}へ案内`);
+                    }} 
+                    className="px-4 py-2 bg-green-700 hover:bg-green-900 text-white text-gl font-bold rounded"
+                  >
+                    とじる
+                  </button>
+                </Modal.Footer>
+              </Modal>
+            )}
           </>
         )}
       </>
