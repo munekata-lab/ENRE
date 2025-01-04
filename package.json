@@ -5,7 +5,7 @@
   "QR_data": "QR2025_1",
   "program_data": "program2025_1",
   "scripts": {
-    "dev": "next dev --experimental-https", 
+    "dev": "next dev --experimental-https",
     "build": "next build",
     "start": "next start",
     "lint": "next lint"
@@ -26,6 +26,7 @@
     "bootstrap": "^5.3.2",
     "browser-image-compression": "^2.0.2",
     "budoux": "^0.6.1",
+    "clsx": "^2.1.1",
     "deck.gl": "^8.9.32",
     "firebase": "^10.12.2",
     "firebase-admin": "^11.11.0",
