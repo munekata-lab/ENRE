@@ -27,6 +27,7 @@ export default function LoadingComponent() {
   const [checkout, setCheckout] = useState(false);
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
+  const [completionMessage, setCompletionMessage] = useState("");
   const [link, setLink] = useState("");
   const [process, setProcess] = useState<string[]>([]);
   const [caution, setCaution] = useState<string[]>([]);
@@ -45,6 +46,7 @@ export default function LoadingComponent() {
       const programInfo = await fetchProgramInfo(`${qrInfo.programId}`);
       setTitle(programInfo.title);
       setContent(programInfo.content);
+      setCompletionMessage(programInfo.completionMessage);
       setPoint(programInfo.point);
       setLoadingPoint(programInfo.loadingPoint);
       if (programInfo.type) {
@@ -141,9 +143,6 @@ export default function LoadingComponent() {
               </Card.Header>
               <Card.Body className="p-1">
                 <p className="text-sm mx-3 mb-3 mt-2">{content}</p>
-                {/* <p className="text-xs text-end mb-1 mr-2">{owner} {place && (<>({place})</>)}</p> */}
-
-
                 <hr />
                 <p className="text-xs mb-0 ml-3 font-bold">【手順】</p>
                 <div className="mb-2 ml-3">
@@ -178,7 +177,6 @@ export default function LoadingComponent() {
               </Card.Body>
             </Card>
 
-
             <Link href={link} className="no-underline">
               <button className="flex justify-center items-center bg-green-700 hover:bg-green-900 text-white font-bold py-2 px-4 rounded">
                 イベント詳細
@@ -191,9 +189,6 @@ export default function LoadingComponent() {
           <>
             <div className="w-full h-24"></div>
             <div className="flex min-h-screen flex-col items-center justify-center pb-20">
-              {/* <h1 className="text-2xl font-bold mb-10 text-center">
-                {parse ? parse(title) : title}
-              </h1> */}
               <h1 className="text-xl font-bold text-center mb-10 text-red-500">
                 ご参加
                 <br />
@@ -205,26 +200,7 @@ export default function LoadingComponent() {
                   {parse ? parse(title) : title}
                 </Card.Header>
                 <Card.Body className="p-1">
-                  <p className="text-sm mx-3 mb-3 mt-2">{content}</p>
-                  {/* <p className="text-xs text-end mb-1 mr-2">{owner} {place && (<>({place})</>)}</p> */}
-
-
-                  <hr />
-                  {/* <p className="text-xs mb-0 ml-3 font-bold">【手順】</p>
-                  <div className="mb-2 ml-3">
-                    {process.map((process, index) => (
-                      <p key={index} className="text-xs mb-0 ml-3">
-                        {`${index + 1}. ${process}`}
-                      </p>))}
-                  </div>
-                  <p className="text-xs mb-0 ml-3 font-bold">【付与条件】</p>
-                  <div className="mb-2 ml-3">
-                    {condition.map((condition, index) => (
-                      <p key={index} className="text-xs mb-0 ml-3">
-                        {condition}
-                      </p>
-                    ))}
-                  </div> */}
+                  <p className="text-sm mx-3 mb-3 mt-2">{completionMessage}</p>
                 </Card.Body>
               </Card>
 
