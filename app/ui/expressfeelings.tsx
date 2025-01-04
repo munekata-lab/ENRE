@@ -58,7 +58,7 @@ export default function ExpressFeelingsComponent() {
     //   alert("投稿が成功しました！");
       const title2 = "自然の空間で感じることを投稿しました";
       const state = "expressfeelings";
-      await postCollectionInLogs(title2, place, state);
+      await postCollectionInLogs(title2, "P004-1", state);
       await patchParticipatedEvents(programId);
       setDocument("");
       setIsPushButton(false);

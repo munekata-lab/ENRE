@@ -80,7 +80,7 @@ export async function fetchLimitedNumberPhotosInfo(num: Number) {
         } else if (diffDate < 604800000) {
           return `${Math.floor(diffDate / 86400000)}日前`;
         }
-        return `${postDate.getFullYear()}年${postDate.getMonth()}月${postDate.getDate()}日`;
+        return `${postDate.getFullYear()}年${postDate.getMonth() + 1}月${postDate.getDate()}日`;
       };
 
       const postDateString = setPostDateString(postDate);

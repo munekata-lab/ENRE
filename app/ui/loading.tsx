@@ -18,6 +18,8 @@ import {
 import { LoadingAnimation } from "./skeletons";
 import Link from "next/link";
 import Card from "react-bootstrap/Card";
+import Modal from "react-bootstrap/Modal";
+import Image from "next/image";
 import { useBudouX } from "../hooks/useBudouX";
 
 export default function LoadingComponent() {
@@ -37,6 +39,12 @@ export default function LoadingComponent() {
   const { parse } = useBudouX();
   const [point, setPoint] = useState("");
   const [loadingPoint, setLoadingPoint] = useState("");
+  const randomIds = [1, 3, 7];
+  const [showModal, setShowModal] = useState(true); // モーダルの表示状態
+  const [modalProgramId, setModalProgramId] = useState("0"); // モーダルのプログラムID
+  const [modalTitle, setModalTitle] = useState(""); // モーダルのタイトル
+  const [modalContent, setModalContent] = useState(""); // モーダルの内容
+  const [modalPlace, setModalPlace] = useState(""); // モーダルの場所
 
   useEffect(() => {
     if (ref.current) return;
@@ -62,7 +70,7 @@ export default function LoadingComponent() {
       await patchCurrentPlace(place);
       const participatedEvents = await fetchParticipatedEvents();
       if (participatedEvents[Number(qrId)] <= 0) {
-        await patchReward2(`${loadingPoint}`, `${qrInfo.field}`);
+        await patchReward2(`${qrInfo.loadingPoint}`, `${qrInfo.field}`);
       }
       if (qrInfo.type === "checkin") {
         if (participatedEvents[Number(qrId)] > 0) {
@@ -78,11 +86,19 @@ export default function LoadingComponent() {
       } else if (qrInfo.type === "checkout") {
         if (participatedEvents[Number(qrId)] > 0) {
           setParticipated(true);
-        } else if (qrInfo.type === "checkout") {
-          await patchParticipatedEvents(qrId);
         }
+        await patchParticipatedEvents(qrId);
         await patchCheckoutProgramIds(`${qrInfo.programId}`);
         setCheckout(true);
+        setTimeout(async () => {
+          const randomId = randomIds[Math.floor(Math.random() * randomIds.length)];
+          const programInfo3 = await fetchProgramInfo(String(randomId));
+          setModalProgramId(String(randomId));
+          setModalTitle(programInfo3.title);
+          setModalContent(programInfo3.content);
+          setModalPlace(programInfo3.place);
+          setShowModal(true);
+        }, 3000);
         setLink(
           `/photoalbum/postjoinshare?programId=${qrInfo.programId}&place=${place}&point=${programInfo.point}&field=${programInfo.field}`
         );
@@ -100,6 +116,18 @@ export default function LoadingComponent() {
       ref.current = true;
     };
   }, [router, searchParams]);
+
+  const handleLogPost = async (title: string, state: string) => {
+    try {
+      await postCollectionInLogs(
+        title,
+        "P006-1",
+        state
+      );
+    } catch (error: any) {
+      console.error("ログ記録中にエラーが発生しました:", error.message);
+    }
+  };
 
   {/* okamoto手を加える */ }
 
@@ -227,6 +255,48 @@ export default function LoadingComponent() {
                 >ホームに戻る</button>
               </Link>
             </div>
+
+            {/* モーダル */}
+            <Modal show={showModal} onHide={() => {
+              setShowModal(false),
+              handleLogPost("フリーコーヒー後の誘導モーダル閉じ", `ProgramId=${modalProgramId}へ案内`);
+              }}
+              centered
+            >
+              <Modal.Header closeButton>
+                <Modal.Title>{modalTitle}</Modal.Title>
+              </Modal.Header>
+              <Modal.Body>
+                <p>{modalContent}</p>
+                <div className="mt-auto mb-auto">
+                    <div className="grid grid-cols-4 text-center border-b-2 border-green-700">
+                        <p className="col-start-1 text-center bg-green-700 text-white mb-0 rounded-t-lg"><strong>場所</strong></p>
+                    </div>
+                    <p className="text-left mb-2">{modalPlace}</p>
+                    <div className="w-full flex justify-center">
+                        <Image
+                            src={"/programPlace" + modalProgramId + ".jpg"}
+                            layout="responsive"
+                            width={0}
+                            height={0}
+                            alt="placePicture"
+                            priority
+                            className="w-full h-auto rounded-lg"
+                        />
+                    </div>
+                </div>
+              </Modal.Body>
+              <Modal.Footer>
+                <button onClick={() => {
+                  setShowModal(false), 
+                  handleLogPost("フリーコーヒー後の誘導モーダル閉じ", `ProgramId=${modalProgramId}へ案内`);
+                  }} 
+                  className="px-4 py-2 bg-green-700 hover:bg-green-900 text-white text-gl font-bold rounded"
+                >
+                  とじる
+                </button>
+              </Modal.Footer>
+            </Modal>
           </>
         )}
       </>
