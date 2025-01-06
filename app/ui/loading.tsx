@@ -20,6 +20,7 @@ import Link from "next/link";
 import Card from "react-bootstrap/Card";
 import Modal from "react-bootstrap/Modal";
 import Image from "next/image";
+import Script from "next/script";
 import { useBudouX } from "../hooks/useBudouX";
 
 export default function LoadingComponent() {
@@ -239,17 +240,34 @@ export default function LoadingComponent() {
 
               <div className="mt-3 border-b-2 h-1 border-green-600 border-opacity-30 drop-shadow-sm mb-4 w-11/12"></div>
 
-              <h1 className="text-xl font-bold text-center mb-3 text-red-500">
+              {/* <h1 className="text-xl font-bold text-center mb-3 text-red-500">
                 共有して追加ポイントGET!
               </h1>
               <h1 className="text-sm font-bold text-center mb-3 w-11/12">
                 イベントに参加している様子を共有して、追加でポイントを獲得しよう！
+              </h1> */}
+              <h1 className="text-sm font-bold text-center mb-3 w-11/12">
+                イベントに参加している様子を共有しよう！
               </h1>
-              <Link href={link} className="no-underline">
+              {/* <Link href={link} className="no-underline">
                 <button className="flex justify-center items-center bg-green-700 hover:bg-green-900 text-white font-bold py-2 px-4 rounded">
                   詳細
                 </button>
-              </Link>
+              </Link> */}
+              <div>
+                <a
+                  href="https://twitter.com/share?ref_src=twsrc%5Etfw"
+                  className="twitter-share-button"
+                  data-hashtags="Enre"
+                  data-show-count="false"
+                >
+                  Tweet
+                </a>
+                <Script
+                  src="https://platform.twitter.com/widgets.js"
+                  strategy="lazyOnload"
+                />
+              </div>
               <Link href="/" className="mt-1">
                 <button
                   className="text-xs underline my-4 text-gray-600"
