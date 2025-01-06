@@ -8,10 +8,10 @@ export default function WatchCardComponent() {
   return (
     <div className="w-full bg-white rounded-xl shadow-md overflow-hidden md:max-w-2xl px-0.5 py-2">
       <div className="grid grid-cols-1 gap-2 p-3">
-        <div className="justify-items-center items-center text-center mb-1 text-md text-green-700 font-semibold">
+        <div className="justify-items-center items-center text-center mb-1 text-md text-green-700 font-semibold text-shadow-lg">
           学内ウォッチ
         </div>
-        <div className="justify-items-center items-center text-center mb-1 text-sm text-green-700 font-semibold">
+        <div className="justify-items-center items-center text-center mb-1 text-sm text-green-700 font-semibold text-shadow-lg">
           食堂の混雑度
         </div>
         <div className="grid grid-cols-2 justify-items-center items-center justify-self-center w-10/12">
@@ -29,7 +29,7 @@ export default function WatchCardComponent() {
           </div>
         </div>
 
-        <div className="justify-items-center items-center text-center mb-1 text-sm text-green-700 font-semibold">
+        <div className="justify-items-center items-center text-center mb-1 text-sm text-green-700 font-semibold text-shadow-lg">
           バスプールの混雑度
         </div>
         <div className="grid grid-cols-1 justify-items-center items-center justify-self-center w-10/12">

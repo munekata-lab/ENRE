@@ -29,7 +29,7 @@ export default async function CharactorComponent() {
   const currentRewordList = [reward1, reward2, reward3];
   const gamaType = currentRewordList.indexOf(Math.max(...currentRewordList));
   const gamaTypeString = ["しる", "つかう", "まもる"][gamaType];
-  const gamaTypeStringColor = "font-bold " + ["text-yellow-300", "text-blue-600", "text-red-600"][gamaType];
+  const gamaTypeStringColor = "font-bold " + ["text-yellow-600", "text-blue-600", "text-red-600"][gamaType];
 
   const imageName = "/icon" + evoState + ( evoState==4 ? "-"+gamaType+"-winter" : "" ) + ".png";
 
@@ -73,7 +73,7 @@ export default async function CharactorComponent() {
           />
         </div>
       </div>
-      <div className="grid grid-rows-3 grid-cols-4 justify-items-center items-center p-2 ">
+      <div className="grid grid-rows-3 grid-cols-4 justify-items-center items-center p-2 rounded-xl">
         <div className="row-start-1 col-start-1 col-end-2 text-sm">合計</div>
         <div className="row-start-2 col-start-1 col-end-2 text-xl font-bold text-green-600">
           {currentReward}pt

@@ -258,14 +258,18 @@ export default function LoadingComponent() {
                 <a
                   href="https://twitter.com/share?ref_src=twsrc%5Etfw"
                   className="twitter-share-button"
-                  data-hashtags="Enre"
-                  data-show-count="false"
+                  data-size="large"
+                  data-text={`「${title}」に参加しています`}
+                  data-url="https://www.enre-official.com/"
+                  data-hashtags="Enre #京都産業大学"
+                  data-show-count="true"
                 >
                   Tweet
                 </a>
                 <Script
                   src="https://platform.twitter.com/widgets.js"
                   strategy="lazyOnload"
+                  charSet="utf-8"
                 />
               </div>
               <Link href="/" className="mt-1">
