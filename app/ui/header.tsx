@@ -3,9 +3,11 @@
 import { useState, useEffect } from "react";
 import MenuComponent from "./menu";
 import { getUserFromCookie, getIPAddress } from "@/lib/session";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { NotificationComponent } from "./notification";
 import { fetchUserSettings, fetchMode } from "@/lib/dbActions";
+import { postCollectionInLogs } from "@/lib/dbActions";
+
 // import { fetchNotificationInfo } from "@/lib/dbActions";
 // import { collection, onSnapshot, query } from "firebase/firestore";
 // import { db } from "@/lib/firebase/client";
@@ -17,6 +19,21 @@ export default function HeaderComponent() {
   const [nickName, setNickName] = useState("");
   const [dev, setDev] = useState(false);
   const [ipAddress, setIPAddress] = useState<string | null>("");
+
+  const pathname = usePathname();
+    const handleLogPost = async (previousTitle: string, newTitle: string) => {
+      try {
+        await postCollectionInLogs(
+          "ページ移動",
+          `${previousTitle} → ${newTitle}`,
+          "成功"
+        );
+      } catch (error: any) {
+        console.error("ログ記録中にエラーが発生しました:", error.message);
+      }
+    };
+      const currentPath = pathname?.replace(/^\//, "") || "home";
+
 
   // TODO できれば 通知アイコン
   // const [notificationUpdateFlag, setNotificationUpdateFlag] = useState(true);
@@ -87,11 +104,14 @@ export default function HeaderComponent() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+
   return (
     <div className="grid grid-cols-3 items-center shadow-md fixed top-0 w-full z-10 bg-[#f5ffec] h-20">
       <div className="col-start-1 justify-self-start items-center ml-3">
         <Link href="/notification" >
-          <Image src="/noffication.png" width={60} height={60} alt="noffication" />
+          <Image src="/noffication.png" width={60} height={60} alt="noffication" 
+                      onClick={() =>  handleLogPost(currentPath, "notification")}
+/>
           {/* {isReadAllNotification && (<Image src="/noffication.png" width={60} height={60} alt="noffication" />)} */}
           {/* {!isReadAllNotification &&(<Image src="/nofficationWithBudge.png" width={60} height={60} alt="noffication" />)} */}
         </Link>
@@ -99,7 +119,9 @@ export default function HeaderComponent() {
       </div>
       <div className="col-start-2 font-mono text-xl justify-self-center items-center">
       <Link href="/" >
-        <Image src="/title.png" width={180} height={80} alt="title" />
+        <Image src="/title.png" width={180} height={80} alt="title" 
+                    onClick={() => handleLogPost(currentPath, "title")}
+/>
       </Link>
       </div>
       <div className="col-start-3 font-mono text-sm justify-self-end mr-3">

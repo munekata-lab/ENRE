@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { postCollectionInLogs } from "@/lib/dbActions";
+import { usePathname } from "next/navigation";
 
 type Props = {
   link: string;
@@ -10,12 +11,30 @@ type Props = {
 };
 
 export default function QuestionnaireComponent({ link, title, detail }: Props) {
+
+  // const pathname = usePathname();
+  // const handleLogPost = async (previousTitle: string, newTitle: string) => {
+  //   try {
+  //     await postCollectionInLogs(
+  //       "ページ移動",
+  //       `${previousTitle} → ${newTitle}`,
+  //       "成功"
+  //     );
+  //   } catch (error: any) {
+  //     console.error("ログ記録中にエラーが発生しました:", error.message);
+  //   }
+  // };
+  // const currentPath = pathname?.replace(/^\//, "") || "home";
+
   const handleClick = async () => {
     await postCollectionInLogs(
       "アンケート回答クリック",
       "アンケート",
       "アンケート"
     );
+    // await handleLogPost(currentPath, "questionnaire");
+
+
   };
   return (
     <div className="w-full bg-yellow-100 rounded-xl shadow-md overflow-hidden md:max-w-2xl">

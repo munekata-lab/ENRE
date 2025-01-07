@@ -14,6 +14,8 @@ import {
 } from "firebase/firestore";
 import { LoadingAnimation } from "./skeletons";
 import packageJson from "../../package.json";
+import { postCollectionInLogs } from "@/lib/dbActions";
+import { usePathname } from "next/navigation";
 
 type Program = {
   id: string;
@@ -39,6 +41,20 @@ export default function ProgramsList() {
   const [visibleProgram, setVisibleProgram] = useState<Program | null>(null); // Full-screen modal data
   const programData = packageJson.program_data;
 
+   const pathname = usePathname();
+      const handleLogPost = async (previousTitle: string, newTitle: string) => {
+        try {
+          await postCollectionInLogs(
+            "ページ移動",
+            `${previousTitle} → ${newTitle}`,
+            "成功"
+          );
+        } catch (error: any) {
+          console.error("ログ記録中にエラーが発生しました:", error.message);
+        }
+      };
+        const currentPath = pathname?.replace(/^\//, "") || "home";
+  
   useEffect(() => {
     let q =
       targetField === "0"
@@ -129,7 +145,10 @@ export default function ProgramsList() {
                     <div key={program.id} className="mt-0 mb-0 w-full p-[2%] overflow-auto">
                     <div className="bg-green-700 rounded-sm p-1 flex flex-col leading-normal">
                         <button
-                        onClick={() => setVisibleProgram(program)}
+                        onClick={() => {
+                            setVisibleProgram(program)
+                            handleLogPost(currentPath, "eventId:"+program.id)
+                        }}
                         className="grid grid-cols-12 text-gray-900 font-bold text-base text-center bg-white p-1 rounded-sm hover:bg-gray-400"
                         >
                         <FontAwesomeIcon 

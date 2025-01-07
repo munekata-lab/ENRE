@@ -18,9 +18,12 @@ import BoardComponent from "./ui/board";
 import RewardModalComponent from "./ui/rewardModal";
 import QuestionnaireComponent from "./ui/questionnaire";
 import React from "react";
+import { postCollectionInLogs } from "@/lib/dbActions";
+
 
 export default async function Home() {
   const user = await getUserFromCookie();
+
   user === null && redirect("/login");
   const mode = await fetchMode(user?.uid); //modecollectionのdevを取ってる、usersのdev(usermode)
   const boardInfo = await fetchBoardInfo();
@@ -37,6 +40,19 @@ export default async function Home() {
     message: rewardProgressInfo?.message || "",
     progressId: rewardProgressInfo?.id || "",
   };
+
+  const handleLogPost = async (previousTitle: string, newTitle: string) => {
+        try {
+          await postCollectionInLogs(
+            "ページ移動",
+            `${previousTitle} → ${newTitle}`,
+            "成功"
+          );
+        } catch (error: any) {
+          console.error("ログ記録中にエラーが発生しました:", error.message);
+        }
+      };
+      const currentPath = "home";
 
   return (
     <>
