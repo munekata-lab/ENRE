@@ -75,8 +75,8 @@ export default function PostJoinShareComponent() {
         let compressedFile = await imageCompression(file, options);
       
         // 圧縮後のファイルサイズが1MBを超えている場合、品質を段階的に下げて再圧縮
-        while (compressedFile.size / 1024 / 1024 > 1 && options.initialQuality > 0.5) {
-          options.initialQuality -= 0.1;
+        while (compressedFile.size / 1024 / 1024 > 1 && options.initialQuality > 0.4) {
+          options.initialQuality -= 0.2;
           compressedFile = await imageCompression(file, options);
         }
       

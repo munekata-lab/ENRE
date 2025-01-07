@@ -29,7 +29,7 @@ export default async function CharactorComponent() {
   const currentRewordList = [reward1, reward2, reward3];
   const gamaType = currentRewordList.indexOf(Math.max(...currentRewordList));
   const gamaTypeString = ["しる", "つかう", "まもる"][gamaType];
-  const gamaTypeStringColor = "font-bold " + ["text-red-600", "text-blue-600", "text-yellow-600"][gamaType];
+  const gamaTypeStringColor = "font-bold " + ["text-yellow-600", "text-blue-600", "text-red-600"][gamaType];
 
   const imageName = "/icon" + evoState + ( evoState==4 ? "-"+gamaType+"-winter" : "" ) + ".png";
 
@@ -73,7 +73,7 @@ export default async function CharactorComponent() {
           />
         </div>
       </div>
-      <div className="grid grid-rows-3 grid-cols-4 justify-items-center items-center p-2 ">
+      <div className="grid grid-rows-3 grid-cols-4 justify-items-center items-center p-2 rounded-xl">
         <div className="row-start-1 col-start-1 col-end-2 text-sm">合計</div>
         <div className="row-start-2 col-start-1 col-end-2 text-xl font-bold text-green-600">
           {currentReward}pt
@@ -102,9 +102,9 @@ export default async function CharactorComponent() {
         <div className="row-start-2 col-start-2 col-end-5 w-full">
           <ProgressBar >
             <ProgressBar variant="success" now={enre2024_7reward} key={0} max={500} />
-            <ProgressBar variant="danger" now={reward1} key={1} max={500} />
+            <ProgressBar variant="warning" now={reward1} key={1} max={500} />
             <ProgressBar variant="info" now={reward2} key={2} max={500} />
-            <ProgressBar variant="warning" now={reward3} key={3} max={500} />
+            <ProgressBar variant="danger" now={reward3} key={3} max={500} />
           </ProgressBar>
           {/* {(evoState != 4) && (
             <ProgressBar variant="success" now={currentReward} max={nextEvoThreshold} />
