@@ -19,6 +19,7 @@ import RewardModalComponent from "./ui/rewardModal";
 import QuestionnaireComponent from "./ui/questionnaire";
 import React from "react";
 import { postCollectionInLogs } from "@/lib/dbActions";
+import SettingsGuideComponent from "./ui/settingsGuide";
 
 
 export default async function Home() {
@@ -96,6 +97,7 @@ export default async function Home() {
           </main>
           {boardInfo !== null && <BoardComponent info={modalInfo} />}
           {rewardProgressInfo !== null && <RewardModalComponent info={modalInfo2} />}
+          {mode?.settingsGuide && <SettingsGuideComponent />}
         </>
       ) : (
         <ComingSoonComponent />

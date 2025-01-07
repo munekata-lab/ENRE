@@ -6,6 +6,7 @@ import { arrayUnion } from "firebase/firestore";
 import { getUserFromCookie } from "@/lib/session";
 import { number, z } from "zod";
 import type { Place } from "@/lib/type";
+import SettingsGuideComponent from "@/app/ui/settingsGuide";
 // import packageJson from "../../package.json";
 
 export async function fetchPhotosInfo() {
@@ -441,6 +442,30 @@ export async function patchReward2(point: string, field: string) {
   }
 }
 
+export async function patchSettingsGuide() {
+  const user = await getUserFromCookie();
+  if (!user) return;
+  const uid = user.uid;
+  console.log(uid);
+  try {
+    try {
+      // ログに記録
+      await postCollectionInLogs("初期設定完了", "start", "start");
+
+    } catch (error) {
+      console.error("初気設定の処理中にエラーが発生しました:", error);
+    }
+    await adminDB.collection("users").doc(uid).set(
+      {
+        settingsGuide: false,
+      },
+      { merge: true }
+    );
+  } catch (error) {
+    console.log(error);
+  }
+}
+
 export async function patchCheckinProgramIds(programId: string) {
   const user = await getUserFromCookie();
   if (!user) return;
@@ -589,11 +614,13 @@ export async function fetchMode(uid: string) {
     const modePhotoalbum = modeRef.data().photoalbum;
     const userRef = await adminDB.collection("users").doc(uid).get();
     const userMode = userRef.data().dev;
+    const userSettingsGuideMode = userRef.data().settingsGuide;
     return {
       webMode: modeDev,
       programListMode: modeProgramList,
       photoalbumMode: modePhotoalbum,
       userMode: userMode,
+      settingsGuide: userSettingsGuideMode,
     };
   } catch (error) {
     console.log(error);

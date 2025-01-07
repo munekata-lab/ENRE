@@ -4,7 +4,7 @@ import { useState, useEffect, ChangeEvent } from "react";
 import { useFormState } from "react-dom";
 import { postUserSettings } from "@/lib/dbActions";
 import { useRouter } from "next/navigation";
-import { postCollectionInLogs, fetchUserSettings } from "@/lib/dbActions";
+import { postCollectionInLogs, fetchUserSettings, patchSettingsGuide } from "@/lib/dbActions";
 import type { UserSettings } from "@/lib/type";
 import Link from "next/link";
 import TimeTableComponent from "./timeTable";
@@ -21,6 +21,7 @@ export default function SettingsComponent() {
   const [error, action] = useFormState(postUserSettings, initialState);
   const [settings, setSettings] = useState<UserSettings | null>(null);
   const [selected, setSelected] = useState("");
+  const [timeTableError, setTimeTableError] = useState(""); // 時間割エラーの状態
   // const [canNotification, setCanNotification] = useState(true);
   const router = useRouter();
 
@@ -55,6 +56,7 @@ export default function SettingsComponent() {
     if (error.message === "success") {
       (async () => {
         await postCollectionInLogs("設定完了", "設定完了", "設定");
+        await patchSettingsGuide();
       })();
       router.push("/");
     }
@@ -73,10 +75,31 @@ export default function SettingsComponent() {
     });
   };
 
+  const validateTimeTable = () => {
+    // 選択されている時間割のセルが1つでもあるかチェック
+    const hasSelection = Object.values(selectedCells).some((row) =>
+      row.some((cell) => cell)
+    );
+    if (!hasSelection) {
+      setTimeTableError("時間割を設定してください"); // エラーメッセージをセット
+      return false;
+    }
+    setTimeTableError(""); // エラーなし
+    return true;
+  };
+
+  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (validateTimeTable()) {
+      const formData = new FormData(event.currentTarget); // FormData を作成
+      action(formData); // FormData を渡す
+    }
+  };
+
   return (
     <main className="flex flex-col items-center justify-center min-h-screen py-2">
       <h1 className="text-2xl font-bold mb-4">設定</h1>
-      <form action={action} className="w-full max-w-xs space-y-4">
+      <form action={action} onSubmit={handleSubmit} className="w-full max-w-xs space-y-4">
         {/* <div className="flex flex-row justify-between items-center">
           <label htmlFor="notification" className="mr-2 text-lg font-bold">
             プッシュ通知:
@@ -155,6 +178,9 @@ export default function SettingsComponent() {
           name="timeTable"
         />
         <p className="text-red-500 text-center">{error?.message}</p>
+        {timeTableError && (
+          <p className="text-red-500 text-center">{timeTableError}</p>
+        )}
         <div className="flex justify-center">
           <button
             type="submit"
