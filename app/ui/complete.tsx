@@ -31,14 +31,18 @@ export default function CompleteComponent() {
             </h1>
 
             <h1 className="text-sm font-bold text-center mb-3 w-11/12">
-                イベントに参加している様子を共有して、追加でポイントを獲得しよう！
+                イベントに参加している様子を共有しよう！
             </h1>
+
             <div>
                 <a
                     href="https://twitter.com/share?ref_src=twsrc%5Etfw"
                     className="twitter-share-button"
-                    data-hashtags="Enre"
-                    data-show-count="false"
+                    data-size="large"
+                    data-text={`「${title}」に参加しました`}
+                    data-url="https://www.enre-official.com/"
+                    data-hashtags="Enre #京都産業大学"
+                    data-show-count="true"
                 >
                     Tweet
                 </a>

@@ -653,7 +653,7 @@ export async function fetchParticipatedEvents() {
   // };
   const initialParticipatedEvents: { [key: number]: number } = {};
   {/* ゆくゆくは自動でイベント数用意されるようにしたい */}
-  for (let i = 1; i <= 60; i++) {
+  for (let i = 1; i <= 20; i++) {
     initialParticipatedEvents[i] = 0;
   }
   const user = await getUserFromCookie();
@@ -743,7 +743,7 @@ export async function fetchNotificationInfo() {
         } else if (diffDate < 604800000) {
           return `${Math.floor(diffDate / 86400000)}日前`;
         }
-        return `${postDate.getFullYear()}年${postDate.getMonth()}月${postDate.getDate()}日`;
+        return `${postDate.getFullYear()}年${postDate.getMonth() + 1}月${postDate.getDate()}日`;
       };
 
       const postDateString = setPostDateString(createdAt);
@@ -1033,7 +1033,7 @@ export async function getPlace() {
       } else if (diffDate < 604800000) {
         return `${Math.floor(diffDate / 86400000)}日前`;
       }
-      return `${postDate.getFullYear()}年${postDate.getMonth()}月${postDate.getDate()}日`;
+      return `${postDate.getFullYear()}年${postDate.getMonth() + 1}月${postDate.getDate()}日`;
     };
     const dateString = setPostDateString(updatedAt.toDate());
 
