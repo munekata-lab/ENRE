@@ -1,21 +1,38 @@
 "use client";
-import { fetchNotificationInfo } from "@/lib/dbActions";
+import { fetchNotificationInfo, postCollectionInLogs } from "@/lib/dbActions";
 import { onMessageListener, requestForToken } from "@/lib/firebase/fcm";
 import { isSupported } from "firebase/messaging";
 import { useState, useEffect } from "react";
 import { getUserFromCookie } from "@/lib/session";
 import { arrayUnion, doc, updateDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase/client";
+import { usePathname } from "next/navigation";
 
 export function NotificationView() {
   const [notificationList, setNotificationList] = useState<any[]>([]);
   const [selectedNotification, setSelectedNotification] = useState("");
   const [changeNotificationList, setChangeNotificationList] = useState(false);
+ 
+  const pathname = usePathname();
+    const handleLogPost = async (previousTitle: string, newTitle: string) => {
+      try {
+        await postCollectionInLogs(
+          "ページ移動",
+          `${previousTitle} → ${newTitle}`,
+          "成功"
+        );
+        console.log("aaaaaaaaa:",pathname);
+      } catch (error: any) {
+        console.error("ログ記録中にエラーが発生しました:", error.message);
+      }
+    };
+      const currentPath = pathname?.replace(/^\//, "") || "home";
 
   const handleNotificationClick = async (notification: any) => {
     setSelectedNotification(notification);
 
     if (notification === "") return null;
+   await handleLogPost(currentPath, "clickedNotificationId: "+notification.id);
 
     // UIの更新処理
     const index = notificationList.findIndex((not) => {

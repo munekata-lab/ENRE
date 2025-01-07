@@ -19,7 +19,8 @@ export default function FooterComponent() {
 
   const selectedIndex = paths.indexOf(currentPath);
   const [selectedIcon, setSelectedIcon] = useState(selectedIndex);
-
+  
+  const pathname = usePathname();
   const handleLogPost = async (previousTitle: string, newTitle: string) => {
     try {
       await postCollectionInLogs(
@@ -31,6 +32,19 @@ export default function FooterComponent() {
       console.error("ログ記録中にエラーが発生しました:", error.message);
     }
   };
+    const currentPAth = pathname?.replace(/^\//, "") || "home";
+  // const handleLogPost = async (previousTitle: string, newTitle: string) => {
+  //   try {
+  //     await postCollectionInLogs(
+  //       "ページ移動",
+  //       `${previousTitle} → ${newTitle}`,
+  //       "成功"
+  //     );
+  //   } catch (error: any) {
+  //     console.error("ログ記録中にエラーが発生しました:", error.message);
+  //   }
+  // };
+
   // const [notificationUpdateFlag, setNotificationUpdateFlag] = useState(true);
   // const [isReadAllNotification, setIsReadAllNotification] = useState(true);
 
@@ -89,10 +103,10 @@ export default function FooterComponent() {
             <button
               key={index}
               onClick={() => {
-                const previousTitle = title[selectedIcon];
-                const newTitle = title[index];
+                // const previousTitle = title[selectedIcon];
+                const newTitle = paths[index].replace(/^\//, "");
                 setSelectedIcon(index);
-                handleLogPost(previousTitle, newTitle); // ログ記録を実行
+                handleLogPost(currentPAth, newTitle); // ログ記録を実行
               }}
             >
               <Image src={icon} width={45} height={45} alt={icon}  />
