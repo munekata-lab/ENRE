@@ -7,6 +7,8 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import Link from "next/link";
 import packageJson from "../../package.json";
 import Image from "next/image";
+import { postCollectionInLogs } from "@/lib/dbActions";
+import { usePathname } from "next/navigation";
 
 type Props = {
   nickName: string;
@@ -20,6 +22,29 @@ export default function MenuComponent({
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement | null>(null);
   const version = packageJson.version;
+
+  const pathname = usePathname();
+  const handleLogPost = async (previousTitle: string, newTitle: string) => {
+    try {
+      await postCollectionInLogs(
+        "ページ移動",
+        `${previousTitle} → ${newTitle}`,
+        "成功"
+      );
+    } catch (error: any) {
+      console.error("ログ記録中にエラーが発生しました:", error.message);
+    }
+  };
+  const currentPath = pathname?.replace(/^\//, "") || "home";
+
+  const toggleMenu = async () => {
+    const newMenuState = !menuOpen;
+    setMenuOpen(newMenuState);
+
+    const action = newMenuState ? "openMenu" : "closeMenu";
+    await handleLogPost(currentPath, action);
+  }
+
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -37,7 +62,7 @@ export default function MenuComponent({
   return (
     <div className="relative inline-block text-left z-20" ref={menuRef}>
       <div className="justify-self-center items-center">
-          <Image src="/settings.png" width={60} height={60} alt="settings" onClick={() => setMenuOpen(!menuOpen)} />
+        <Image src="/settings.png" width={60} height={60} alt="settings" onClick={ toggleMenu } />
       </div>
       {menuOpen && (
         <div className="origin-top-right absolute right-0 mt-2 w-56 rounded-md shadow-lg bg-[#f5ffec] ring-1 ring-black ring-opacity-5">

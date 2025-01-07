@@ -1,5 +1,6 @@
 import Link from "next/link";
 import CongestionComponent from "./congestion";
+import BusPoolLinkComponent from "./busPoolLinkComponent";
 
 export default function WatchCardComponent() {
 
@@ -36,9 +37,10 @@ export default function WatchCardComponent() {
           <CongestionComponent key={1} docId={"BusWeb1"} />
         </div>
         <div className="justify-self-center items-center text-center mt-2">
-          <Link href="https://jweb.kyoto-su.ac.jp/webcam/" className="text-sm text-white bg-green-700 py-2 px-4 rounded-md font-bold no-underline"          >
+          <BusPoolLinkComponent />
+          {/* <Link href="https://jweb.kyoto-su.ac.jp/webcam/" className="text-sm text-white bg-green-700 py-2 px-4 rounded-md font-bold no-underline"          >
             バスプールをアイキャッチ
-          </Link>
+          </Link> */}
         </div>
       </div>
     </div >
