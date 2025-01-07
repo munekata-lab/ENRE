@@ -446,7 +446,6 @@ export async function patchSettingsGuide() {
   const user = await getUserFromCookie();
   if (!user) return;
   const uid = user.uid;
-  console.log(uid);
   try {
     try {
       // ログに記録

@@ -4,20 +4,28 @@ import React from "react";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 
-export default function SettingsGuideComponent() {
+interface SettingsGuideComponentProps {
+    settingsMode: boolean; // 引数の型を定義
+  }
+
+export default function SettingsGuideComponent({ settingsMode }: SettingsGuideComponentProps) {
   const [canceled, setCanceled] = useState(false);
   const [clicked, setClicked] = useState(false);
   const router = useRouter();
   const title = "初期設定";
   const content = "ニックネームや帰宅方法、時間割についての登録をしてください";
+  //   console.log(`SettingsCompo: ${settingsMode}`);
 
-  const handleModalClick = async () => {
+  const handleModalClick = async (event: React.MouseEvent<HTMLButtonElement>) => {
     // console.log("handleModalClick");
     setClicked(true);
     setCanceled(true);
     // 設定画面へ
     router.push(`/settings`);
   }
+
+  // settingsMode が true の場合のみ表示
+  if (!settingsMode) return null;
 
   return (
     <>
@@ -32,9 +40,7 @@ export default function SettingsGuideComponent() {
               <div className="flex space-x-4">
                 {!clicked ? (
                   <button
-                    onClick={() => {
-                     handleModalClick();
-                    }}
+                    onClick={handleModalClick}
                     className="px-4 py-2 bg-white text-green-700 border border-green-700 rounded hover:bg-gray-500"
                   >
                     設定する

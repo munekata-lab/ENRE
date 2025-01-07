@@ -20,7 +20,20 @@ import QuestionnaireComponent from "./ui/questionnaire";
 import React from "react";
 import { postCollectionInLogs } from "@/lib/dbActions";
 import SettingsGuideComponent from "./ui/settingsGuide";
+import { GetServerSideProps } from "next";
 
+// export const getServerSideProps: GetServerSideProps = async (context) => {
+//   const user = await getUserFromCookie();
+
+//   user === null && redirect("/login");
+//   const mode = await fetchMode(user?.uid);
+//   const settingsMode = mode?.settingsGuide || false;
+//   return {
+//     props: {
+//       settingsMode,
+//     },
+//   };
+// };
 
 export default async function Home() {
   const user = await getUserFromCookie();
@@ -29,7 +42,6 @@ export default async function Home() {
   const mode = await fetchMode(user?.uid); //modecollectionのdevを取ってる、usersのdev(usermode)
   const boardInfo = await fetchBoardInfo();
   const rewardProgressInfo = await fetchRewardProgressInfo();
-  // console.log(rewardProgressInfo);
   const modalInfo = { //アンケートモーダル用
     title: boardInfo?.title || "",
     message: boardInfo?.message || "",
@@ -97,7 +109,7 @@ export default async function Home() {
           </main>
           {boardInfo !== null && <BoardComponent info={modalInfo} />}
           {rewardProgressInfo !== null && <RewardModalComponent info={modalInfo2} />}
-          {mode?.settingsGuide && <SettingsGuideComponent />}
+          <SettingsGuideComponent settingsMode={mode?.settingsGuide} />
         </>
       ) : (
         <ComingSoonComponent />

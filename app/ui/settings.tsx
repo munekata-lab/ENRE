@@ -3,11 +3,12 @@
 import { useState, useEffect, ChangeEvent } from "react";
 import { useFormState } from "react-dom";
 import { postUserSettings } from "@/lib/dbActions";
-import { useRouter } from "next/navigation";
+import { useRouter, redirect } from "next/navigation";
 import { postCollectionInLogs, fetchUserSettings, patchSettingsGuide } from "@/lib/dbActions";
 import type { UserSettings } from "@/lib/type";
 import Link from "next/link";
 import TimeTableComponent from "./timeTable";
+import { LoadingAnimation } from "./skeletons";
 
 const initialState = {
   message: "",
@@ -53,14 +54,27 @@ export default function SettingsComponent() {
   };
 
   useEffect(() => {
-    if (error.message === "success") {
-      (async () => {
-        await postCollectionInLogs("設定完了", "設定完了", "設定");
-        await patchSettingsGuide();
-      })();
-      router.push("/");
-    }
+    const handleSettingsCompletion = async () => {
+      if (error.message === "success") {
+        try {
+          // ログを記録
+          await postCollectionInLogs("設定完了", "設定完了", "設定");
+  
+          // 設定ガイドのパッチ
+          await patchSettingsGuide();
+  
+          // 設定が完了した後にページ遷移
+          router.replace("/");
+
+        } catch (err) {
+          console.error("Error during settings completion:", err);
+        }
+      }
+    };
+  
+    handleSettingsCompletion();
   }, [router, error]);
+  
 
   const days = ["1/8", "1/9", "1/10"];
   const periods = ["1限", "2限", "昼休", "3限", "4限", "5限"];
