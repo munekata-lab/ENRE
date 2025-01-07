@@ -2,7 +2,7 @@
 
 import React from "react";
 import { useState, useEffect, useRef } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import {
   fetchQrInfo,
   fetchProgramInfo,
@@ -47,6 +47,22 @@ export default function LoadingComponent() {
   const [modalTitle, setModalTitle] = useState(""); // モーダルのタイトル
   const [modalContent, setModalContent] = useState(""); // モーダルの内容
   const [modalPlace, setModalPlace] = useState(""); // モーダルの場所
+
+
+    const pathname = usePathname();
+      const handleLogPOst = async (previousTitle: string, newTitle: string) => {
+        try {
+          await postCollectionInLogs(
+            "ページ移動",
+            `${previousTitle} → ${newTitle}`,
+            "成功"
+          );
+        } catch (error: any) {
+          console.error("ログ記録中にエラーが発生しました:", error.message);
+        }
+      };
+        const currentPath = pathname?.replace(/^\//, "") || "home";
+  
 
   useEffect(() => {
     if (ref.current) return;
@@ -263,6 +279,7 @@ export default function LoadingComponent() {
                   data-url="https://www.enre-official.com/"
                   data-hashtags="Enre #京都産業大学"
                   data-show-count="true"
+                  onClick={() => handleLogPOst(currentPath, "Twitter")}
                 >
                   Tweet
                 </a>
@@ -274,6 +291,7 @@ export default function LoadingComponent() {
               <Link href="/" className="mt-1">
                 <button
                   className="text-xs underline my-4 text-gray-600"
+                  onClick={() => handleLogPOst(currentPath+title, "Home")}
                 >ホームに戻る</button>
               </Link>
             </div>
