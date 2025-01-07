@@ -196,6 +196,7 @@ export async function postUserInfo(uid: string, nickName: string) {
       modeOfTransportation: "",
       timeTable: initialTimeTable,
     },
+    settingsGuido: true,
     dev: false,
     university: false,
     form: {
