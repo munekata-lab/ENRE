@@ -193,7 +193,7 @@ export default function AboutComponent() {
       <p className="text-base text-center mt-5"style={{
         width: '95%',
       }}>
-        Enreを使うことであなたの様々なイベントや活動への参加記録がEnreポイントやポイントを貯めることで成長するEnre公式キャラクター”ガマちゃん”によって簡単に把握することが出来ます。
+        Enreを使うことであなたの様々なイベントや活動への参加記録がsポイントを貯めることで成長するEnre公式キャラクター”ガマちゃん”によって簡単に把握することが出来ます。
       </p>
       {/* <p className="text-base text-center mt-5">
         更に、今回のEnre（ver{version}）ではver1.1.0には無かった機能が追加予定です！
@@ -294,6 +294,18 @@ export default function AboutComponent() {
       <p className="text-base text-center">
         などを促すことで活性化するツールとして進んでいきます。
       </p>
+      <p className="text-base font-bold text-center">
+        ・グリーンインフラ（GI）ポイントとは？
+      </p>
+      <p className="text-base text-center mt-1">
+        GIポイントは自然環境貢献活動を記録し、可視化するためのポイントで、あなたの貢献活動を評価します。
+      </p>
+      <p className="text-base text-center mt-1">
+        GIポイントは、参加したイベントが自然環境に貢献するイベントである場合に獲得することが出来ます！
+      </p>
+      <p className="text-base text-center mt-1">
+        今回ガマちゃんを成長させるためにはGIポイントを貯める必要があります、イベントに参加してグリーンインフラポイントを貯めよう！
+      </p>
       <p className="text-base text-center mt-5">
         皆様の意見や参加をもとに今後もアップデートを続けていきます。ぜひご協力をお願いいたします。
       </p>
@@ -350,11 +362,11 @@ export default function AboutComponent() {
       <p className="text-base text-center">
         本取組は、グリーンインフラの社会実装に向けた研究活動として、以下の２つの研究室が協働しておこなっています。
       </p>
-      <ul className="text-base">
-        <li className="before:content-['・'] ml-4 -indent-4">
+      <ul className="text-base text-left">
+        <li className="before:content-['・'] -indent-4">
           京都産業大学 生命科学部 産業生命科学科 西田研究室
         </li>
-        <li className="before:content-['・'] ml-4 -indent-4">
+        <li className="before:content-['・'] -indent-4">
           京都産業大学 情報理工学部 情報理工学科 棟方研究室
         </li>
       </ul>
