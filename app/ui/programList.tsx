@@ -16,6 +16,8 @@ import { LoadingAnimation } from "./skeletons";
 import packageJson from "../../package.json";
 import { postCollectionInLogs } from "@/lib/dbActions";
 import { usePathname } from "next/navigation";
+import { initializeApp } from "firebase/app";
+import { initializeFirestore, enableIndexedDbPersistence } from "firebase/firestore";
 
 type Program = {
   id: string;
@@ -66,7 +68,8 @@ export default function ProgramsList() {
         }
   
     const unsubscribe = onSnapshot(q, (snapshot) => {
-        const programs = snapshot.docs
+        // const programs = snapshot.docs
+        let programs = snapshot.docs
             .map((doc) => ({
             id: doc.id,
             ...doc.data(),
@@ -86,19 +89,29 @@ export default function ProgramsList() {
             
             })) as Program[];
     
-        // idを数字の小さい順に並び替え
-        let sortedPrograms = programs.sort((a, b) => {
-            const idA = parseInt(a.id, 10); // idを整数に変換
-            const idB = parseInt(b.id, 10); // idを整数に変換
-            return idA - idB; // idの数値が小さい順にソート
-        });
+        // let sortedPrograms = programs.filter(
+        //     (program) =>
+        //         !isNaN(Number(program.id)) &&
+        //         !isNaN(program.totalPoint)
+        // );
+            
+        // sortedPrograms = sortedPrograms.sort((a, b) => {
+        //     const idA = parseInt(a.id, 10);
+        //     const idB = parseInt(b.id, 10);
+        //     return idA - idB;
+        // });
 
             // クライアント側で並び替え
+        // if (sortOrder === "pointDesc") {
+        //     sortedPrograms = sortedPrograms.sort((a, b) => b.totalPoint - a.totalPoint);
+        // }
+
         if (sortOrder === "pointDesc") {
-            sortedPrograms = sortedPrograms.sort((a, b) => b.totalPoint - a.totalPoint);
+            programs = programs.sort((a, b) => b.totalPoint - a.totalPoint);
         }
-  
-      setProgramList(sortedPrograms);
+        
+    //   setProgramList(sortedPrograms);
+      setProgramList(programs);
     });
   
     return () => unsubscribe();
