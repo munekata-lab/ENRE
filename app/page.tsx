@@ -101,7 +101,7 @@ export default async function Home() {
                   <QuestionnaireComponent
                     link={`https://docs.google.com/forms/d/e/1FAIpQLSdcT2TQDyBV5vb5uqELWpT44n4DCoy74Z_lI1b1JWBQcq0l9g/viewform?usp=pp_url&entry.929680888=${user.uid}`}
                     title="体験後アンケート"
-                    detail="1/10(金)以降公開予定"
+                    detail="1/20(月)以降公開予定"
                     className="text-sm bg-gray-400 py-2 px-4 rounded-md font-bold"
                   />
                 </div>
