@@ -13,6 +13,7 @@ import {
   fetchProgramInfo2,
   patchReward2,
   patchParticipatedEvents,
+  patchCheckoutProgramIds,
 } from "@/lib/dbActions";
 import { postLogEvent } from "@/lib/firebase/client";
 import Image from "next/image";
@@ -185,6 +186,7 @@ export default function UploadImage() {
         const state = "postPhoto";
         await postCollectionInLogs(title, place, state);
         await patchParticipatedEvents(`${programId}`);
+        await patchCheckoutProgramIds(programId);
         postLogEvent("写真投稿成功");
         router.push(`/complete?&programId=${programId}&title=${programTitle}&completionMessage=${completionMessage}&point=${point}&field=${field}`);
       } else {
