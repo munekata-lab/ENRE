@@ -40,7 +40,7 @@ export default function LoadingComponent() {
   const { parse } = useBudouX();
   const [point, setPoint] = useState("");
   const [loadingPoint, setLoadingPoint] = useState("");
-  const randomIds = [1, 3, 7];
+  const randomIds = [2, 5, 8];
   const [showModal, setShowModal] = useState(true); // モーダルの表示状態
   const [modalInfo, setModalInfo] = useState(false); // モーダル
   const [modalProgramId, setModalProgramId] = useState("0"); // モーダルのプログラムID
