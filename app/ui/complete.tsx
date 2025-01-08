@@ -1,9 +1,10 @@
 "use client";
 
-import { useSearchParams } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import Script from "next/script";
 import Card from "react-bootstrap/Card";
+import { postCollectionInLogs } from "@/lib/dbActions";
 
 export default function CompleteComponent() {
   const searchParams = useSearchParams();
@@ -13,6 +14,21 @@ export default function CompleteComponent() {
   const point = searchParams.get("point") || "";
   const field = searchParams.get("field") || "";
 
+    const pathname = usePathname();
+      const handleLogPost = async (previousTitle: string, newTitle: string) => {
+        try {
+          await postCollectionInLogs(
+            "ページ移動",
+            `${previousTitle} → ${newTitle}`,
+            "成功"
+          );
+        } catch (error: any) {
+          console.error("ログ記録中にエラーが発生しました:", error.message);
+        }
+      };
+        const currentPath = pathname?.replace(/^\//, "") || "home";
+        
+  
   return (
     <div className="flex min-h-screen flex-col justify-between pb-20">
         <div className="justify-center mt-24">
@@ -43,6 +59,7 @@ export default function CompleteComponent() {
                     data-url="https://www.enre-official.com/"
                     data-hashtags="Enre #京都産業大学"
                     data-show-count="true"
+                    onClick={ ()=>handleLogPost(currentPath, "Twitter")}
                 >
                     Tweet
                 </a>
@@ -55,6 +72,7 @@ export default function CompleteComponent() {
             <Link href="/" className="mt-1">
             <button
                 className="text-xs underline my-4 text-gray-600"
+                onClick={()=>{handleLogPost(currentPath, "home"), console.log("home")}} 
             >ホームに戻る</button>
             </Link>
         </div>

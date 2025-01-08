@@ -83,6 +83,7 @@ export default function MenuComponent({
               <button
                 className="inline-block px-4 py-2 text-sm w-full text-black hover:bg-white text-right"
                 role="menuitem"
+                onClick={() =>  handleLogPost(currentPath, "about")}
               >
                 Enreについて
               </button>
@@ -91,6 +92,8 @@ export default function MenuComponent({
               <button
                 className="inline-block px-4 py-2 text-sm w-full text-black hover:bg-white text-right"
                 role="menuitem"
+                onClick={() =>  handleLogPost(currentPath, "settings")}
+
               >
                 設定
               </button>
@@ -99,6 +102,8 @@ export default function MenuComponent({
               <button
                 className="inline-block px-4 py-2 text-sm w-full text-black hover:bg-white text-right"
                 role="menuitem"
+                onClick={() =>  handleLogPost(currentPath, "changepassword")}
+
               >
                 パスワード変更
               </button>
@@ -124,7 +129,7 @@ export default function MenuComponent({
               </>
             )}
             <button
-              onClick={() => logout()}
+              onClick={() => {handleLogPost(currentPath, "menuLogout"),logout()}}
               className="inline-block px-4 py-2 text-sm w-full text-red-500 hover:bg-white text-right"
               role="menuitem"
             >

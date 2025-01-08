@@ -198,7 +198,9 @@ import {
   fetchPhotosInfo,
   fetchLikesPhoto,
   fetchLimitedNumberPhotosInfo,
+  postCollectionInLogs,
 } from "@/lib/dbActions";
+import { usePathname } from "next/navigation";
 
 export default function PhotoAlbumComponent() {
   const [photosList, setPhotosList] = useState<any[]>([]);
@@ -207,6 +209,20 @@ export default function PhotoAlbumComponent() {
   const [displayCount, setDisplayCount] = useState(9);
   const [hasMorePhotos, setHasMorePhotos] = useState(true); // State to track if more photos are available
 
+  const pathname = usePathname();
+      const handleLogPost = async (previousTitle: string, newTitle: string) => {
+        try {
+          await postCollectionInLogs(
+            "ページ移動",
+            `${previousTitle} → ${newTitle}`,
+            "成功"
+          );
+        } catch (error: any) {
+          console.error("ログ記録中にエラーが発生しました:", error.message);
+        }
+      };
+        const currentPath = pathname?.replace(/^\//, "") || "home";
+  
   const handlePhotoClick = (photo: any) => {
     setSelectedPhoto(photo);
   };
@@ -270,7 +286,7 @@ export default function PhotoAlbumComponent() {
         </div>
         {hasMorePhotos && (
           <button
-            onClick={handleLoadMore}
+            onClick={()=>{handleLogPost(currentPath,"readMorePhotos"),handleLoadMore}}
             className="mt-4 px-6 py-2 bg-green-700 text-white rounded hover:bg-green-900 text-center"
           >
             さらに表示
