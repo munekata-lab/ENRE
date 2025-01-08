@@ -8,9 +8,10 @@ type Props = {
   link: string;
   title: string;
   detail: string;
+  className: string;
 };
 
-export default function QuestionnaireComponent({ link, title, detail }: Props) {
+export default function QuestionnaireComponent({ link, title, detail, className }: Props) {
 
   // const pathname = usePathname();
   // const handleLogPost = async (previousTitle: string, newTitle: string) => {
@@ -45,14 +46,14 @@ export default function QuestionnaireComponent({ link, title, detail }: Props) {
         <div className="row-start-2 col-start-1 col-end-3 justify-items-center items-center text-center tracking-wide text-xs">
           {detail}
         </div>
-        <div className="row-start-3 col-start-1 col-end-3 grid place-items-center pointer-events-none">
+        <div className="row-start-3 col-start-1 col-end-3 grid place-items-center">
           <Link
             href={link}
             target="_blank"
             className="m-0 text-white no-underline"
           >
             <button
-              className="text-sm bg-gray-400 py-2 px-4 rounded-md font-bold"
+              className={className}
               onClick={handleClick}
             >
               回答する
