@@ -89,12 +89,12 @@ export default async function Home() {
                   {/* 表示速度の改善 */}
                   <WatchCardComponent />
                 </div>
-                <div className="row-start-4 col-start-1 col-end-2 text-shadow-lg pointer-events-none">
+                <div className="row-start-4 col-start-1 col-end-2 text-shadow-lg">
                   <QuestionnaireComponent
                     link={`https://docs.google.com/forms/d/e/1FAIpQLScavjt8Kf2_ZfeY3jfWD6RCd8X848Hp9WMYe_gsn365aFf6ww/viewform?usp=pp_url&entry.296284400=${user.uid}`}
                     title="登録時アンケート"
-                    detail="1/8(水) 12:30公開予定"
-                    className="text-sm bg-gray-400 py-2 px-4 rounded-md font-bold"
+                    detail="受付中"
+                    className="text-sm bg-green-700 py-2 px-4 rounded-md font-bold"
                   />
                 </div>
                 <div className="row-start-4 col-start-2 col-end-3 text-shadow-lg pointer-events-none">
