@@ -2,10 +2,11 @@
 
 import { useState, useEffect } from "react";
 import { useZxing } from "react-zxing";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { db } from "@/lib/firebase/client"; // Firebaseの初期化ファイルをインポート
 import { collection, query, where, getDocs } from "firebase/firestore"; // Firestore関連の関数をインポート
 import packageJson from "../../package.json";
+import { postCollectionInLogs } from "@/lib/dbActions";
 
 export default function BarcodeScanner() {
   const router = useRouter();
@@ -19,15 +20,31 @@ export default function BarcodeScanner() {
     },
   });
 
+  const pathname = usePathname();
+      const handleLogPost = async (previousTitle: string, newTitle: string) => {
+        try {
+          await postCollectionInLogs(
+            "qrコードのパス入力でのページ移動",
+            `${previousTitle} → ${newTitle}`,
+            "成功"
+          );
+        } catch (error: any) {
+          console.error("ログ記録中にエラーが発生しました:", error.message);
+        }
+      };
+        const currentPath = pathname?.replace(/^\//, "") || "home";
+  
+
   useEffect(() => {
     if (result === "") return;
+    handleLogPost(currentPath, "qrReaderByScan");
     router.push(result);
   }, [router, result]);
 
   const handleSubmit = async () => {
     if (programPass) {
       const q = query(collection(db, programData), where("programPass", "==", programPass));
-
+      handleLogPost(currentPath, "qrReaderByPass");
       try {
         const querySnapshot = await getDocs(q);
         if (querySnapshot.empty) {
@@ -36,8 +53,8 @@ export default function BarcodeScanner() {
           // 一致するドキュメントがあれば、ドキュメント名を取得
           const doc = querySnapshot.docs[0]; // 最初の一致するドキュメントを取得
           const documentName = doc.id; // ドキュメントID（ドキュメント名として使う）
-          
           // 新しい URL へリダイレクト
+          handleLogPost(currentPath, "qrReaderByPass success: "+documentName);
           router.push(`/loading?id=${documentName}`);
         }
       } catch (error) {
