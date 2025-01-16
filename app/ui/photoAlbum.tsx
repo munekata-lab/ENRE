@@ -208,6 +208,7 @@ export default function PhotoAlbumComponent() {
   const [likes, setLikes] = useState<string[]>([]);
   const [displayCount, setDisplayCount] = useState(9);
   const [hasMorePhotos, setHasMorePhotos] = useState(true); // State to track if more photos are available
+  const [pushHasMorePhotos, setPushHasMorePhotos] = useState(true);
 
   const pathname = usePathname();
       const handleLogPost = async (previousTitle: string, newTitle: string) => {
@@ -233,6 +234,7 @@ export default function PhotoAlbumComponent() {
 
   const handleLoadMore = () => {
     setDisplayCount((prevCount) => prevCount + 9);
+    setPushHasMorePhotos(false);
   };
 
   useEffect(() => {
@@ -284,7 +286,7 @@ export default function PhotoAlbumComponent() {
             </div>
           ))}
         </div>
-        {hasMorePhotos && (
+        {hasMorePhotos && pushHasMorePhotos && (
           <button
             onClick={() => {
               handleLogPost(currentPath, "readMorePhotos");
@@ -301,13 +303,6 @@ export default function PhotoAlbumComponent() {
           onSetLikes={(newLikes: string[]) => setLikes(newLikes)}
           onClose={() => handleOnClose()}
         />
-
-        {/* <a
-          href="https://drive.google.com/drive/folders/1BPqu9MlIFzk1s_IovQaIuJ4RqIiPfGTx?usp=sharing"
-          className="block mt-4 text-blue-500 underline"
-        >
-          みんなのアルバムはこちら
-        </a> */}
       </div>
     </main>
   );
