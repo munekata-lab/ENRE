@@ -30,7 +30,7 @@ export default function WatchCardComponent() {
           </div>
         </div>
 
-        <div className="justify-items-center items-center text-center mb-1 text-sm text-green-700 font-semibold text-shadow-lg">
+        <div className="justify-items-center items-center text-center mb-1 text-sm text-green-700 font-semibold">
           バスプールの混雑度
         </div>
         <div className="grid grid-cols-1 justify-items-center items-center justify-self-center w-10/12">
