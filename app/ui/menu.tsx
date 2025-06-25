@@ -118,14 +118,6 @@ export default function MenuComponent({
                     管理画面
                   </button>
                 </Link>
-                <Link href="/admin/register" className="text-right">
-                  <button
-                    className="inline-block px-4 py-2 text-sm w-full text-black hover:bg-white text-right"
-                    role="menuitem"
-                  >
-                    管理画面(イベント編集)
-                  </button>
-                </Link>
               </>
             )}
             <button

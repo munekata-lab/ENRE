@@ -49,6 +49,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
       <div className="w-full bg-gray-800 text-white p-4">
         <h1 className="text-2xl font-bold">Enre 管理画面</h1>
         <nav className="flex justify-center gap-4 mt-2">
+          <Link href="/" className="text-white hover:underline">ホームへ戻る</Link>
           <Link href="/admin" className="text-white hover:underline">ダッシュボード</Link>
           <Link href="/admin/events" className="text-white hover:underline">イベント管理</Link>
           <Link href="/admin/users" className="text-white hover:underline">ユーザー管理</Link>
