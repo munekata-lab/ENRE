@@ -11,6 +11,7 @@ export default async function CongestionComponent({ key, docId }: Props) {
     const placeList = await fetchPlace2(docId);
     const name = placeList.placeName;
     const congestion = placeList.placeCongestion;
+    // const congestion = 15;
     const threshold = placeList.placeThreshold;
 
   const congestionLevel =

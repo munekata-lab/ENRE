@@ -59,7 +59,7 @@ export default function ProgramsList() {
 
     useEffect(() => {
         const q =
-          targetField === "0"
+        targetField === "0"
             ? query(collection(db, programData))
             : query(collection(db, programData), where("field", "==", targetField));
       
@@ -107,7 +107,7 @@ export default function ProgramsList() {
       
             // ログを送信
             try {
-              await postCollectionInLogs("イベントリスト取得", `失敗`, "失敗");
+                await postCollectionInLogs("イベントリスト取得", `失敗`, "失敗");
             } catch (logError) {
               // 型ガードを使用してエラーメッセージを特定
                 if (logError instanceof Error) {
