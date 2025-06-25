@@ -7,6 +7,7 @@ import { getUserFromCookie } from "@/lib/session";
 import { number, z } from "zod";
 import type { Place } from "@/lib/type";
 import SettingsGuideComponent from "@/app/ui/settingsGuide";
+import { Timestamp } from 'firebase-admin/firestore';
 // import packageJson from "../../package.json";
 
 export async function fetchPhotosInfo() {
@@ -979,23 +980,56 @@ export async function getLeavesCollection() {
   return leaves;
 }
 
+export async function getLogsCollection(startDate?: string, endDate?: string) {
+  let query: admin.firestore.Query = adminDB.collection("logs");
+
+  if (startDate) {
+    query = query.where("date", ">=", admin.firestore.Timestamp.fromDate(new Date(startDate)));
+  }
+  if (endDate) {
+    const endOfDay = new Date(endDate);
+    endOfDay.setHours(23, 59, 59, 999); // 該当日を丸ごと含めるために時刻を23:59:59に設定
+    query = query.where("date", "<=", admin.firestore.Timestamp.fromDate(endOfDay));
+  }
+
+  const logsCollection = await query.orderBy("date", "desc").get();
+
+  const logs = logsCollection.docs.map((log: any) => {
+    const data = log.data();
+    const date = data.date.toDate();
+
+    // JSTに変換してフォーマット
+    const jstDate = new Date(date.getTime() + 9 * 60 * 60 * 1000);
+    const dateString = jstDate.toISOString().replace('T', ' ').substring(0, 19);
+
+    return {
+      date: dateString,
+      state: data.state || "",
+      title: data.title || "",
+      place: data.place || "",
+      uid: data.uid || "",
+    };
+  });
+
+  return logs;
+}
+
 export async function getUsers() {
   const usersCollection = await adminDB
     .collection("users")
     .orderBy("createdAt", "desc")
     .get();
   const users = usersCollection.docs.map((user: any) => {
+    const userData = user.data();
     const uid = user.id;
-    const biomeName = user.data().biomeUserName
-      ? user.data().biomeUserName
-      : "";
-
-    const checkinProgramIds = user.data().checkinProgramIds;
-    const reward = user.data().reward;
-    const settings = user.data().settings;
+    const biomeName = userData.biomeUserName ? userData.biomeUserName : "";
+    const checkinProgramIds = userData.checkinProgramIds;
+    const reward = userData.reward;
+    const settings = userData.settings;
     const modeOfTransportation = settings.modeOfTransportation;
     const nickName = settings.nickName;
-    const university = user.data().university;
+    const university = userData.university;
+    const dev = userData.dev || false; 
 
     return {
       uid: uid,
@@ -1005,6 +1039,7 @@ export async function getUsers() {
       modeOfTransportation: modeOfTransportation,
       nickName: nickName,
       university: university,
+      dev: dev,
     };
   });
 
