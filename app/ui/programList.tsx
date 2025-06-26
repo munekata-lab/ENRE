@@ -16,8 +16,6 @@ import { LoadingAnimation } from "./skeletons";
 import packageJson from "../../package.json";
 import { postCollectionInLogs } from "@/lib/dbActions";
 import { usePathname } from "next/navigation";
-import { initializeApp } from "firebase/app";
-import { initializeFirestore, enableIndexedDbPersistence } from "firebase/firestore";
 
 type Program = {
   id: string;
@@ -36,11 +34,27 @@ type Program = {
   icon: any;
 };
 
+// ★変更点1: マジックナンバーを定数として定義
+const FilterField = {
+  ALL: "0",
+  SHIRU: "1",
+  TSUKAU: "2",
+  MAMORU: "3",
+} as const;
+
+const SortOrder = {
+  NONE: "none",
+  POINT_DESC: "pointDesc",
+} as const;
+
 export default function ProgramsList() {
+    // ★変更点2: Stateの初期値に定数を使用
     const [programList, setProgramList] = useState<Program[]>([]);
-    const [targetField, setTargetField] = useState<string>("0");
-    const [sortOrder, setSortOrder] = useState<string>("none");
-    const [visibleProgram, setVisibleProgram] = useState<Program | null>(null); // Full-screen modal data
+    const [targetField, setTargetField] = useState<string>(FilterField.ALL);
+    const [sortOrder, setSortOrder] = useState<string>(SortOrder.NONE);
+    const [visibleProgram, setVisibleProgram] = useState<Program | null>(null);
+    const [isLoading, setIsLoading] = useState<boolean>(true);
+    const [error, setError] = useState<string | null>(null);
     const programData = packageJson.program_data;
 
     const pathname = usePathname();
@@ -58,8 +72,11 @@ export default function ProgramsList() {
     const currentPath = pathname?.replace(/^\//, "") || "home";
 
     useEffect(() => {
+        setIsLoading(true);
+        setError(null);
+        // ★変更点3: 条件分岐で定数を使用
         const q =
-        targetField === "0"
+        targetField === FilterField.ALL
             ? query(collection(db, programData))
             : query(collection(db, programData), where("field", "==", targetField));
       
@@ -95,21 +112,22 @@ export default function ProgramsList() {
               const idB = parseInt(b.id, 10);
               return idA - idB;
             });
-      
-            if (sortOrder === "pointDesc") {
+            // ★変更点3: 条件分岐で定数を使用
+            if (sortOrder === SortOrder.POINT_DESC) {
               sortedPrograms = sortedPrograms.sort((a, b) => b.totalPoint - a.totalPoint);
             }
       
             setProgramList(sortedPrograms);
+            setIsLoading(false);
           },
           async (error) => {
             console.error("Firestore クエリ中にエラーが発生しました:", error.message);
+            setError("イベントの読み込みに失敗しました。");
+            setIsLoading(false);
       
-            // ログを送信
             try {
                 await postCollectionInLogs("イベントリスト取得", `失敗`, "失敗");
             } catch (logError) {
-              // 型ガードを使用してエラーメッセージを特定
                 if (logError instanceof Error) {
                     console.error("ログ記録中にエラーが発生しました:", logError.message);
                 } else {
@@ -120,7 +138,7 @@ export default function ProgramsList() {
         );
       
         return () => unsubscribe();
-      }, [targetField, sortOrder]);
+      }, [targetField, sortOrder, programData]);
 
     const closeDetails = () => {
         setVisibleProgram(null);
@@ -131,16 +149,17 @@ export default function ProgramsList() {
             <div className="justify-center mt-24 w-full h-full">
                 <div className="fixed font-bold mb-0 top-24 w-full">
                     <label htmlFor="day-select" className="mr-2 ml-2">ジャンル:</label>
+                    {/* ★変更点4: select要素で定数を使用 */}
                     <select
                     id="day-select"
                     value={targetField}
                     onChange={(e) => setTargetField(e.target.value)}
                     className="p-2 border rounded"
                     >
-                    <option value="0">すべて</option>
-                    <option value="1">しる</option>
-                    <option value="2">つかう</option>
-                    <option value="3">まもる</option>
+                    <option value={FilterField.ALL}>すべて</option>
+                    <option value={FilterField.SHIRU}>しる</option>
+                    <option value={FilterField.TSUKAU}>つかう</option>
+                    <option value={FilterField.MAMORU}>まもる</option>
                     </select>
                     <label htmlFor="sort-select" className="mr-2 ml-3">並び替え:</label>
                     <select
@@ -149,16 +168,20 @@ export default function ProgramsList() {
                     onChange={(e) => setSortOrder(e.target.value)}
                     className="p-2 border rounded"
                     >
-                    <option value="none">指定なし</option>
-                    <option value="pointDesc">得点順</option>
+                    <option value={SortOrder.NONE}>指定なし</option>
+                    <option value={SortOrder.POINT_DESC}>得点順</option>
                     </select>
                 </div>
                 <div className="mt-20 mb-20">
-                {programList.length === 0 ? (
+                {isLoading ? (
                     <div className="flex min-h-screen flex-col items-center justify-between pb-20">
                         <LoadingAnimation />
                     </div>
-                    ) : (
+                ) : error ? (
+                    <div className="text-red-500 font-bold mt-10">{error}</div>
+                ) : programList.length === 0 ? (
+                    <div className="font-bold mt-10">表示するイベントがありません。</div>
+                ) : (
                     programList.map((program) => (
                         <div key={program.id} className="mt-0 mb-0 w-full p-[2%] overflow-auto">
                         <div className="bg-green-700 rounded-sm p-1 flex flex-col leading-normal">
@@ -182,7 +205,7 @@ export default function ProgramsList() {
                         </div>
                         </div>
                     ))
-    )           }  
+                )}
                 </div>
                 {visibleProgram && (
                     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
@@ -212,7 +235,6 @@ export default function ProgramsList() {
                                         width={0}
                                         height={0}
                                         alt="picture"
-                                        priority
                                         className="w-full h-auto rounded-lg"
                                     />
                                 </div>

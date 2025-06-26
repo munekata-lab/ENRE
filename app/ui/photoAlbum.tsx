@@ -255,7 +255,7 @@ export default function PhotoAlbumComponent() {
     <main className="flex min-h-screen flex-col items-center justify-between p-0 text-center">
       <div className="justify-center mt-24 w-full h-full">
         <div className="fixed text-2xl font-bold mb-20 top-24 w-full">
-          <h1 className="text-center text-shadow-xl">ピックアップ写真</h1>
+          <h1 className="text-center">ピックアップ写真</h1>
         </div>
         <div
           className="grid grid-cols-3 gap-0 p-1 w-full overflow-auto mt-20 min-h-full"
@@ -276,7 +276,7 @@ export default function PhotoAlbumComponent() {
                       objectFit: "cover",
                     }}
                     sizes="100%"
-                    priority
+                    priority={index < 3}
                     className="absolute top-0 left-0 w-full h-full"
                   />
                 </div>
