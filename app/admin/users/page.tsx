@@ -13,6 +13,9 @@ type User = {
   dev: boolean;
 };
 
+// 1ページあたりの表示ユーザー数
+const USERS_PER_PAGE = 50;
+
 export default function AdminUsersPage() {
   const [userList, setUserList] = useState<User[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -20,11 +23,12 @@ export default function AdminUsersPage() {
   // ソート設定用のState
   const [sortConfig, setSortConfig] = useState<{ key: keyof User; direction: 'ascending' | 'descending' } | null>({ key: 'reward', direction: 'descending' });
   
-  // --- ここから追加 ---
   // 絞り込み用のState
   const [uidSearch, setUidSearch] = useState('');
   const [excludeDevs, setExcludeDevs] = useState(false);
-  // --- ここまで追加 ---
+
+  // ★変更点1: ページネーション用のStateを追加
+  const [currentPage, setCurrentPage] = useState(1);
 
   const transpotationMethod = (method: string) => {
     switch (method) {
@@ -50,7 +54,11 @@ export default function AdminUsersPage() {
     })();
   }, []);
 
-  // --- ここから変更 ---
+  // ★変更点4: フィルタ条件が変わったらページをリセットする
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [uidSearch, excludeDevs]);
+
   // 絞り込みとソートを適用するuseMemo
   const filteredAndSortedUserList = useMemo(() => {
     let filteredUsers = [...userList];
@@ -82,7 +90,6 @@ export default function AdminUsersPage() {
     
     return filteredUsers;
   }, [userList, uidSearch, excludeDevs, sortConfig]);
-  // --- ここまで変更 ---
 
   const requestSort = (key: keyof User) => {
     let direction: 'ascending' | 'descending' = 'ascending';
@@ -98,6 +105,12 @@ export default function AdminUsersPage() {
     }
     return sortConfig.direction === 'ascending' ? ' ▲' : ' ▼';
   };
+  
+  // ★変更点2: ページネーションのロジック
+  const totalPages = Math.ceil(filteredAndSortedUserList.length / USERS_PER_PAGE);
+  const startIndex = (currentPage - 1) * USERS_PER_PAGE;
+  const endIndex = startIndex + USERS_PER_PAGE;
+  const paginatedUserList = filteredAndSortedUserList.slice(startIndex, endIndex);
 
   if (isLoading) {
     return <div>読み込み中...</div>;
@@ -105,10 +118,8 @@ export default function AdminUsersPage() {
 
   return (
     <div className="bg-green-100 rounded p-4">
-      {/* --- ここから変更 --- */}
       <h2 className="text-2xl font-bold mb-4">ユーザーリスト ({filteredAndSortedUserList.length}人)</h2>
       
-      {/* --- ここから追加 --- */}
       <div className="flex flex-wrap items-center gap-4 mb-4 p-4 bg-white rounded-lg shadow">
         <div>
           <label htmlFor="uid-search" className="block text-sm font-medium text-gray-700">UIDで検索</label>
@@ -134,7 +145,6 @@ export default function AdminUsersPage() {
           </label>
         </div>
       </div>
-      {/* --- ここまで追加 --- */}
 
       <div className="overflow-x-auto">
         <table className="min-w-full bg-white">
@@ -152,7 +162,8 @@ export default function AdminUsersPage() {
             </tr>
           </thead>
           <tbody>
-            {filteredAndSortedUserList.map((user, index) => (
+            {/* ★変更点: paginatedUserList を使用 */}
+            {paginatedUserList.map((user, index) => (
               <tr key={index} className={`border-b hover:bg-gray-100 ${user.dev ? 'bg-yellow-200' : ''}`}>
                 <td className="py-2 px-4">{user.nickName}</td>
                 <td className="py-2 px-4">{user.reward} pt</td>
@@ -164,7 +175,28 @@ export default function AdminUsersPage() {
           </tbody>
         </table>
       </div>
-       {/* --- ここまで変更 --- */}
+
+       {/* ★変更点3: ページネーションUIを追加 */}
+       <div className="mt-4 flex justify-between items-center">
+        <button
+          onClick={() => setCurrentPage(prev => prev - 1)}
+          disabled={currentPage === 1}
+          className="px-4 py-2 bg-gray-300 rounded disabled:opacity-50 hover:bg-gray-400"
+        >
+          前へ
+        </button>
+        <span>
+          ページ {totalPages > 0 ? currentPage : 0} / {totalPages}
+        </span>
+        <button
+          onClick={() => setCurrentPage(prev => prev + 1)}
+          disabled={currentPage >= totalPages}
+          className="px-4 py-2 bg-gray-300 rounded disabled:opacity-50 hover:bg-gray-400"
+        >
+          次へ
+        </button>
+      </div>
+
     </div>
   );
 }

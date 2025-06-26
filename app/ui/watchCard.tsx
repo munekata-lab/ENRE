@@ -7,7 +7,7 @@ export default function WatchCardComponent() {
   const placeIdList = ["Miya2", "Lounge1", "Musu2", "Hall1", "Ichi1", "Libre2", "Fuji1", "Hall2", "Yasai"];
 
   return (
-    <div className="w-full bg-white rounded-xl shadow-md overflow-hidden md:max-w-2xl px-0.5 py-2">
+    <div className="w-full bg-white rounded-xl overflow-hidden md:max-w-2xl px-0.5 py-2">
       <div className="grid grid-cols-1 gap-2 p-3">
         <div className="justify-items-center items-center text-center mb-1 text-md text-green-700 font-semibold">
           学内ウォッチ
