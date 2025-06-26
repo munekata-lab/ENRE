@@ -11,35 +11,22 @@ export default async function CheckinDetailComponent() {
   const checkinProgramList = await Promise.all(
     checkinProgramIdList.map(async (programId) => {
       const programInfo = await fetchProgramInfo(programId);
-      const programInfo2 = await fetchProgramInfo2(programInfo.type);
+      let programInfo2 = { process: [], caution: [], condition: [] }; // デフォルト値を設定
+      if (programInfo.type) {
+        programInfo2 = await fetchProgramInfo2(programInfo.type);
+      }
       return { programId, programInfo, programInfo2 };
     })
   );
+  
   const spotsInfo = checkinProgramList.map((item) => {
-    if (item.programInfo.link !== null) {
-      return {
-        title: item.programInfo.title,
-        content: item.programInfo.content,
-        thema: item.programInfo.thema,
-        completionMessage: item.programInfo.completionMessage,
-        process: item.programInfo2.process,
-        caution: item.programInfo2.caution,
-        condition: item.programInfo2.condition,
-        link: `${item.programInfo.link}?programId=${item.programId}&title=${item.programInfo.title}&completionMessage=${item.programInfo.completionMessage}&content=${item.programInfo.content}&thema=${item.programInfo.thema}&point=${item.programInfo.point}&type=${item.programInfo.type}`,
-        owner: item.programInfo.owner,
-        loadingPoint: item.programInfo.loadingPoint,
-        point: item.programInfo.point,
-        field: item.programInfo.field,
-        // schedule: item.programInfo.schedule,
-        // isOpen: item.programInfo.isOpen,
-        // exit: item.programInfo.exit,
-      };
-    }
-    return {
+    // 共通のプロパティを定義
+    const commonInfo = {
       title: item.programInfo.title,
       content: item.programInfo.content,
       thema: item.programInfo.thema,
       completionMessage: item.programInfo.completionMessage,
+      place: item.programInfo.place,
       process: item.programInfo2.process,
       caution: item.programInfo2.caution,
       condition: item.programInfo2.condition,
@@ -47,10 +34,17 @@ export default async function CheckinDetailComponent() {
       loadingPoint: item.programInfo.loadingPoint,
       point: item.programInfo.point,
       field: item.programInfo.field,
-      // schedule: item.programInfo.schedule,
-      // isOpen: item.programInfo.isOpen,
-      // exit: item.programInfo.exit,
+      // 変更点：schedule配列を正しく渡す。存在しない場合は空配列を渡す
+      schedule: item.programInfo.schedule || [], 
     };
+
+    if (item.programInfo.link) {
+      return {
+        ...commonInfo,
+        link: `${item.programInfo.link}?programId=${item.programId}&title=${encodeURIComponent(item.programInfo.title)}&completionMessage=${encodeURIComponent(item.programInfo.completionMessage)}&content=${encodeURIComponent(item.programInfo.content)}&thema=${encodeURIComponent(item.programInfo.thema)}&point=${item.programInfo.point}&type=${item.programInfo.type}`,
+      };
+    }
+    return commonInfo;
   });
 
   return (
@@ -61,7 +55,10 @@ export default async function CheckinDetailComponent() {
         </h1>
         <p className="text-right">{spotsInfo.length}件</p>
         {spotsInfo.length === 0 ? (
-          <h1>イベントはありません</h1>
+          <div className="text-center mt-10">
+            <h1>現在チェックイン中のイベントはありません。</h1>
+            <p className="mt-4">QRコードを読み取ってイベントに参加しよう！</p>
+          </div>
         ) : (
           <>
             {spotsInfo.map((spotInfo, index) => {

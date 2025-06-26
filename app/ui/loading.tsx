@@ -23,6 +23,13 @@ import Image from "next/image";
 import Script from "next/script";
 import { useBudouX } from "../hooks/useBudouX";
 
+// スケジュールの型定義
+type Schedule = {
+  day: string;
+  open: string;
+  close: string;
+};
+
 export default function LoadingComponent() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -41,72 +48,87 @@ export default function LoadingComponent() {
   const [point, setPoint] = useState("");
   const [loadingPoint, setLoadingPoint] = useState("");
   const randomIds = [2, 5, 8];
-  const [showModal, setShowModal] = useState(true); // モーダルの表示状態
-  const [modalInfo, setModalInfo] = useState(false); // モーダル
-  const [modalProgramId, setModalProgramId] = useState("0"); // モーダルのプログラムID
-  const [modalTitle, setModalTitle] = useState(""); // モーダルのタイトル
-  const [modalContent, setModalContent] = useState(""); // モーダルの内容
-  const [modalPlace, setModalPlace] = useState(""); // モーダルの場所
+  const [showModal, setShowModal] = useState(false);
+  const [modalTitle, setModalTitle] = useState("");
+  const [modalContent, setModalContent] = useState("");
+  const [modalPlace, setModalPlace] = useState("");
+  const [modalProgramId, setModalProgramId] = useState("0");
 
-
-    const pathname = usePathname();
-      const handleLogPOst = async (previousTitle: string, newTitle: string) => {
-        try {
-          await postCollectionInLogs(
-            "ページ移動",
-            `${previousTitle} → ${newTitle}`,
-            "成功"
-          );
-        } catch (error: any) {
-          console.error("ログ記録中にエラーが発生しました:", error.message);
-        }
-      };
-        const currentPath = pathname?.replace(/^\//, "") || "home";
-  
+  const pathname = usePathname();
+  const handleLogPOst = async (previousTitle: string, newTitle: string) => {
+    try {
+      await postCollectionInLogs("ページ移動", `${previousTitle} → ${newTitle}`, "成功");
+    } catch (error: any) {
+      console.error("ログ記録中にエラーが発生しました:", error.message);
+    }
+  };
+  const currentPath = pathname?.replace(/^\//, "") || "home";
 
   useEffect(() => {
     if (ref.current) return;
+    ref.current = true;
+
     (async () => {
+      const programId = searchParams.get("programId") || "";
       const qrId = searchParams.get("id") || "";
-      const qrInfo = await fetchQrInfo(qrId);
-      const programInfo = await fetchProgramInfo(`${qrInfo.programId}`);
+
+      if (!programId || !qrId) {
+        console.error("URLにprogramIdまたはidが含まれていません。");
+        setTitle("エラー");
+        setContent("無効なQRコードです。");
+        return;
+      }
+      
+      const qrInfo = await fetchQrInfo(programId, qrId);
+      const programInfo = await fetchProgramInfo(programId);
+
+      if (!qrInfo || !programInfo) {
+        console.error("QR情報またはプログラム情報の取得に失敗しました。");
+        setTitle("エラー");
+        setContent("イベント情報の取得に失敗しました。");
+        return;
+      }
+
+      // Stateの更新
       setTitle(programInfo.title);
       setContent(programInfo.content);
       setCompletionMessage(programInfo.completionMessage);
       setPoint(programInfo.point);
       setLoadingPoint(programInfo.loadingPoint);
+
       if (programInfo.type) {
-        const programInfo2 = await fetchProgramInfo2(`${programInfo.type}`);
+        const programInfo2 = await fetchProgramInfo2(programInfo.type);
         setProcess(programInfo2.process);
         setCaution(programInfo2.caution);
         setCondition(programInfo2.condition);
-      } else {
-        console.warn("Type is empty, skipping fetchProgramInfo2.");
       }
+
       const place = `${qrInfo.placeId}-${qrInfo.placeNumber}`;
       await postCollectionInLogs(programInfo.title, place, "QRコード読み取り");
       await patchCurrentPlace(place);
+
       const participatedEvents = await fetchParticipatedEvents();
-      if (participatedEvents[Number(qrId)] <= 0) {
-        await patchReward2(`${qrInfo.loadingPoint}`, `${qrInfo.field}`);
+      if (participatedEvents[Number(programId)] <= 0) {
+        await patchReward2(programInfo.loadingPoint.toString(), programInfo.field);
       }
+      
       if (qrInfo.type === "checkin") {
-        if (participatedEvents[Number(qrId)] > 0) {
+        if (participatedEvents[Number(programId)] > 0) {
           setParticipated(true);
         }
-        await patchCheckinProgramIds(`${qrInfo.programId}`);
+        await patchCheckinProgramIds(programId);
         setCheckin(true);
         setLink(
           programInfo.link === null
             ? "/"
-            : `${programInfo.link}?programId=${qrInfo.programId}&place=${place}&title=${programInfo.title}&content=${programInfo.content}&thema=${programInfo.thema}&completionMessage=${programInfo.completionMessage}&point=${programInfo.point}&field=${programInfo.field}&type=${programInfo.type}`
+            : `${programInfo.link}?programId=${programId}&place=${place}&title=${programInfo.title}&content=${programInfo.content}&thema=${programInfo.thema}&completionMessage=${programInfo.completionMessage}&point=${programInfo.point}&field=${programInfo.field}&type=${programInfo.type}`
         );
       } else if (qrInfo.type === "checkout") {
-        if (participatedEvents[Number(qrId)] > 0) {
+        if (participatedEvents[Number(programId)] > 0) {
           setParticipated(true);
         }
-        await patchParticipatedEvents(qrId);
-        await patchCheckoutProgramIds(`${qrInfo.programId}`);
+        await patchParticipatedEvents(programId);
+        await patchCheckoutProgramIds(programId);
         setCheckout(true);
         setTimeout(async () => {
           const randomId = randomIds[Math.floor(Math.random() * randomIds.length)];
@@ -118,40 +140,44 @@ export default function LoadingComponent() {
           setShowModal(true);
         }, 2000);
         setLink(
-          `/photoalbum/postjoinshare?programId=${qrInfo.programId}&place=${place}&point=${programInfo.point}&field=${programInfo.field}`
+          `/photoalbum/postjoinshare?programId=${programId}&place=${place}&point=${programInfo.point}&field=${programInfo.field}`
         );
-      } else { //今回使ってない
-        if (participatedEvents[Number(qrId)] > 0) {
+      } else {
+        if (participatedEvents[Number(programId)] > 0) {
           setParticipated(true);
           return;
         }
         router.push(
-          `${qrInfo.type}?programId=${qrInfo.programId}&place=${place}&point=${programInfo.point}&field=${programInfo.field}&type=${programInfo.type}`
+          `${programInfo.type}?programId=${programId}&place=${place}&point=${programInfo.point}&field=${programInfo.field}&type=${programInfo.type}`
         );
       }
     })();
-    return () => {
-      ref.current = true;
-    };
   }, [router, searchParams]);
 
   const handleLogPost = async (title: string, state: string) => {
     try {
-      await postCollectionInLogs(
-        title,
-        "P006-1",
-        state
-      );
+      await postCollectionInLogs(title, "P006-1", state);
     } catch (error: any) {
       console.error("ログ記録中にエラーが発生しました:", error.message);
     }
   };
 
-  {/* okamoto手を加える */ }
+  // スケジュール表示部分のヘルパー関数
+  const renderSchedule = (schedule: Schedule[] | undefined) => {
+    if (!schedule || schedule.length === 0) {
+      return <p className="text-xs mb-0 ml-3">開催日時はイベント詳細をご確認ください。</p>;
+    }
+    return schedule.map((s, index) => (
+      <p key={index} className="text-xs mb-0 ml-3">
+        {s.day} {s.open} - {s.close}
+      </p>
+    ));
+  };
+
 
   return (
     <main className="flex flex-col items-center justify-center min-h-screen py-2">
-      {/* {participated ? (
+      {participated ? (
         <div className="flex min-h-screen flex-col items-center justify-center pb-20">
           <h1 className="text-2xl font-bold text-center mb-10">
             このQRコードからは
@@ -164,7 +190,7 @@ export default function LoadingComponent() {
             </button>
           </Link>
         </div>
-      ) : ( */}
+      ) : (
       <>
         {!checkin && !checkout && (
           <div className="flex min-h-screen flex-col items-center justify-between pb-20">
@@ -174,7 +200,6 @@ export default function LoadingComponent() {
 
         {checkin && (
           <div className="flex min-h-screen flex-col items-center  mt-24 pb-20">
-
             <h1 className="text-xl font-bold text-center mb-3 text-red-500">
               {title}に<br />
               チェックインしました！
@@ -192,28 +217,26 @@ export default function LoadingComponent() {
                 <hr />
                 <p className="text-xs mb-0 ml-3 font-bold">【手順】</p>
                 <div className="mb-2 ml-3">
-                  {process.map((process, index) => (
+                  {process.map((p, index) => (
                     <p key={index} className="text-xs mb-0 ml-3">
-                      {`${index + 1}. ${process}`}
+                      {`${index + 1}. ${p}`}
                     </p>))}
                 </div>
                 <p className="text-xs mb-0 ml-3 font-bold">【注意事項】</p>
                 <div className="mb-2 ml-3">
-                  {caution.map((caution, index) => (
+                  {caution.map((c, index) => (
                     <p key={index} className="text-xs mb-0 ml-3">
-                      {`${index + 1}. ${caution}`}
+                      {`${index + 1}. ${c}`}
                     </p>
                   ))}
                 </div>
                 <p className="text-xs mb-0 ml-3 font-bold">【付与条件】</p>
                 <div className="mb-2 ml-3">
-                  {/* loadingPoint が 0 の場合、point を表示 */}
                   <p className="text-xs mb-0 ml-3">
                       {`1. ${condition[0]}: ${
                           `${loadingPoint}` === "0" ? point : loadingPoint
                       }P`}
                   </p>
-                  {/* condition[1] が存在する場合に表示 */}
                   {condition[1] && (
                       <p className="text-xs mb-0 ml-3">
                           {`2. ${condition[1]}: ${point}P`}
@@ -255,21 +278,10 @@ export default function LoadingComponent() {
               </h1>
 
               <div className="mt-3 border-b-2 h-1 border-green-600 border-opacity-30 drop-shadow-sm mb-4 w-11/12"></div>
-
-              {/* <h1 className="text-xl font-bold text-center mb-3 text-red-500">
-                共有して追加ポイントGET!
-              </h1>
-              <h1 className="text-sm font-bold text-center mb-3 w-11/12">
-                イベントに参加している様子を共有して、追加でポイントを獲得しよう！
-              </h1> */}
+              
               <h1 className="text-sm font-bold text-center mb-3 w-11/12">
                 イベントに参加している様子を共有しよう！
               </h1>
-              {/* <Link href={link} className="no-underline">
-                <button className="flex justify-center items-center bg-green-700 hover:bg-green-900 text-white font-bold py-2 px-4 rounded">
-                  詳細
-                </button>
-              </Link> */}
               <div>
                 <a
                   href="https://twitter.com/share?ref_src=twsrc%5Etfw"
@@ -296,14 +308,12 @@ export default function LoadingComponent() {
               </Link>
             </div>
 
-            {/* オーバーレイ */}
             {showModal && (
               <div className="fixed inset-0 bg-opacity-90 z-40 pointer-events-auto">
                 <LoadingAnimation />
               </div>
             )}
 
-            {/* モーダル */}
             { modalTitle && (
               <Modal show={showModal} onHide={() => {
                 setShowModal(false),
@@ -350,7 +360,7 @@ export default function LoadingComponent() {
           </>
         )}
       </>
-      {/* )} */}
+      )}
     </main>
   );
 }

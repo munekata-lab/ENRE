@@ -3,7 +3,7 @@
   "version": "3.0.0",
   "private": true,
   "QR_data": "QR2025_1",
-  "program_data": "program2025_1",
+  "program_data": "new_program",
   "scripts": {
     "dev": "next dev --experimental-https",
     "build": "next build",

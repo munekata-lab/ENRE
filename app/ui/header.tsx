@@ -111,7 +111,7 @@ export default function HeaderComponent() {
         <Link href="/notification" >
           <Image src="/noffication.png" width={60} height={60} alt="noffication" 
                       onClick={() =>  handleLogPost(currentPath, "notification")}
-/>
+        />
           {/* {isReadAllNotification && (<Image src="/noffication.png" width={60} height={60} alt="noffication" />)} */}
           {/* {!isReadAllNotification &&(<Image src="/nofficationWithBudge.png" width={60} height={60} alt="noffication" />)} */}
         </Link>
@@ -121,7 +121,7 @@ export default function HeaderComponent() {
       <Link href="/" >
         <Image src="/title.png" width={180} height={80} alt="title" 
                     onClick={() => handleLogPost(currentPath, "title")}
-/>
+      />
       </Link>
       </div>
       <div className="col-start-3 font-mono text-sm justify-self-end mr-3">

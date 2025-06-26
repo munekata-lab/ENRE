@@ -275,15 +275,20 @@ export async function fetchUserSettings() {
   return newSettings;
 }
 
-export async function fetchQrInfo(qrId: string) {
-  const qrRef = await adminDB.collection("QR2025_1").doc(qrId).get();
+export async function fetchQrInfo(programId: string, qrId: string) {
+  const qrRef = await adminDB
+    .collection("new_program")
+    .doc(programId)
+    .collection("qr_codes")
+    .doc(qrId)
+    .get();
   const qrInfo = qrRef.data();
   return qrInfo;
 }
 
 // 2025年1月実験用に作成
 export async function fetchProgramInfo(programId: string) {
-  const programRef = await adminDB.collection("program2025_1").doc(programId).get();
+  const programRef = await adminDB.collection("new_program").doc(programId).get();
   const programInfo = programRef.data();
   return programInfo;
 }
@@ -536,7 +541,7 @@ export async function fetchAllOnlinePrograms() {
 
 export async function fetchAllPrograms() {
   console.log("Program fetch Executed!")
-  const programRef = await adminDB.collection("program2025_1").get();
+  const programRef = await adminDB.collection("new_program").get();
   const programList: any[] = programRef.docs.map((program: any) => {
     const programData = program.data();
     return programData;
@@ -1048,8 +1053,9 @@ export async function getUsers() {
 
 export async function getProgramsByDay(targetDay: string) {
   const ProgramsCollection = await adminDB
-    .collection("program2025_1")
-    .where("day", "==", targetDay) // dayフィールドでフィルタリング
+    .collection("new_program")
+    // 'array-contains' を使って、days配列にtargetDayが含まれるかチェックする
+    .where("days", "array-contains", targetDay) 
     .get();
 
   const programs = ProgramsCollection.docs.map((doc: any) => {
@@ -1061,9 +1067,10 @@ export async function getProgramsByDay(targetDay: string) {
       place: data.place,
       owner: data.owner,
       point: data.point,
-      day: data.day,
-      open: data.open,
-      close: data.close,
+      // schedule配列全体を返すようにする
+      schedule: data.schedule,
+      open: data.open, // 互換性のために残すか、削除を検討
+      close: data.close, // 互換性のために残すか、削除を検討
     };
   });
 
@@ -1121,4 +1128,27 @@ export async function getNotificationToken() {
     return uid;
   });
   return tokens;
+}
+
+// この関数をまるごと置き換えるか、新規に追加してください。
+export async function addQrCodeToProgram(programId: string, qrData: object) {
+  try {
+    // 1. サブコレクションへの参照を作成します。
+    // adminDBを使い、ドキュメントパスとサブコレクション名を指定します。
+    const qrCodesCollectionRef = adminDB
+      .collection("new_program")
+      .doc(programId)
+      .collection("qr_codes");
+
+    // 2. サブコレクションに新しいドキュメントを追加します。
+    const newQrDocRef = await qrCodesCollectionRef.add(qrData);
+
+    console.log("サブコレクションに新しいドキュメントを追加しました。ID:", newQrDocRef.id);
+    return newQrDocRef.id;
+
+  } catch (error) {
+    console.error("サブコレクションへのドキュメント追加に失敗しました:", error);
+    // エラーを再スローするか、適切なエラーハンドリングを行ってください。
+    throw error;
+  }
 }
