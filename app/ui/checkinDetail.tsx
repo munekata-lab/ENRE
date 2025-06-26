@@ -34,7 +34,6 @@ export default async function CheckinDetailComponent() {
       loadingPoint: item.programInfo.loadingPoint,
       point: item.programInfo.point,
       field: item.programInfo.field,
-      // 変更点：schedule配列を正しく渡す。存在しない場合は空配列を渡す
       schedule: item.programInfo.schedule || [], 
     };
 

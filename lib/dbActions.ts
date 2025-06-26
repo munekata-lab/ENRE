@@ -286,11 +286,31 @@ export async function fetchQrInfo(programId: string, qrId: string) {
   return qrInfo;
 }
 
-// 2025年1月実験用に作成
 export async function fetchProgramInfo(programId: string) {
+  // サーバーサイドのAdmin SDKを使用していることを確認
   const programRef = await adminDB.collection("new_program").doc(programId).get();
-  const programInfo = programRef.data();
-  return programInfo;
+  
+  if (!programRef.exists) {
+    console.error(`Program with ID: ${programId} not found.`);
+    // 存在しない場合は、エラー処理に適した空のオブジェクトやnullを返す
+    // ここでは、必須フィールドを含むデフォルトオブジェクトを返して、型エラーを回避する
+    return { 
+      title: 'Not Found', 
+      content: '', 
+      thema: '', 
+      completionMessage: '', 
+      place: '', 
+      owner: '', 
+      loadingPoint: 0, 
+      point: 0, 
+      field: '', 
+      type: '', 
+      schedule: [] // scheduleの空配列を必ず含める
+    };
+  }
+
+  // ドキュメントの全データをそのまま返す
+  return programRef.data();
 }
 
 export async function fetchProgramInfo2(type: string) {
