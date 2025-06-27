@@ -1,15 +1,11 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { storage } from "@/lib/firebase/client";
-import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
-import imageCompression from "browser-image-compression";
 import { useSearchParams, useRouter } from "next/navigation";
 import { faPlusSquare } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   postCollectionInLogs,
-  fetchProgramInfo,
   fetchProgramInfo2,
   patchReward2,
   patchParticipatedEvents,
@@ -17,6 +13,9 @@ import {
 } from "@/lib/dbActions";
 import { postLogEvent } from "@/lib/firebase/client";
 import Image from "next/image";
+import { useImageUpload } from "../hooks/useImageUpload";
+import { storage } from "@/lib/firebase/client";
+import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 
 export default function FallenLeavesComponent() {
   const router = useRouter();
@@ -25,11 +24,17 @@ export default function FallenLeavesComponent() {
   const [process, setProcess] = useState<string[]>([]);
   const [caution, setCaution] = useState<string[]>([]);
   const [condition, setCondition] = useState<string[]>([]);
-  const [photo, setPhoto] = useState<File | null>(null);
-  const [error, setError] = useState("");
-  const [createObjectURL, setCreateObjectURL] = useState("");
   const [isPushButton, setIsPushButton] = useState(false);
-  const [isCompressing, setIsCompressing] = useState(false);  // 圧縮中フラグ
+
+  const {
+    photo,
+    error,
+    createObjectURL,
+    isCompressing,
+    uploadToClient,
+    setError,
+  } = useImageUpload();
+
   const programId = searchParams.get("programId") || "";
   const content = searchParams.get("content") || "";
   const thema = searchParams.get("thema") || "";
@@ -47,109 +52,7 @@ export default function FallenLeavesComponent() {
       setCaution(programInfo2.caution);
       setCondition(programInfo2.condition);
     })();
-  }, []);
-
-  const uploadToClient = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    if (event.target.files && event.target.files[0]) {
-      const file = event.target.files[0];
-      const ext = file.name.split('.').pop()?.toLowerCase();
-      const allowedExtensions = [
-        'jpg', 'jpeg', 'png', 'gif', 'heic',
-      ];
-     
-      if (!ext || !allowedExtensions.includes(ext)) {
-        setError(`許可されていないファイル形式です。(${ext})`);
-        return;
-      }
-     
-      try {
-        setIsCompressing(true);  // 圧縮開始時にフラグを立てる
-        // 初期の圧縮オプション設定
-        let options = {
-          maxSizeMB: 1, // 最大1MB
-          maxWidthOrHeight: 1920, // 最大幅または高さ
-          useWebWorker: true,
-          initialQuality: 0.8, // 初期品質を高めに設定
-          alwaysKeepResolution: true, // 解像度を維持
-          exifOrientation: undefined, // EXIFデータを削除
-        };
-     
-        // 圧縮処理
-        let compressedFile = await imageCompression(file, options);
-      
-        // 圧縮後のファイルサイズが1MBを超えている場合、品質を段階的に下げて再圧縮
-        while (compressedFile.size / 1024 / 1024 > 1 && options.initialQuality > 0.4) {
-          options.initialQuality -= 0.2;
-          compressedFile = await imageCompression(file, options);
-        }
-      
-        // AVIFへの変換
-        const avifFile = await convertToAVIF(compressedFile, 0.8);
-      
-        // 圧縮および変換されたファイルを状態にセット
-        setPhoto(avifFile);
-        setCreateObjectURL(URL.createObjectURL(avifFile));
-        setIsCompressing(false);  // 圧縮完了後にフラグを下げる
-      } catch (error) {
-        console.error('圧縮エラー:', error);
-        setError('画像の圧縮中にエラーが発生しました。');
-        setIsCompressing(false);  // エラー発生時にもフラグを下げる
-      }
-    }
-  };
-
-  const convertToAVIF = async (file: File, quality: number): Promise<File> => {
-    return new Promise<File>((resolve, reject) => {
-      const img: HTMLImageElement = document.createElement("img");
-      const url = URL.createObjectURL(file);
-  
-      img.onload = () => {
-        // Canvasを作成
-        const canvas = document.createElement('canvas');
-        canvas.width = img.width;
-        canvas.height = img.height;
-        const ctx = canvas.getContext('2d');
-  
-        if (!ctx) {
-          reject(new Error('Canvasコンテキストの取得に失敗しました。'));
-          return;
-        }
-  
-        // 画像をCanvasに描画
-        ctx.drawImage(img, 0, 0);
-  
-        // AVIFがサポートされているかチェック
-        const isAVIFSupported = canvas.toDataURL('image/avif').startsWith('data:image/avif');
-  
-        const outputFormat = isAVIFSupported ? 'image/avif' : 'image/webp';
-        const outputQuality = isAVIFSupported ? quality : 0.8; // WebPの品質を調整
-  
-        canvas.toBlob(
-          (blob) => {
-            if (blob) {
-              const newExtension = outputFormat === 'image/avif' ? '.avif' : '.webp';
-              const newFile = new File([blob], file.name.replace(/\.\w+$/, newExtension), {
-                type: outputFormat,
-                lastModified: Date.now(),
-              });
-              resolve(newFile);
-            } else {
-              reject(new Error('画像の変換に失敗しました。'));
-            }
-          },
-          outputFormat,
-          outputQuality
-        );
-      };
-  
-      img.onerror = () => {
-        URL.revokeObjectURL(url);
-        reject(new Error('画像の読み込みに失敗しました。'));
-      };
-  
-      img.src = url;
-    });
-  };
+  }, [type]);
 
   const uploadToServer = async () => {
     if (!photo?.name) {
@@ -187,7 +90,9 @@ export default function FallenLeavesComponent() {
         await postCollectionInLogs(title, place, state);
         await patchParticipatedEvents(programId);
         postLogEvent("写真投稿成功");
-        router.push(`/complete?&programId=${programId}&title=${programTitle}&completionMessage=${completionMessage}&point=${point}&field=${field}`);
+        router.push(
+          `/complete?&programId=${programId}&title=${programTitle}&completionMessage=${completionMessage}&point=${point}&field=${field}`
+        );
       } else {
         setError("投稿に失敗しました");
       }
@@ -243,13 +148,13 @@ export default function FallenLeavesComponent() {
               </div>
             </div>
             <p className="text-lg mb-0 font-bold mt-2">手順</p>
-                <div className="mb-2 text-left">
-                  {process.map((process, index) => (
-                    <p key={index} className="text-sm mb-0 ml-3">
-                      {`${index + 1}. ${process}`}
-                    </p>
-                  ))}
-                </div>
+            <div className="mb-2 text-left">
+              {process.map((process, index) => (
+                <p key={index} className="text-sm mb-0 ml-3">
+                  {`${index + 1}. ${process}`}
+                </p>
+              ))}
+            </div>
             <p className="text-lg mb-0 font-bold">注意事項</p>
             <div className="mb-2 text-left">
               {caution.map((caution, index) => (
@@ -260,9 +165,7 @@ export default function FallenLeavesComponent() {
             </div>
             <p className="text-lg mb-0 font-bold">付与</p>
             <div className="mb-2">
-              <p className="text-sm mb-0 ml-3">
-                {`${point}P`}
-              </p>
+              <p className="text-sm mb-0 ml-3">{`${point}P`}</p>
             </div>
           </div>
         )}
@@ -287,20 +190,12 @@ export default function FallenLeavesComponent() {
               )}
             </div>
             <div className="text-black">
-              {/* {createObjectURL && (
-                <Image
-                  src={createObjectURL}
-                  alt="Uploaded image"
-                  width={100}
-                  height={100}
-                  priority
-                  className="bg-gray-800 w-full pt-10 pb-10 pr-5 pl-5"
-                />
-              )} */}
               {isCompressing ? (
                 <div className="m-2">
-                  <p className="text-center">写真を圧縮しています...</p> 
-                  <p className="text-sm text-left">※画像サイズが大きい場合、時間がかかる可能性があります</p>
+                  <p className="text-center">写真を圧縮しています...</p>
+                  <p className="text-sm text-left">
+                    ※画像サイズが大きい場合、時間がかかる可能性があります
+                  </p>
                 </div>
               ) : createObjectURL ? (
                 <Image

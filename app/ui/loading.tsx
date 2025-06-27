@@ -33,6 +33,7 @@ type Schedule = {
 export default function LoadingComponent() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const pathname = usePathname();
   const [checkin, setCheckin] = useState(false);
   const [checkout, setCheckout] = useState(false);
   const [title, setTitle] = useState("");
@@ -54,15 +55,19 @@ export default function LoadingComponent() {
   const [modalPlace, setModalPlace] = useState("");
   const [modalProgramId, setModalProgramId] = useState("0");
 
-  const pathname = usePathname();
+  const currentPath = pathname?.replace(/^\//, "") || "home";
+
   const handleLogPOst = async (previousTitle: string, newTitle: string) => {
     try {
-      await postCollectionInLogs("ページ移動", `${previousTitle} → ${newTitle}`, "成功");
+      await postCollectionInLogs(
+        "ページ移動",
+        `${previousTitle} → ${newTitle}`,
+        "成功"
+      );
     } catch (error: any) {
       console.error("ログ記録中にエラーが発生しました:", error.message);
     }
   };
-  const currentPath = pathname?.replace(/^\//, "") || "home";
 
   useEffect(() => {
     if (ref.current) return;
@@ -78,7 +83,7 @@ export default function LoadingComponent() {
         setContent("無効なQRコードです。");
         return;
       }
-      
+
       const qrInfo = await fetchQrInfo(programId, qrId);
       const programInfo = await fetchProgramInfo(programId);
 
@@ -109,9 +114,12 @@ export default function LoadingComponent() {
 
       const participatedEvents = await fetchParticipatedEvents();
       if (participatedEvents[Number(programId)] <= 0) {
-        await patchReward2(programInfo.loadingPoint.toString(), programInfo.field);
+        await patchReward2(
+          programInfo.loadingPoint.toString(),
+          programInfo.field
+        );
       }
-      
+
       if (qrInfo.type === "checkin") {
         if (participatedEvents[Number(programId)] > 0) {
           setParticipated(true);
@@ -131,7 +139,8 @@ export default function LoadingComponent() {
         await patchCheckoutProgramIds(programId);
         setCheckout(true);
         setTimeout(async () => {
-          const randomId = randomIds[Math.floor(Math.random() * randomIds.length)];
+          const randomId =
+            randomIds[Math.floor(Math.random() * randomIds.length)];
           const programInfo3 = await fetchProgramInfo(String(randomId));
           setModalProgramId(String(randomId));
           setModalTitle(programInfo3.title);
@@ -152,7 +161,7 @@ export default function LoadingComponent() {
         );
       }
     })();
-  }, [router, searchParams]);
+  }, [router, searchParams, pathname]);
 
   const handleLogPost = async (title: string, state: string) => {
     try {
@@ -165,7 +174,11 @@ export default function LoadingComponent() {
   // スケジュール表示部分のヘルパー関数
   const renderSchedule = (schedule: Schedule[] | undefined) => {
     if (!schedule || schedule.length === 0) {
-      return <p className="text-xs mb-0 ml-3">開催日時はイベント詳細をご確認ください。</p>;
+      return (
+        <p className="text-xs mb-0 ml-3">
+          開催日時はイベント詳細をご確認ください。
+        </p>
+      );
     }
     return schedule.map((s, index) => (
       <p key={index} className="text-xs mb-0 ml-3">
@@ -173,7 +186,6 @@ export default function LoadingComponent() {
       </p>
     ));
   };
-
 
   return (
     <main className="flex flex-col items-center justify-center min-h-screen py-2">
@@ -191,175 +203,194 @@ export default function LoadingComponent() {
           </Link>
         </div>
       ) : (
-      <>
-        {!checkin && !checkout && (
-          <div className="flex min-h-screen flex-col items-center justify-between pb-20">
-            <LoadingAnimation />
-          </div>
-        )}
+        <>
+          {!checkin && !checkout && (
+            <div className="flex min-h-screen flex-col items-center justify-between pb-20">
+              <LoadingAnimation />
+            </div>
+          )}
 
-        {checkin && (
-          <div className="flex min-h-screen flex-col items-center  mt-24 pb-20">
-            <h1 className="text-xl font-bold text-center mb-3 text-red-500">
-              {title}に<br />
-              チェックインしました！
-            </h1>
-            <h1 className="text-sm font-bold text-center mb-4">
-              ホーム画面からいつでも確認できます
-            </h1>
-
-            <Card border="light" className="w-11/12 drop-shadow mb-4">
-              <Card.Header className="text-sm font-bold px-2 py-2.5 text-center">
-                {title}
-              </Card.Header>
-              <Card.Body className="p-1">
-                <p className="text-sm mx-3 mb-3 mt-2">{content}</p>
-                <hr />
-                <p className="text-xs mb-0 ml-3 font-bold">【手順】</p>
-                <div className="mb-2 ml-3">
-                  {process.map((p, index) => (
-                    <p key={index} className="text-xs mb-0 ml-3">
-                      {`${index + 1}. ${p}`}
-                    </p>))}
-                </div>
-                <p className="text-xs mb-0 ml-3 font-bold">【注意事項】</p>
-                <div className="mb-2 ml-3">
-                  {caution.map((c, index) => (
-                    <p key={index} className="text-xs mb-0 ml-3">
-                      {`${index + 1}. ${c}`}
-                    </p>
-                  ))}
-                </div>
-                <p className="text-xs mb-0 ml-3 font-bold">【付与条件】</p>
-                <div className="mb-2 ml-3">
-                  <p className="text-xs mb-0 ml-3">
-                      {`1. ${condition[0]}: ${
-                          `${loadingPoint}` === "0" ? point : loadingPoint
-                      }P`}
-                  </p>
-                  {condition[1] && (
-                      <p className="text-xs mb-0 ml-3">
-                          {`2. ${condition[1]}: ${point}P`}
-                      </p>
-                  )}
-                </div>
-              </Card.Body>
-            </Card>
-
-            <Link href={link} className="no-underline">
-              <button className="flex justify-center items-center bg-green-700 hover:bg-green-900 text-white font-bold py-2 px-4 rounded">
-                イベント詳細
-              </button>
-            </Link>
-          </div>
-        )}
-
-        {checkout && (
-          <>
-            <div className="w-full h-24"></div>
-            <div className="flex min-h-screen flex-col items-center justify-center pb-20">
-              <h1 className="text-xl font-bold text-center mb-10 text-red-500">
-                ご参加
+          {checkin && (
+            <div className="flex min-h-screen flex-col items-center  mt-24 pb-20">
+              <h1 className="text-xl font-bold text-center mb-3 text-red-500">
+                {title}に
                 <br />
-                ありがとうございます！
+                チェックインしました！
+              </h1>
+              <h1 className="text-sm font-bold text-center mb-4">
+                ホーム画面からいつでも確認できます
               </h1>
 
               <Card border="light" className="w-11/12 drop-shadow mb-4">
                 <Card.Header className="text-sm font-bold px-2 py-2.5 text-center">
-                  {parse ? parse(title) : title}
+                  {title}
                 </Card.Header>
                 <Card.Body className="p-1">
-                  <p className="text-sm mx-3 mb-3 mt-2">{completionMessage}</p>
+                  <p className="text-sm mx-3 mb-3 mt-2">{content}</p>
+                  <hr />
+                  <p className="text-xs mb-0 ml-3 font-bold">【手順】</p>
+                  <div className="mb-2 ml-3">
+                    {process.map((p, index) => (
+                      <p key={index} className="text-xs mb-0 ml-3">
+                        {`${index + 1}. ${p}`}
+                      </p>
+                    ))}
+                  </div>
+                  <p className="text-xs mb-0 ml-3 font-bold">【注意事項】</p>
+                  <div className="mb-2 ml-3">
+                    {caution.map((c, index) => (
+                      <p key={index} className="text-xs mb-0 ml-3">
+                        {`${index + 1}. ${c}`}
+                      </p>
+                    ))}
+                  </div>
+                  <p className="text-xs mb-0 ml-3 font-bold">【付与条件】</p>
+                  <div className="mb-2 ml-3">
+                    <p className="text-xs mb-0 ml-3">
+                      {`1. ${condition[0]}: ${
+                        `${loadingPoint}` === "0" ? point : loadingPoint
+                      }P`}
+                    </p>
+                    {condition[1] && (
+                      <p className="text-xs mb-0 ml-3">
+                        {`2. ${condition[1]}: ${point}P`}
+                      </p>
+                    )}
+                  </div>
                 </Card.Body>
               </Card>
 
-              <h1 className="text-sm font-bold text-center mb-3">
-                獲得した報酬はホーム画面から確認できます。
-              </h1>
-
-              <div className="mt-3 border-b-2 h-1 border-green-600 border-opacity-30 drop-shadow-sm mb-4 w-11/12"></div>
-              
-              <h1 className="text-sm font-bold text-center mb-3 w-11/12">
-                イベントに参加している様子を共有しよう！
-              </h1>
-              <div>
-                <a
-                  href="https://twitter.com/share?ref_src=twsrc%5Etfw"
-                  className="twitter-share-button"
-                  data-size="large"
-                  data-text={`「${title}」に参加しました`}
-                  data-url="https://www.enre-official.com/"
-                  data-hashtags="Enre #京都産業大学"
-                  data-show-count="true"
-                  onClick={() => handleLogPOst(currentPath, "Twitter")}
-                >
-                  Tweet
-                </a>
-                <Script
-                  src="https://platform.twitter.com/widgets.js"
-                  strategy="lazyOnload"
-                />
-              </div>
-              <Link href="/" className="mt-1">
-                <button
-                  className="text-xs underline my-4 text-gray-600"
-                  onClick={() => handleLogPOst(currentPath+title, "Home")}
-                >ホームに戻る</button>
+              <Link href={link} className="no-underline">
+                <button className="flex justify-center items-center bg-green-700 hover:bg-green-900 text-white font-bold py-2 px-4 rounded">
+                  イベント詳細
+                </button>
               </Link>
             </div>
+          )}
 
-            {showModal && (
-              <div className="fixed inset-0 bg-opacity-90 z-40 pointer-events-auto">
-                <LoadingAnimation />
+          {checkout && (
+            <>
+              <div className="w-full h-24"></div>
+              <div className="flex min-h-screen flex-col items-center justify-center pb-20">
+                <h1 className="text-xl font-bold text-center mb-10 text-red-500">
+                  ご参加
+                  <br />
+                  ありがとうございます！
+                </h1>
+
+                <Card border="light" className="w-11/12 drop-shadow mb-4">
+                  <Card.Header className="text-sm font-bold px-2 py-2.5 text-center">
+                    {parse ? parse(title) : title}
+                  </Card.Header>
+                  <Card.Body className="p-1">
+                    <p className="text-sm mx-3 mb-3 mt-2">
+                      {completionMessage}
+                    </p>
+                  </Card.Body>
+                </Card>
+
+                <h1 className="text-sm font-bold text-center mb-3">
+                  獲得した報酬はホーム画面から確認できます。
+                </h1>
+
+                <div className="mt-3 border-b-2 h-1 border-green-600 border-opacity-30 drop-shadow-sm mb-4 w-11/12"></div>
+
+                <h1 className="text-sm font-bold text-center mb-3 w-11/12">
+                  イベントに参加している様子を共有しよう！
+                </h1>
+                <div>
+                  <a
+                    href="https://twitter.com/share?ref_src=twsrc%5Etfw"
+                    className="twitter-share-button"
+                    data-size="large"
+                    data-text={`「${title}」に参加しました`}
+                    data-url="https://www.enre-official.com/"
+                    data-hashtags="Enre #京都産業大学"
+                    data-show-count="true"
+                    onClick={() => handleLogPOst(currentPath, "Twitter")}
+                  >
+                    Tweet
+                  </a>
+                  <Script
+                    src="https://platform.twitter.com/widgets.js"
+                    strategy="lazyOnload"
+                  />
+                </div>
+                <Link href="/" className="mt-1">
+                  <button
+                    className="text-xs underline my-4 text-gray-600"
+                    onClick={() =>
+                      handleLogPOst(currentPath + title, "Home")
+                    }
+                  >
+                    ホームに戻る
+                  </button>
+                </Link>
               </div>
-            )}
 
-            { modalTitle && (
-              <Modal show={showModal} onHide={() => {
-                setShowModal(false),
-                handleLogPost("フリーコーヒー後の誘導モーダル閉じ", `ProgramId=${modalProgramId}へ案内`);
-                }}
-                centered
-              >
-                <Modal.Header>
-                  <Modal.Title>他のイベントにも参加しませんか？</Modal.Title>
-                </Modal.Header>
-                <Modal.Body>
-                  <p className="text-lg">{modalTitle}</p>
-                  <p>{modalContent}</p>
-                  <div className="mt-auto mb-auto">
+              {showModal && (
+                <div className="fixed inset-0 bg-opacity-90 z-40 pointer-events-auto">
+                  <LoadingAnimation />
+                </div>
+              )}
+
+              {modalTitle && (
+                <Modal
+                  show={showModal}
+                  onHide={() => {
+                    setShowModal(false),
+                      handleLogPost(
+                        "フリーコーヒー後の誘導モーダル閉じ",
+                        `ProgramId=${modalProgramId}へ案内`
+                      );
+                  }}
+                  centered
+                >
+                  <Modal.Header>
+                    <Modal.Title>他のイベントにも参加しませんか？</Modal.Title>
+                  </Modal.Header>
+                  <Modal.Body>
+                    <p className="text-lg">{modalTitle}</p>
+                    <p>{modalContent}</p>
+                    <div className="mt-auto mb-auto">
                       <div className="grid grid-cols-4 text-center border-b-2 border-green-700">
-                          <p className="col-start-1 text-center bg-green-700 text-white mb-0 rounded-t-lg"><strong>場所</strong></p>
+                        <p className="col-start-1 text-center bg-green-700 text-white mb-0 rounded-t-lg">
+                          <strong>場所</strong>
+                        </p>
                       </div>
                       <p className="text-left mb-2">{modalPlace}</p>
                       <div className="w-full flex justify-center">
-                          <Image
-                              src={"/programPlace" + modalProgramId + ".jpg"}
-                              layout="responsive"
-                              width={0}
-                              height={0}
-                              alt="placePicture"
-                              priority
-                              className="w-full h-auto rounded-lg"
-                          />
+                        <Image
+                          src={"/programPlace" + modalProgramId + ".jpg"}
+                          layout="responsive"
+                          width={0}
+                          height={0}
+                          alt="placePicture"
+                          priority
+                          className="w-full h-auto rounded-lg"
+                        />
                       </div>
-                  </div>
-                </Modal.Body>
-                <Modal.Footer>
-                  <button onClick={() => {
-                    setShowModal(false), 
-                    handleLogPost("フリーコーヒー後の誘導モーダル閉じ", `ProgramId=${modalProgramId}へ案内`);
-                    }} 
-                    className="px-4 py-2 bg-green-700 hover:bg-green-900 text-white text-gl font-bold rounded"
-                  >
-                    とじる
-                  </button>
-                </Modal.Footer>
-              </Modal>
-            )}
-          </>
-        )}
-      </>
+                    </div>
+                  </Modal.Body>
+                  <Modal.Footer>
+                    <button
+                      onClick={() => {
+                        setShowModal(false),
+                          handleLogPost(
+                            "フリーコーヒー後の誘導モーダル閉じ",
+                            `ProgramId=${modalProgramId}へ案内`
+                          );
+                      }}
+                      className="px-4 py-2 bg-green-700 hover:bg-green-900 text-white text-gl font-bold rounded"
+                    >
+                      とじる
+                    </button>
+                  </Modal.Footer>
+                </Modal>
+              )}
+            </>
+          )}
+        </>
       )}
     </main>
   );

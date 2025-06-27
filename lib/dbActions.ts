@@ -247,34 +247,56 @@ export async function fetchQrInfo(programId: string, qrId: string) {
     .doc(qrId)
     .get();
   const qrInfo = qrRef.data();
+
+  // Timestampを文字列に変換
+  if (qrInfo && qrInfo.createdAt) {
+    qrInfo.createdAt = qrInfo.createdAt.toDate().toISOString();
+  }
+
   return qrInfo;
 }
 
 export async function fetchProgramInfo(programId: string) {
   // サーバーサイドのAdmin SDKを使用していることを確認
   const programRef = await adminDB.collection("new_program").doc(programId).get();
-  
+
   if (!programRef.exists) {
     console.error(`Program with ID: ${programId} not found.`);
     // 存在しない場合は、エラー処理に適した空のオブジェクトやnullを返す
     // ここでは、必須フィールドを含むデフォルトオブジェクトを返して、型エラーを回避する
-    return { 
-      title: 'Not Found', 
-      content: '', 
-      thema: '', 
-      completionMessage: '', 
-      place: '', 
-      owner: '', 
-      loadingPoint: 0, 
-      point: 0, 
-      field: '', 
-      type: '', 
-      schedule: [] // scheduleの空配列を必ず含める
+    return {
+      title: "Not Found",
+      content: "",
+      thema: "",
+      completionMessage: "",
+      place: "",
+      owner: "",
+      loadingPoint: 0,
+      point: 0,
+      field: "",
+      type: "",
+      schedule: [], // scheduleの空配列を必ず含める
     };
   }
 
+  const programData = programRef.data();
+
+  // schedule内のTimestampを文字列に変換
+  if (programData.schedule) {
+    programData.schedule = programData.schedule.map((s: any) => {
+      const newS = { ...s };
+      if (newS.open && newS.open.toDate) {
+        newS.open = newS.open.toDate().toISOString();
+      }
+      if (newS.close && newS.close.toDate) {
+        newS.close = newS.close.toDate().toISOString();
+      }
+      return newS;
+    });
+  }
+
   // ドキュメントの全データをそのまま返す
-  return programRef.data();
+  return programData;
 }
 
 export async function fetchProgramInfo2(type: string) {

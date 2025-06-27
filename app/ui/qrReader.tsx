@@ -39,7 +39,7 @@ export default function BarcodeScanner() {
     if (result === "") return;
     handleLogPost(currentPath, "qrReaderByScan");
     router.push(result);
-  }, [router, result]);
+  }, [router, result, currentPath, handleLogPost]);
 
   const handleSubmit = async () => {
     if (programPass) {
@@ -53,9 +53,11 @@ export default function BarcodeScanner() {
           // 一致するドキュメントがあれば、ドキュメント名を取得
           const doc = querySnapshot.docs[0]; // 最初の一致するドキュメントを取得
           const documentName = doc.id; // ドキュメントID（ドキュメント名として使う）
-          // 新しい URL へリダイレクト
+          
+          // 修正点: programIdとidの両方をクエリパラメータとして渡す
+          const qrId = `${documentName}_1`; // 最初のQRコードのIDを想定
           handleLogPost(currentPath, "qrReaderByPass success: "+documentName);
-          router.push(`/loading?id=${documentName}`);
+          router.push(`/loading?programId=${documentName}&id=${qrId}`);
         }
       } catch (error) {
         console.error("Error getting documents: ", error);
