@@ -17,6 +17,8 @@ import React from "react";
 import { useImageUpload } from "../hooks/useImageUpload";
 import { storage } from "@/lib/firebase/client";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
+import { CircularProgressbar, buildStyles } from "react-circular-progressbar";
+import "react-circular-progressbar/dist/styles.css";
 
 export default function PostBiomeComponent() {
   const router = useRouter();
@@ -25,10 +27,12 @@ export default function PostBiomeComponent() {
     error,
     createObjectURL,
     isCompressing,
+    compressionProgress,
     uploadToClient,
     setError,
     reset,
   } = useImageUpload();
+
   const [isPushButton, setIsPushButton] = useState(false);
   const [name, setName] = useState("");
   const [note, setNote] = useState("");
@@ -96,9 +100,7 @@ export default function PostBiomeComponent() {
       (async () => {
         await patchReward2(point, field);
         await patchCheckoutProgramIds(programId);
-        router.push(
-          `/complete?&programId=${programId}&title=${programTitle}&completionMessage=${completionMessage}&point=${point}&field=${field}`
-        );
+        router.push(`/complete?&programId=${programId}&title=${programTitle}&completionMessage=${completionMessage}&point=${point}&field=${field}`);
       })();
     },
     rightOnClick: () => {
@@ -143,16 +145,26 @@ export default function PostBiomeComponent() {
             </button>
           )}
         </div>
-        <div className="text-black">
+        <div className="text-black flex flex-col items-center">
           <div className="flex justify-center items-center w-full">
             {error !== "" && <p className="text-red-500">{error}</p>}
           </div>
           {isCompressing ? (
-            <div className="m-2">
-              <p className="text-center">写真を圧縮しています...</p>
-              <p className="text-sm text-left">
-                ※画像サイズが大きい場合、時間がかかる可能性があります
-              </p>
+            <div className="relative w-32 h-32 mb-4">
+              <CircularProgressbar
+                value={compressionProgress}
+                text={`${compressionProgress}%`}
+                styles={buildStyles({
+                  textColor: "black",
+                  pathColor: "#28a745",
+                  trailColor: "#d6d6d6",
+                })}
+              />
+               <p className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-xs text-center">
+                    写真を
+                    <br />
+                    圧縮中...
+                  </p>
             </div>
           ) : createObjectURL ? (
             <div className="flex flex-col justify-start items-center w-full">

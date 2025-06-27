@@ -6,10 +6,11 @@ export const useImageUpload = () => {
   const [error, setError] = useState("");
   const [createObjectURL, setCreateObjectURL] = useState("");
   const [isCompressing, setIsCompressing] = useState(false);
+  const [compressionProgress, setCompressionProgress] = useState(0); // 圧縮率の状態
 
   const uploadToClient = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    if (event.target.files && event.target.files[0]) {
-      const file = event.target.files[0];
+    if (event.target.files && event.target.files?.[0]) {
+      const file = event.target.files?.[0];
       const ext = file.name.split(".").pop()?.toLowerCase();
       const allowedExtensions = ["jpg", "jpeg", "png", "gif", "heic"];
 
@@ -20,6 +21,8 @@ export const useImageUpload = () => {
 
       try {
         setIsCompressing(true);
+        setCompressionProgress(0); // 圧縮開始時にリセット
+
         let options = {
           maxSizeMB: 1,
           maxWidthOrHeight: 1920,
@@ -27,6 +30,9 @@ export const useImageUpload = () => {
           initialQuality: 0.8,
           alwaysKeepResolution: true,
           exifOrientation: undefined,
+          onProgress: (progress: number) => {
+            setCompressionProgress(Math.round(progress)); // 圧縮率を更新
+          },
         };
 
         let compressedFile = await imageCompression(file, options);
@@ -83,7 +89,7 @@ export const useImageUpload = () => {
               const newExtension =
                 outputFormat === "image/avif" ? ".avif" : ".webp";
               const newFile = new File(
-                [blob],
+                ([blob] as any),
                 file.name.replace(/\.\w+$/, newExtension),
                 {
                   type: outputFormat,
@@ -108,13 +114,23 @@ export const useImageUpload = () => {
       img.src = url;
     });
   };
-  
-  const reset = () => {
-      setPhoto(null);
-      setError("");
-      setCreateObjectURL("");
-      setIsCompressing(false);
-  }
 
-  return { photo, error, createObjectURL, isCompressing, uploadToClient, setError, reset };
+  const reset = () => {
+    setPhoto(null);
+    setError("");
+    setCreateObjectURL("");
+    setIsCompressing(false);
+    setCompressionProgress(0); // リセット時に圧縮率もリセット
+  };
+
+  return {
+    photo,
+    error,
+    createObjectURL,
+    isCompressing,
+    compressionProgress, // 追加
+    uploadToClient,
+    setError,
+    reset,
+  };
 };

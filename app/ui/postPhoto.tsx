@@ -17,6 +17,8 @@ import React from "react";
 import { useImageUpload } from "../hooks/useImageUpload";
 import { storage } from "@/lib/firebase/client";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
+import { CircularProgressbar, buildStyles } from "react-circular-progressbar";
+import "react-circular-progressbar/dist/styles.css";
 
 export default function UploadImage() {
   const router = useRouter();
@@ -32,6 +34,7 @@ export default function UploadImage() {
     error,
     createObjectURL,
     isCompressing,
+    compressionProgress, // 追加
     uploadToClient,
     setError,
   } = useImageUpload();
@@ -190,12 +193,22 @@ export default function UploadImage() {
                 </button>
               )}
             </div>
-            <div className="text-black">
+            <div className="text-black flex flex-col items-center">
               {isCompressing ? (
-                <div className="m-2">
-                  <p className="text-center">写真を圧縮しています...</p>
-                  <p className="text-sm text-left">
-                    ※画像サイズが大きい場合、時間がかかる可能性があります
+                <div className="relative w-32 h-32 mb-4">
+                  <CircularProgressbar
+                    value={compressionProgress}
+                    text={`${compressionProgress}%`}
+                    styles={buildStyles({
+                      textColor: "black",
+                      pathColor: "#28a745",
+                      trailColor: "#d6d6d6",
+                    })}
+                  />
+                  <p className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-xs text-center">
+                    写真を
+                    <br />
+                    圧縮中...
                   </p>
                 </div>
               ) : createObjectURL ? (

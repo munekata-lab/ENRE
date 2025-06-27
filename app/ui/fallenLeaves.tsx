@@ -16,6 +16,8 @@ import Image from "next/image";
 import { useImageUpload } from "../hooks/useImageUpload";
 import { storage } from "@/lib/firebase/client";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
+import { CircularProgressbar, buildStyles } from "react-circular-progressbar";
+import "react-circular-progressbar/dist/styles.css";
 
 export default function FallenLeavesComponent() {
   const router = useRouter();
@@ -31,6 +33,7 @@ export default function FallenLeavesComponent() {
     error,
     createObjectURL,
     isCompressing,
+    compressionProgress,
     uploadToClient,
     setError,
   } = useImageUpload();
@@ -47,10 +50,12 @@ export default function FallenLeavesComponent() {
 
   useEffect(() => {
     (async () => {
-      const programInfo2 = await fetchProgramInfo2(type);
-      setProcess(programInfo2.process);
-      setCaution(programInfo2.caution);
-      setCondition(programInfo2.condition);
+      if (type) {
+        const programInfo2 = await fetchProgramInfo2(type);
+        setProcess(programInfo2.process);
+        setCaution(programInfo2.caution);
+        setCondition(programInfo2.condition);
+      }
     })();
   }, [type]);
 
@@ -90,9 +95,7 @@ export default function FallenLeavesComponent() {
         await postCollectionInLogs(title, place, state);
         await patchParticipatedEvents(programId);
         postLogEvent("写真投稿成功");
-        router.push(
-          `/complete?&programId=${programId}&title=${programTitle}&completionMessage=${completionMessage}&point=${point}&field=${field}`
-        );
+        router.push(`/complete?&programId=${programId}&title=${programTitle}&completionMessage=${completionMessage}&point=${point}&field=${field}`);
       } else {
         setError("投稿に失敗しました");
       }
@@ -148,13 +151,13 @@ export default function FallenLeavesComponent() {
               </div>
             </div>
             <p className="text-lg mb-0 font-bold mt-2">手順</p>
-            <div className="mb-2 text-left">
-              {process.map((process, index) => (
-                <p key={index} className="text-sm mb-0 ml-3">
-                  {`${index + 1}. ${process}`}
-                </p>
-              ))}
-            </div>
+                <div className="mb-2 text-left">
+                  {process.map((process, index) => (
+                    <p key={index} className="text-sm mb-0 ml-3">
+                      {`${index + 1}. ${process}`}
+                    </p>
+                  ))}
+                </div>
             <p className="text-lg mb-0 font-bold">注意事項</p>
             <div className="mb-2 text-left">
               {caution.map((caution, index) => (
@@ -165,7 +168,9 @@ export default function FallenLeavesComponent() {
             </div>
             <p className="text-lg mb-0 font-bold">付与</p>
             <div className="mb-2">
-              <p className="text-sm mb-0 ml-3">{`${point}P`}</p>
+              <p className="text-sm mb-0 ml-3">
+                {`${point}P`}
+              </p>
             </div>
           </div>
         )}
@@ -189,12 +194,22 @@ export default function FallenLeavesComponent() {
                 </button>
               )}
             </div>
-            <div className="text-black">
+            <div className="text-black flex flex-col items-center">
               {isCompressing ? (
-                <div className="m-2">
-                  <p className="text-center">写真を圧縮しています...</p>
-                  <p className="text-sm text-left">
-                    ※画像サイズが大きい場合、時間がかかる可能性があります
+                <div className="relative w-32 h-32 mb-4">
+                  <CircularProgressbar
+                    value={compressionProgress}
+                    text={`${compressionProgress}%`}
+                    styles={buildStyles({
+                      textColor: "black",
+                      pathColor: "#28a745",
+                      trailColor: "#d6d6d6",
+                    })}
+                  />
+                   <p className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-xs text-center">
+                    写真を
+                    <br />
+                    圧縮中...
                   </p>
                 </div>
               ) : createObjectURL ? (

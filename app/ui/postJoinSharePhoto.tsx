@@ -16,16 +16,13 @@ import React from "react";
 import { useImageUpload } from "../hooks/useImageUpload";
 import { storage } from "@/lib/firebase/client";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
+import { CircularProgressbar, buildStyles } from "react-circular-progressbar";
+import "react-circular-progressbar/dist/styles.css";
 
 export default function PostJoinShareComponent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [tab, setTab] = useState<"detail" | "post">("detail");
-  const [content, setContent] = useState("");
-  const [process, setProcess] = useState<string[]>([]);
-  const [caution, setCaution] = useState<string[]>([]);
-  const [condition, setCondition] = useState<string[]>([]);
-  const [point, setPoint] = useState("");
   const [field, setField] = useState("");
   const [isPushButton, setIsPushButton] = useState(false);
   const programId = searchParams.get("programId") || "";
@@ -35,6 +32,7 @@ export default function PostJoinShareComponent() {
     error,
     createObjectURL,
     isCompressing,
+    compressionProgress,
     uploadToClient,
     setError,
   } = useImageUpload();
@@ -42,12 +40,6 @@ export default function PostJoinShareComponent() {
   useEffect(() => {
     (async () => {
       const programInfo = await fetchProgramInfo(programId);
-      const programInfo2 = await fetchProgramInfo2(programId);
-      setContent(programInfo.content);
-      // setProcess(programInfo2.process);
-      // setCaution(programInfo2.caution);
-      // setCondition(programInfo2.condition);
-      // setPoint(programInfo.point);
       setField(programInfo.field);
     })();
   }, [programId]);
@@ -130,24 +122,21 @@ export default function PostJoinShareComponent() {
             </p>
             <p className="text-lg mb-0 font-bold mt-2">手順</p>
             <div className="mb-2 text-left">
-              1. カメラボタンから撮影へ
-              <br />
-              2. イベントに参加している様子を撮影！素敵な写真を撮ってください
-              <br />
+              1. カメラボタンから撮影へ<br/>
+              2. イベントに参加している様子を撮影！素敵な写真を撮ってください<br/>
               3. 撮影した写真をEnreに投稿
             </div>
             <p className="text-lg mb-0 font-bold">注意事項</p>
             <div className="mb-2 text-left">
-              1. 本イベントは「学内」で実施して下さい
-              <br />
-              2. 安全に配慮して行って下さい
-              <br />
-              3. 公序良俗に反する写真の投稿は禁止です
-              <br />
+              1. 本イベントは「学内」で実施して下さい<br/>
+              2. 安全に配慮して行って下さい<br/>
+              3. 公序良俗に反する写真の投稿は禁止です<br/>
               4. プライバシー侵害に十分注意して下さい
             </div>
             <p className="text-lg mb-0 font-bold">付与条件</p>
-            <div className="mb-2">Enreへの投稿: 5P</div>
+            <div className="mb-2">
+              Enreへの投稿: 5P
+            </div>
           </div>
         )}
         {tab === "post" && (
@@ -170,12 +159,22 @@ export default function PostJoinShareComponent() {
                 </button>
               )}
             </div>
-            <div className="text-black">
-              {isCompressing ? (
-                <div className="m-2">
-                  <p className="text-center">写真を圧縮しています...</p>
-                  <p className="text-sm text-left">
-                    ※画像サイズが大きい場合、時間がかかる可能性があります
+            <div className="text-black flex flex-col items-center">
+            {isCompressing ? (
+                <div className="relative w-32 h-32 mb-4">
+                  <CircularProgressbar
+                    value={compressionProgress}
+                    text={`${compressionProgress}%`}
+                    styles={buildStyles({
+                      textColor: "black",
+                      pathColor: "#28a745",
+                      trailColor: "#d6d6d6",
+                    })}
+                  />
+                   <p className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-xs text-center">
+                    写真を
+                    <br />
+                    圧縮中...
                   </p>
                 </div>
               ) : createObjectURL ? (
