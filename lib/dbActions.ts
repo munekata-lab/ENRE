@@ -8,51 +8,8 @@ import { number, z } from "zod";
 import type { Place } from "@/lib/type";
 import SettingsGuideComponent from "@/app/ui/settingsGuide";
 import { Timestamp } from 'firebase-admin/firestore';
-// import packageJson from "../../package.json";
 
-export async function fetchPhotosInfo() {
-  const photosCollection = await adminDB
-    .collection("photos")
-    .orderBy("date", "desc")
-    .get();
-  const photosPathList = await Promise.all(
-    photosCollection.docs.map(async (photo: any) => {
-      const id = photo.id;
-      const photoData = photo.data();
-      const userInfoMatchUid = await adminDB
-        .collection("users")
-        .doc(photoData.uid)
-        .get();
-      const nickName = userInfoMatchUid.data().settings.nickName;
-      const currentDate = new Date();
-      const postDate = photoData.date.toDate();
-
-      const setPostDateString = (postDate: Date) => {
-        const diffDate = currentDate.getTime() - postDate.getTime();
-        if (diffDate < 3600000) {
-          return `${Math.floor(diffDate / 60000)}分前`;
-        } else if (diffDate < 86400000) {
-          return `${Math.floor(diffDate / 3600000)}時間前`;
-        } else if (diffDate < 604800000) {
-          return `${Math.floor(diffDate / 86400000)}日前`;
-        }
-        return `${postDate.getFullYear()}年${postDate.getMonth()}月${postDate.getDate()}日`;
-      };
-      
-      const postDateString = setPostDateString(postDate);
-
-      return {
-        id: id,
-        nickName: nickName,
-        fav: photoData.fav,
-        url: photoData.url,
-        place: photoData.place,
-        postDate: postDateString,
-      };
-    })
-  );
-  return photosPathList;
-}
+// --- Photos ---
 
 export async function fetchLimitedNumberPhotosInfo(num: Number) {
   const photosCollection = await adminDB
@@ -132,6 +89,8 @@ export async function patchPhotoFavNum(photoId: string, newFavNum: number) {
   }
 }
 
+// --- Logs ---
+
 export async function postCollectionInLogs(
   title: string,
   place: string,
@@ -155,7 +114,8 @@ export async function postCollectionInLogs(
     });
 }
 
-// 文章投稿系
+// --- Documents ---
+
 export async function postDocument(
   programId: string,
   document: string,
@@ -176,6 +136,8 @@ export async function postDocument(
       throw new Error(error.message);
     });
 }
+
+// --- User ---
 
 export async function postUserInfo(uid: string, nickName: string) {
   const initialTimeTable: { [key: number]: boolean[] } = Object.fromEntries(
@@ -275,6 +237,8 @@ export async function fetchUserSettings() {
   return newSettings;
 }
 
+// --- Programs ---
+
 export async function fetchQrInfo(programId: string, qrId: string) {
   const qrRef = await adminDB
     .collection("new_program")
@@ -319,80 +283,7 @@ export async function fetchProgramInfo2(type: string) {
   return programInfo2;
 }
 
-export async function fetchReward() {
-  const user = await getUserFromCookie();
-  if (!user) return { currentReward: 0, prevReward: 0 , rewardC: 0, rewardN: 0, rewardO: 0, gip: 0};
-  const uid = user.uid;
-  const userRef = await adminDB.collection("users").doc(uid).get();
-  const currentReward: number = userRef.data().reward || 0;
-  const prevReward: number = userRef.data().prevReward || 0;
-  {/* 各属性のポイントを取得しないといけない　*/}
-  const rewardFieldCNO = userRef.data().rewardField || {}; // rewardFieldが存在しない場合に空のオブジェクトをデフォルトで設定する
-  const rewardC: number = rewardFieldCNO.C || 0;
-  const rewardN: number = rewardFieldCNO.N || 0;
-  const rewardO: number = rewardFieldCNO.O || 0;
-
-  const gip: number = userRef.data().giPoint || 0;
-  return { currentReward, prevReward, rewardC, rewardN, rewardO, gip};
-}
-
-export async function patchReward(rewardPoint: string, rewardField: string, gipoint: string) {
-  const user = await getUserFromCookie();
-  if (!user) return;
-  const uid = user.uid;
-  try {
-    const { currentReward, rewardC, rewardN, rewardO, gip } = await fetchReward();
-    const nextReward = currentReward + Number(rewardPoint);
-    let nextgip = gip + Number(gipoint);
-    let nextC = rewardC;
-    let nextN = rewardN;
-    let nextO = rewardO;
-    if (rewardField === "C") {
-      nextC = rewardC + Number(rewardPoint);
-    }
-    if (rewardField === "N") {
-      nextN = rewardN + Number(rewardPoint);
-    }
-    if (rewardField === "O") {
-      nextO = rewardO + Number(rewardPoint);
-    }
-    if (currentReward === 0 && nextReward > 0) {
-      try {
-        // ログに記録
-        await postCollectionInLogs("初回報酬", "start", "start");
-    
-        // Firestoreのuids配列にUIDを追加
-        const rewardRef = await adminDB.collection("rewardProgress").doc("01");
-        await rewardRef.update({
-          uids: admin.firestore.FieldValue.arrayUnion(uid),
-        });
-      } catch (error) {
-        console.error("初回報酬の処理中にエラーが発生しました:", error);
-      }
-    }
-    if (nextReward >= 100 && currentReward < 100) {
-      await postCollectionInLogs("100ポイント達成", "100", "100");
-    }
-    if (nextReward >= 500 && currentReward < 500) {
-      await postCollectionInLogs("500ポイント達成", "500", "500");
-    }
-    await adminDB.collection("users").doc(uid).set(
-      {
-        reward: nextReward,
-        prevReward: currentReward,
-        rewardField: {
-          C: nextC,
-          N: nextN,
-          O: nextO,
-        },
-        giPoint: nextgip,
-      },
-      { merge: true }
-    );
-  } catch (error) {
-    console.log(error);
-  }
-}
+// --- Rewards ---
 
 export async function fetchReward2() {
   const user = await getUserFromCookie();
@@ -468,6 +359,8 @@ export async function patchReward2(point: string, field: string) {
   }
 }
 
+// --- Settings ---
+
 export async function patchSettingsGuide() {
   const user = await getUserFromCookie();
   if (!user) return;
@@ -490,6 +383,8 @@ export async function patchSettingsGuide() {
     console.log(error);
   }
 }
+
+// --- Check-in ---
 
 export async function patchCheckinProgramIds(programId: string) {
   const user = await getUserFromCookie();
@@ -542,6 +437,8 @@ export async function fetchCheckinProgramIds() {
   }
 }
 
+// --- Programs (All) ---
+
 export async function fetchAllOnlinePrograms() {
   try {
     const programRef = await adminDB
@@ -559,15 +456,7 @@ export async function fetchAllOnlinePrograms() {
   }
 }
 
-export async function fetchAllPrograms() {
-  console.log("Program fetch Executed!")
-  const programRef = await adminDB.collection("new_program").get();
-  const programList: any[] = programRef.docs.map((program: any) => {
-    const programData = program.data();
-    return programData;
-  });
-  return programList;
-}
+// --- Signature ---
 
 export async function postSignature(sign: string) {
   try {
@@ -581,32 +470,7 @@ export async function postSignature(sign: string) {
   }
 }
 
-export async function fetchPlace(docId?: string) {
-  try {
-    const placeRef = docId
-      ? await adminDB.collection("place").doc(docId).get()
-      : await adminDB.collection("place").get();
-    const placeList = placeRef.docs.map((place: any) => {
-      const placeData: Place = place.data();
-      return placeData;
-    });
-    return placeList;
-  } catch (error) {
-    console.log(error);
-  }
-}
-
-// export async function fetchPlace2(docId: string) {
-//   try {
-//     if (!docId) return { placeName: "なし", placeCongestion: 0 };
-//     const placeRef = await adminDB.collection("place").doc(docId).get()
-//     const placeName: string = placeRef.data().name || "";
-//     const placeCongestion: number = placeRef.data().congestion || 0;
-//     return {placeName, placeCongestion};
-//   } catch (error) {
-//     console.log(error);
-//   }
-// }
+// --- Place ---
 
 export async function fetchPlace2(docId: string) {
   try {
@@ -631,6 +495,37 @@ export async function fetchPlace2(docId: string) {
   }
 }
 
+export async function fetchCurrentPlace() {
+  const user = await getUserFromCookie();
+  if (!user) return "none";
+  const uid = user.uid;
+  try {
+    const userRef = await adminDB.collection("users").doc(uid).get();
+    const biomeUserName: string = userRef.data().currentPlace || "none";
+    return biomeUserName;
+  } catch (error) {
+    console.log(error);
+    return "none";
+  }
+}
+
+export async function patchCurrentPlace(place: string) {
+  const user = await getUserFromCookie();
+  if (!user) return null;
+  const uid = user.uid;
+  try {
+    await adminDB
+      .collection("users")
+      .doc(uid)
+      .set({ currentPlace: place }, { merge: true });
+  } catch (error) {
+    console.log(error);
+    return null;
+  }
+}
+
+// --- Mode ---
+
 export async function fetchMode(uid: string) {
   try {
     const modeRef = await adminDB.collection("mode").doc("mode").get();
@@ -651,6 +546,8 @@ export async function fetchMode(uid: string) {
     console.log(error);
   }
 }
+
+// --- Biome ---
 
 export async function patchBiomeUserName(prevState: any, formData: FormData) {
   const user = await getUserFromCookie();
@@ -688,6 +585,8 @@ export async function fetchBiomeUserName() {
     return "";
   }
 }
+
+// --- Events ---
 
 export async function fetchParticipatedEvents() {
   // const initialParticipatedEvents: { [key: number]: number } = {
@@ -740,34 +639,7 @@ export async function patchParticipatedEvents(eventId: string) {
   }
 }
 
-export async function fetchCurrentPlace() {
-  const user = await getUserFromCookie();
-  if (!user) return "none";
-  const uid = user.uid;
-  try {
-    const userRef = await adminDB.collection("users").doc(uid).get();
-    const biomeUserName: string = userRef.data().currentPlace || "none";
-    return biomeUserName;
-  } catch (error) {
-    console.log(error);
-    return "none";
-  }
-}
-
-export async function patchCurrentPlace(place: string) {
-  const user = await getUserFromCookie();
-  if (!user) return null;
-  const uid = user.uid;
-  try {
-    await adminDB
-      .collection("users")
-      .doc(uid)
-      .set({ currentPlace: place }, { merge: true });
-  } catch (error) {
-    console.log(error);
-    return null;
-  }
-}
+// --- Notifications ---
 
 export async function fetchNotificationInfo() {
   const notificationsCollection = await adminDB
@@ -816,6 +688,8 @@ export async function fetchNotificationInfo() {
   return notificationsList;
 }
 
+// --- Board ---
+
 export async function fetchBoardInfo(): Promise<any | null> {
   const user = await getUserFromCookie();
   if (!user) return null;
@@ -841,31 +715,7 @@ export async function fetchBoardInfo(): Promise<any | null> {
   }
 }
 
-// // 設定したらuidを追加して今後表示しないようにする
-// export async function fetchSettingInfo(): Promise<any | null> {
-//   const user = await getUserFromCookie();
-//   if (!user) return null;
-//   const uid = user.uid;
-//   try {
-//     const boardRef = await adminDB
-//       .collection("board")
-//       .orderBy("createdAt", "desc")
-//       .get();
-//     const boardInfo = boardRef.docs.map((doc: any) => {
-//       const boardData = doc.data();
-//       if (!boardData.uids.includes(uid)) {
-//         return null;
-//       }
-//       return boardData;
-//     });
-//     const fileteredBoardInfo = boardInfo.filter((board: any) => board !== null);
-//     if (fileteredBoardInfo.length === 0) return null;
-//     return fileteredBoardInfo[0];
-//   } catch (error) {
-//     console.log(error);
-//     return null;
-//   }
-// }
+// --- Admin/Export ---
 
 export async function fetchRewardProgressInfo(): Promise<any | null> {
   const user = await getUserFromCookie();
@@ -1071,32 +921,6 @@ export async function getUsers() {
   return users;
 }
 
-export async function getProgramsByDay(targetDay: string) {
-  const ProgramsCollection = await adminDB
-    .collection("new_program")
-    // 'array-contains' を使って、days配列にtargetDayが含まれるかチェックする
-    .where("days", "array-contains", targetDay) 
-    .get();
-
-  const programs = ProgramsCollection.docs.map((doc: any) => {
-    const data = doc.data();
-    return {
-      uid: doc.id,
-      title: data.title,
-      content: data.content,
-      place: data.place,
-      owner: data.owner,
-      point: data.point,
-      // schedule配列全体を返すようにする
-      schedule: data.schedule,
-      open: data.open, // 互換性のために残すか、削除を検討
-      close: data.close, // 互換性のために残すか、削除を検討
-    };
-  });
-
-  return programs;
-}
-
 export async function getPlace() {
   const placeCollection = await adminDB
     .collection("place")
@@ -1138,18 +962,6 @@ export async function getPlace() {
   return result;
 }
 
-export async function getNotificationToken() {
-  const notificationTokenCollection = await adminDB
-    .collection("notificationToken")
-    .get();
-
-  const tokens = notificationTokenCollection.docs.map((doc: any) => {
-    const uid = doc.data().uid;
-    return uid;
-  });
-  return tokens;
-}
-
 // この関数をまるごと置き換えるか、新規に追加してください。
 export async function addQrCodeToProgram(programId: string, qrData: object) {
   try {
@@ -1172,3 +984,185 @@ export async function addQrCodeToProgram(programId: string, qrData: object) {
     throw error;
   }
 }
+
+
+// --- Unused Functions ---
+
+/*
+export async function fetchPhotosInfo() {
+  const photosCollection = await adminDB
+    .collection("photos")
+    .orderBy("date", "desc")
+    .get();
+  const photosPathList = await Promise.all(
+    photosCollection.docs.map(async (photo: any) => {
+      const id = photo.id;
+      const photoData = photo.data();
+      const userInfoMatchUid = await adminDB
+        .collection("users")
+        .doc(photoData.uid)
+        .get();
+      const nickName = userInfoMatchUid.data().settings.nickName;
+      const currentDate = new Date();
+      const postDate = photoData.date.toDate();
+
+      const setPostDateString = (postDate: Date) => {
+        const diffDate = currentDate.getTime() - postDate.getTime();
+        if (diffDate < 3600000) {
+          return `${Math.floor(diffDate / 60000)}分前`;
+        } else if (diffDate < 86400000) {
+          return `${Math.floor(diffDate / 3600000)}時間前`;
+        } else if (diffDate < 604800000) {
+          return `${Math.floor(diffDate / 86400000)}日前`;
+        }
+        return `${postDate.getFullYear()}年${postDate.getMonth()}月${postDate.getDate()}日`;
+      };
+      
+      const postDateString = setPostDateString(postDate);
+
+      return {
+        id: id,
+        nickName: nickName,
+        fav: photoData.fav,
+        url: photoData.url,
+        place: photoData.place,
+        postDate: postDateString,
+      };
+    })
+  );
+  return photosPathList;
+}
+
+export async function fetchReward() {
+  const user = await getUserFromCookie();
+  if (!user) return { currentReward: 0, prevReward: 0 , rewardC: 0, rewardN: 0, rewardO: 0, gip: 0};
+  const uid = user.uid;
+  const userRef = await adminDB.collection("users").doc(uid).get();
+  const currentReward: number = userRef.data().reward || 0;
+  const prevReward: number = userRef.data().prevReward || 0;
+  const rewardFieldCNO = userRef.data().rewardField || {}; 
+  const rewardC: number = rewardFieldCNO.C || 0;
+  const rewardN: number = rewardFieldCNO.N || 0;
+  const rewardO: number = rewardFieldCNO.O || 0;
+
+  const gip: number = userRef.data().giPoint || 0;
+  return { currentReward, prevReward, rewardC, rewardN, rewardO, gip};
+}
+
+export async function patchReward(rewardPoint: string, rewardField: string, gipoint: string) {
+  const user = await getUserFromCookie();
+  if (!user) return;
+  const uid = user.uid;
+  try {
+    const { currentReward, rewardC, rewardN, rewardO, gip } = await fetchReward();
+    const nextReward = currentReward + Number(rewardPoint);
+    let nextgip = gip + Number(gipoint);
+    let nextC = rewardC;
+    let nextN = rewardN;
+    let nextO = rewardO;
+    if (rewardField === "C") {
+      nextC = rewardC + Number(rewardPoint);
+    }
+    if (rewardField === "N") {
+      nextN = rewardN + Number(rewardPoint);
+    }
+    if (rewardField === "O") {
+      nextO = rewardO + Number(rewardPoint);
+    }
+    if (currentReward === 0 && nextReward > 0) {
+      try {
+        await postCollectionInLogs("初回報酬", "start", "start");
+    
+        const rewardRef = await adminDB.collection("rewardProgress").doc("01");
+        await rewardRef.update({
+          uids: admin.firestore.FieldValue.arrayUnion(uid),
+        });
+      } catch (error) {
+        console.error("初回報酬の処理中にエラーが発生しました:", error);
+      }
+    }
+    if (nextReward >= 100 && currentReward < 100) {
+      await postCollectionInLogs("100ポイント達成", "100", "100");
+    }
+    if (nextReward >= 500 && currentReward < 500) {
+      await postCollectionInLogs("500ポイント達成", "500", "500");
+    }
+    await adminDB.collection("users").doc(uid).set(
+      {
+        reward: nextReward,
+        prevReward: currentReward,
+        rewardField: {
+          C: nextC,
+          N: nextN,
+          O: nextO,
+        },
+        giPoint: nextgip,
+      },
+      { merge: true }
+    );
+  } catch (error) {
+    console.log(error);
+  }
+}
+
+export async function fetchAllPrograms() {
+  console.log("Program fetch Executed!")
+  const programRef = await adminDB.collection("new_program").get();
+  const programList: any[] = programRef.docs.map((program: any) => {
+    const programData = program.data();
+    return programData;
+  });
+  return programList;
+}
+
+export async function fetchPlace(docId?: string) {
+  try {
+    const placeRef = docId
+      ? await adminDB.collection("place").doc(docId).get()
+      : await adminDB.collection("place").get();
+    const placeList = placeRef.docs.map((place: any) => {
+      const placeData: Place = place.data();
+      return placeData;
+    });
+    return placeList;
+  } catch (error) {
+    console.log(error);
+  }
+}
+
+export async function getProgramsByDay(targetDay: string) {
+  const ProgramsCollection = await adminDB
+    .collection("new_program")
+    .where("days", "array-contains", targetDay) 
+    .get();
+
+  const programs = ProgramsCollection.docs.map((doc: any) => {
+    const data = doc.data();
+    return {
+      uid: doc.id,
+      title: data.title,
+      content: data.content,
+      place: data.place,
+      owner: data.owner,
+      point: data.point,
+      schedule: data.schedule,
+      open: data.open, 
+      close: data.close, 
+    };
+  });
+
+  return programs;
+}
+
+export async function getNotificationToken() {
+  const notificationTokenCollection = await adminDB
+    .collection("notificationToken")
+    .get();
+
+  const tokens = notificationTokenCollection.docs.map((doc: any) => {
+    const uid = doc.data().uid;
+    return uid;
+  });
+  return tokens;
+}
+*/
