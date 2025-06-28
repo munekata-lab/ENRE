@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react"; // useCallbackをインポート
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import {
   fetchQrInfo,
@@ -30,6 +30,9 @@ type Schedule = {
   close: string;
 };
 
+// コンポーネントの外で定数を定義
+const randomIds = [2, 5, 8];
+
 export default function LoadingComponent() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -48,7 +51,6 @@ export default function LoadingComponent() {
   const { parse } = useBudouX();
   const [point, setPoint] = useState("");
   const [loadingPoint, setLoadingPoint] = useState("");
-  const randomIds = [2, 5, 8];
   const [showModal, setShowModal] = useState(false);
   const [modalTitle, setModalTitle] = useState("");
   const [modalContent, setModalContent] = useState("");
@@ -57,7 +59,7 @@ export default function LoadingComponent() {
 
   const currentPath = pathname?.replace(/^\//, "") || "home";
 
-  const handleLogPOst = async (previousTitle: string, newTitle: string) => {
+  const handleLogPOst = useCallback(async (previousTitle: string, newTitle: string) => {
     try {
       await postCollectionInLogs(
         "ページ移動",
@@ -67,7 +69,7 @@ export default function LoadingComponent() {
     } catch (error: any) {
       console.error("ログ記録中にエラーが発生しました:", error.message);
     }
-  };
+  }, []);
 
   useEffect(() => {
     if (ref.current) return;
@@ -161,15 +163,15 @@ export default function LoadingComponent() {
         );
       }
     })();
-  }, [router, searchParams, pathname, randomIds]); // 依存配列にrandomIdsを追加
+  }, [router, searchParams, pathname]);
 
-  const handleLogPost = async (title: string, state: string) => {
+  const handleLogPost = useCallback(async (title: string, state: string) => {
     try {
       await postCollectionInLogs(title, "P006-1", state);
     } catch (error: any) {
       console.error("ログ記録中にエラーが発生しました:", error.message);
     }
-  };
+  }, []);
 
   // スケジュール表示部分のヘルパー関数
   const renderSchedule = (schedule: Schedule[] | undefined) => {
@@ -320,7 +322,7 @@ export default function LoadingComponent() {
                   <button
                     className="text-xs underline my-4 text-gray-600"
                     onClick={() =>
-                      handleLogPOst(currentPath + title, "Home")
+                      handleLogPost(currentPath + title, "Home")
                     }
                   >
                     ホームに戻る
