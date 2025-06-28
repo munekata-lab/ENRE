@@ -2,7 +2,7 @@ import HeaderComponent from "@/app/ui/header";
 import PostJoinShareComponent from "@/app/ui/postJoinSharePhoto";
 import FooterComponent from "@/app/ui/footer";
 import { Suspense } from "react";
-import { HeaderSkeleton } from "@/app/ui/skeletons";
+import { HeaderSkeleton, LoadingAnimation } from "@/app/ui/skeletons";
 
 export default function PostJoinSharePhoto() {
   return (
@@ -10,7 +10,9 @@ export default function PostJoinSharePhoto() {
       <Suspense fallback={<HeaderSkeleton />}>
         <HeaderComponent />
       </Suspense>
-      <PostJoinShareComponent />
+      <Suspense fallback={<LoadingAnimation />}>
+        <PostJoinShareComponent />
+      </Suspense>
       <FooterComponent />
     </main>
   );

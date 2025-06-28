@@ -2,7 +2,7 @@ import HeaderComponent from "../ui/header";
 import ChangePasswordComponent from "../ui/changePassword";
 import FooterComponent from "../ui/footer";
 import { Suspense } from "react";
-import { HeaderSkeleton } from "../ui/skeletons";
+import { HeaderSkeleton, LoadingAnimation } from "../ui/skeletons";
 
 export default function ChangePassword() {
   return (
@@ -10,7 +10,9 @@ export default function ChangePassword() {
       <Suspense fallback={<HeaderSkeleton />}>
         <HeaderComponent />
       </Suspense>
-      <ChangePasswordComponent />;
+      <Suspense fallback={<LoadingAnimation />}>
+        <ChangePasswordComponent />
+      </Suspense>
       {/* <FooterComponent /> */}
     </main>
   );
