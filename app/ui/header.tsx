@@ -106,7 +106,7 @@ export default function HeaderComponent() {
 
 
   return (
-    <div className="grid grid-cols-3 items-center shadow-md fixed top-0 w-full z-10 bg-[#f5ffec] h-20">
+    <div className="grid grid-cols-3 items-center shadow-md fixed top-0 w-full z-30 bg-[#f5ffec] h-20">
       <div className="col-start-1 justify-self-start items-center ml-3">
         <Link href="/notification" >
           <Image src="/noffication.png" width={60} height={60} alt="noffication" 

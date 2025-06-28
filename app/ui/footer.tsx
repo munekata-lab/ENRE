@@ -96,7 +96,7 @@ export default function FooterComponent() {
   // }, [notificationUpdateFlag]);
 
   return (
-    <div className="fixed bottom-0 w-full border-t border-gray-300 z-10 bg-[#f5ffec] h-20">
+    <div className="fixed bottom-0 w-full border-t border-gray-300 z-30 bg-[#f5ffec] h-20">
       <div className="flex justify-around pt-2 pb-3 mx-4">
         {icons.map((icon, index) => (
           <Link href={paths[index]} key={index} className="justify-self-center items-self-center" >

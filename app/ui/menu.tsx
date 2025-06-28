@@ -60,7 +60,7 @@ export default function MenuComponent({
   }, [menuRef]);
 
   return (
-    <div className="relative inline-block text-left z-20" ref={menuRef}>
+    <div className="relative inline-block text-left z-40" ref={menuRef}>
       <div className="justify-self-center items-center">
         <Image src="/settings.png" width={60} height={60} alt="settings" onClick={ toggleMenu } />
       </div>

@@ -1,9 +1,9 @@
 "use client";
 
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faCamera, faPen, faLeaf, faMugHot, faPersonWalking, faMagnifyingGlass } from '@fortawesome/free-solid-svg-icons';
+import { faCamera, faPen, faLeaf, faMugHot, faPersonWalking, faMagnifyingGlass, faSort, faStar, faCalendarDays } from '@fortawesome/free-solid-svg-icons';
 import Image from "next/image";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import { db } from "@/lib/firebase/client";
 import {
   collection,
@@ -15,16 +15,17 @@ import { LoadingAnimation } from "./skeletons";
 import packageJson from "../../package.json";
 import { postCollectionInLogs } from "@/lib/dbActions";
 import { usePathname } from "next/navigation";
+import ProgramTimeline from './ProgramTimeline';
 
-// scheduleの型を新しい構造に合わせる
-type Schedule = {
+// --- 型定義 ---
+export type Schedule = {
   day: string;
   open: string;
   close: string;
 };
 
-type Program = {
-  id: string;
+export type Program = {
+  id:string;
   title: string;
   content: string;
   place: string;
@@ -34,173 +35,343 @@ type Program = {
   totalPoint: number;
   field: string;
   type: string;
-  schedule: Schedule[]; // dayからschedule配列に変更
+  schedule: Schedule[];
   icon: any;
+  isOngoing: boolean;
+  remainingTime?: string;
 };
 
-export default function ProgramsList() {
-    const [programList, setProgramList] = useState<Program[]>([]);
-    const [targetField, setTargetField] = useState<string>("0");
-    const [sortOrder, setSortOrder] = useState<string>("none");
-    const [visibleProgram, setVisibleProgram] = useState<Program | null>(null);
-    const programData = packageJson.program_data;
+// --- UIコンポーネント ---
 
+// ★★★ 曜日表示のロジックを追加 ★★★
+const DateNavigator = ({ selectedDate, setSelectedDate, onShowCalendar }: {
+  selectedDate: Date;
+  setSelectedDate: (date: Date) => void;
+  onShowCalendar: () => void;
+}) => {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  const displayDates = Array.from({ length: 3 }).map((_, i) => {
+    const date = new Date(today);
+    date.setDate(today.getDate() + i);
+    return date;
+  });
+
+  const formatDate = (date: Date) => `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+  
+  const daysOfWeek = ['(日)', '(月)', '(火)', '(水)', '(木)', '(金)', '(土)'];
+  const displayFormat = (date: Date) => `${date.getMonth() + 1}/${date.getDate()}${daysOfWeek[date.getDay()]}`;
+
+  const isAfterThreeDays = selectedDate > displayDates[2];
+
+  return (
+    <div className="flex items-center justify-center space-x-1 sm:space-x-2 my-4 px-2">
+      {displayDates.map(date => (
+        <button
+          key={date.toISOString()}
+          onClick={() => setSelectedDate(date)}
+          className={`flex-1 px-2 py-2 rounded text-xs sm:text-sm transition-colors ${formatDate(date) === formatDate(selectedDate) && !isAfterThreeDays ? 'bg-green-700 text-white shadow-md' : 'bg-white hover:bg-green-100'}`}
+        >
+          {displayFormat(date)}
+        </button>
+      ))}
+       <button
+        onClick={onShowCalendar}
+        className={`px-3 py-2 rounded text-xs sm:text-sm transition-colors flex items-center space-x-2 ${isAfterThreeDays ? 'bg-green-700 text-white shadow-md' : 'bg-white hover:bg-green-100'}`}
+      >
+        <FontAwesomeIcon icon={faCalendarDays} />
+        <span>他の日</span>
+      </button>
+    </div>
+  );
+};
+
+const CalendarModal = ({ onSelectDate, onClose }: { onSelectDate: (date: Date) => void; onClose: () => void; }) => {
+    const [currentDate, setCurrentDate] = useState(new Date());
+    const daysOfWeek = ["日", "月", "火", "水", "木", "金", "土"];
+    
+    const startOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
+    const endOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0);
+    const startDate = new Date(startOfMonth);
+    startDate.setDate(startDate.getDate() - startDate.getDay());
+
+    const dates: Date[] = [];
+    for (let i = 0; i < 42; i++) {
+        dates.push(new Date(startDate));
+        startDate.setDate(startDate.getDate() + 1);
+    }
+
+    const changeMonth = (offset: number) => {
+        setCurrentDate(prev => new Date(prev.getFullYear(), prev.getMonth() + offset, 1));
+    };
+
+    const handleDateClick = (date: Date) => {
+        const today = new Date();
+        today.setHours(0,0,0,0);
+        if (date < today) return;
+        onSelectDate(date);
+        onClose();
+    }
+
+    return (
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex justify-center items-center p-4">
+            <div className="bg-white rounded-lg shadow-xl w-full max-w-sm">
+                <div className="p-4">
+                    <div className="flex justify-between items-center mb-4">
+                        <button onClick={() => changeMonth(-1)} className="px-3 py-1 bg-gray-200 rounded">&lt;</button>
+                        <h3 className="text-lg font-bold">{currentDate.getFullYear()}年 {currentDate.getMonth() + 1}月</h3>
+                        <button onClick={() => changeMonth(1)} className="px-3 py-1 bg-gray-200 rounded">&gt;</button>
+                    </div>
+                    <div className="grid grid-cols-7 gap-1 text-center text-sm">
+                        {daysOfWeek.map(day => <div key={day} className="font-bold text-gray-600">{day}</div>)}
+                        {dates.map((date, index) => {
+                            const isCurrentMonth = date.getMonth() === currentDate.getMonth();
+                            const isPast = date < new Date(new Date().setHours(0,0,0,0));
+                            return (
+                                <div key={index}
+                                    className={`p-2 rounded-md cursor-pointer ${isCurrentMonth ? 'text-black' : 'text-gray-300'} ${isPast ? 'text-gray-300 cursor-not-allowed' : 'hover:bg-blue-100'}`}
+                                    onClick={() => handleDateClick(date)}>
+                                    {date.getDate()}
+                                </div>
+                            );
+                        })}
+                    </div>
+                </div>
+                <div className="bg-gray-50 px-4 py-3 text-right">
+                    <button onClick={onClose} className="px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700">閉じる</button>
+                </div>
+            </div>
+        </div>
+    );
+};
+
+
+const GenreFilter = ({ targetField, setTargetField }: { targetField: string, setTargetField: (field: string) => void }) => {
+    const genres = [{value: "0", label: "すべて"}, {value: "1", label: "しる"}, {value: "2", label: "つかう"}, {value: "3", label: "まもる"}];
+    return (
+        <div className="flex justify-center bg-gray-200 rounded-lg p-1 mx-4">
+            {genres.map(genre => (
+                <button
+                    key={genre.value}
+                    onClick={() => setTargetField(genre.value)}
+                    className={`flex-1 px-3 py-1 text-sm font-semibold rounded-md transition-all ${targetField === genre.value ? 'bg-white text-green-700 shadow' : 'text-gray-600'}`}
+                >
+                    {genre.label}
+                </button>
+            ))}
+        </div>
+    );
+};
+
+const SortToggle = ({ sortOrder, setSortOrder }: { sortOrder: string, setSortOrder: (order: string) => void }) => {
+    const isTimeSort = sortOrder === 'time';
+    return (
+        <button
+            onClick={() => setSortOrder(isTimeSort ? 'pointDesc' : 'time')}
+            className="flex items-center space-x-2 px-4 py-2 bg-white rounded-lg shadow-sm text-gray-700 hover:bg-gray-50"
+        >
+            <FontAwesomeIcon icon={isTimeSort ? faSort : faStar} className="w-4 h-4 text-gray-500" />
+            <span className="text-sm font-medium">{isTimeSort ? '時間順' : '得点順'}</span>
+        </button>
+    );
+};
+
+
+// --- メインコンポーネント ---
+export default function ProgramsList() {
+    const [allPrograms, setAllPrograms] = useState<Program[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
+    const [targetField, setTargetField] = useState<string>("0");
+    const [sortOrder, setSortOrder] = useState<string>("time");
+    const [visibleProgram, setVisibleProgram] = useState<Program | null>(null);
+    const [selectedDate, setSelectedDate] = useState(() => { const d = new Date(); d.setHours(0,0,0,0); return d; });
+    const [showCalendar, setShowCalendar] = useState(false);
+    const programData = packageJson.program_data;
     const pathname = usePathname();
+
     const handleLogPost = async (previousTitle: string, newTitle: string) => {
         try {
-        await postCollectionInLogs(
-            "ページ移動",
-            `${previousTitle} → ${newTitle}`,
-            "成功"
-        );
-        } catch (error: any) {
-        console.error("ログ記録中にエラーが発生しました:", error.message);
-        }
+        await postCollectionInLogs("ページ移動", `${previousTitle} → ${newTitle}`, "成功" );
+        } catch (error: any) { console.error("ログ記録中にエラーが発生しました:", error.message); }
     };
-    const currentPath = pathname?.replace(/^\//, "") || "home";
+    const formatRemainingTime = (endDate: Date): string => {
+        const now = new Date();
+        const diff = endDate.getTime() - now.getTime();
+
+        if (diff <= 0) return "まもなく終了";
+        const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+        if (days > 0) return `残り${days}日`;
+        const hours = Math.floor(diff / (1000 * 60 * 60));
+        if (hours > 0) return `残り${hours}時間`;
+        const minutes = Math.floor(diff / (1000 * 60));
+        return `残り${minutes}分`;
+    };
 
     useEffect(() => {
-        const q =
-        targetField === "0"
-            ? query(collection(db, programData))
-            : query(collection(db, programData), where("field", "==", targetField));
-      
-        const unsubscribe = onSnapshot(
-          q,
-          (snapshot) => {
-            const programs = snapshot.docs
-              .map((doc) => ({
-                id: doc.id,
-                ...doc.data(),
-                totalPoint: Number(doc.data().point) + Number(doc.data().loadingPoint),
-                icon:
-                  doc.data().type === "postphoto"
-                    ? faCamera
-                    : doc.data().type === "expressfeelings"
-                    ? faPen
-                    : doc.data().type === "fallenleaves"
-                    ? faLeaf
-                    : doc.data().type === "walk"
-                    ? faPersonWalking
-                    : doc.data().type === "biome"
-                    ? faMagnifyingGlass
-                    : faMugHot,
-              })) as Program[];
-      
-            let sortedPrograms = programs.filter(
-              (program) =>
-                !isNaN(Number(program.id)) && !isNaN(program.totalPoint)
-            );
-      
-            sortedPrograms = sortedPrograms.sort((a, b) => {
-              const idA = parseInt(a.id, 10);
-              const idB = parseInt(b.id, 10);
-              return idA - idB;
-            });
-      
-            if (sortOrder === "pointDesc") {
-              sortedPrograms = sortedPrograms.sort((a, b) => b.totalPoint - a.totalPoint);
-            }
-      
-            setProgramList(sortedPrograms);
-          },
-          async (error) => {
-            console.error("Firestore クエリ中にエラーが発生しました:", error.message);
-            try {
-                await postCollectionInLogs("イベントリスト取得", `失敗`, "失敗");
-            } catch (logError: any) {
-                console.error("ログ記録中にエラーが発生しました:", logError.message);
-            }
-          }
-        );
-      
-        return () => unsubscribe();
-      }, [targetField, sortOrder, programData]);
+        setIsLoading(true);
+        const selectedDateStr = `${selectedDate.getFullYear()}-${String(selectedDate.getMonth() + 1).padStart(2, '0')}-${String(selectedDate.getDate()).padStart(2, '0')}`;
+        const q = query(collection(db, programData), where("days", "array-contains", selectedDateStr));
 
-    const closeDetails = () => {
-        setVisibleProgram(null);
+        const unsubscribe = onSnapshot(q, (snapshot) => {
+            const now = new Date();
+            const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+            const isToday = selectedDateStr === todayStr;
+
+            const programs = snapshot.docs.map((doc) => {
+                const data = doc.data();
+                const allSchedules: Schedule[] = data.schedule || [];
+
+                if (allSchedules.length > 0) {
+                    const latestEndTime = new Date(Math.max(...allSchedules.map(s => {
+                        const closeTime = s.close && s.close.includes(':') ? s.close : '23:59:59';
+                        return new Date(`${s.day}T${closeTime}:00`).getTime();
+                    })));
+                    if (latestEndTime < now) return null;
+                }
+
+                const scheduleForSelectedDay = allSchedules.find((s: Schedule) => s.day === selectedDateStr);
+                if (!scheduleForSelectedDay) return null;
+
+                let isOngoing = false;
+                let remainingTime: string | undefined = undefined;
+
+                if (isToday) {
+                    const openTimeStr = scheduleForSelectedDay.open;
+                    const closeTimeStr = scheduleForSelectedDay.close;
+                    const isAllDay = !openTimeStr || !openTimeStr.includes(':');
+                    const startTime = isAllDay ? new Date(selectedDateStr + "T00:00:00") : new Date(`${selectedDateStr}T${openTimeStr}:00`);
+                    const endTime = closeTimeStr && closeTimeStr.includes(':') ? new Date(`${selectedDateStr}T${closeTimeStr}:00`) : new Date(selectedDateStr + "T23:59:59");
+                    if (now >= startTime && now <= endTime) {
+                        isOngoing = true;
+                        remainingTime = formatRemainingTime(endTime);
+                    }
+                }
+
+                return {
+                  id: doc.id, ...data, totalPoint: Number(data.point) + Number(data.loadingPoint),
+                  icon: data.type === "postphoto" ? faCamera : data.type === "expressfeelings" ? faPen : data.type === "fallenleaves" ? faLeaf : data.type === "walk" ? faPersonWalking : data.type === "biome" ? faMagnifyingGlass : faMugHot,
+                  isOngoing: isOngoing,
+                  remainingTime: remainingTime,
+                } as Program;
+              }).filter(p => p !== null) as Program[];
+              
+            setAllPrograms(programs);
+            setIsLoading(false);
+        }, (error) => {
+            console.error("Firestore クエリ中にエラーが発生しました:", error.message);
+            setIsLoading(false);
+        });
+
+        return () => unsubscribe();
+    }, [selectedDate, programData]);
+
+    const filteredAndSortedPrograms = useMemo(() => {
+        let programs = allPrograms.filter(p => targetField === "0" || p.field === targetField);
+        if (sortOrder === 'pointDesc') {
+            return [...programs].sort((a, b) => b.totalPoint - a.totalPoint);
+        }
+        
+        return [...programs].sort((a, b) => {
+            const selectedDateStr = `${selectedDate.getFullYear()}-${String(selectedDate.getMonth() + 1).padStart(2, '0')}-${String(selectedDate.getDate()).padStart(2, '0')}`;
+            const aSchedule = a.schedule?.find(s => s.day === selectedDateStr);
+            const bSchedule = b.schedule?.find(s => s.day === selectedDateStr);
+            
+            const aIsAllDay = !aSchedule?.open || !aSchedule.open.includes(':');
+            const bIsAllDay = !bSchedule?.open || !bSchedule.open.includes(':');
+
+            if (aIsAllDay && !bIsAllDay) return -1;
+            if (!aIsAllDay && bIsAllDay) return 1;
+
+            const aOpen = aSchedule?.open || "00:00";
+            const bOpen = bSchedule?.open || "00:00";
+            return aOpen.localeCompare(bOpen);
+        });
+    }, [allPrograms, targetField, sortOrder, selectedDate]);
+
+
+    const closeDetails = () => setVisibleProgram(null);
+    const handleSelectProgram = (program: Program) => {
+        setVisibleProgram(program);
+        handleLogPost(pathname?.replace(/^\//, "") || "home", `eventId:${program.id}`);
     };
 
     const formatDay = (day: string) => {
-        switch (day) {
-            case "1": return "1/8(水)";
-            case "2": return "1/9(木)";
-            case "3": return "1/10(金)";
-            default: return day;
-        }
+        const date = new Date(day + 'T00:00:00');
+        const month = date.getMonth() + 1;
+        const dayOfMonth = date.getDate();
+        const dayOfWeek = ['日', '月', '火', '水', '木', '金', '土'][date.getDay()];
+        return `${month}/${dayOfMonth}(${dayOfWeek})`;
     };
 
     return (
-        <main className="flex min-h-screen flex-col items-center justify-between p-0 text-center">
+        <main className="flex min-h-screen flex-col items-center justify-between pb-20">
             <div className="justify-center mt-24 w-full h-full">
-                <div className="fixed font-bold mb-0 top-20 w-full bg-[#fbe5d6] pt-6 pb-2 z-0">
-                    <label htmlFor="day-select" className="mr-2 ml-2">ジャンル:</label>
-                    <select
-                    id="day-select"
-                    value={targetField}
-                    onChange={(e) => setTargetField(e.target.value)}
-                    className="p-2 border rounded"
-                    >
-                    <option value="0">すべて</option>
-                    <option value="1">しる</option>
-                    <option value="2">つかう</option>
-                    <option value="3">まもる</option>
-                    </select>
-                    <label htmlFor="sort-select" className="mr-2 ml-3">並び替え:</label>
-                    <select
-                    id="sort-select"
-                    value={sortOrder}
-                    onChange={(e) => setSortOrder(e.target.value)}
-                    className="p-2 border rounded"
-                    >
-                    <option value="none">指定なし</option>
-                    <option value="pointDesc">得点順</option>
-                    </select>
-                </div>
-                <div className="mt-20 mb-20 pt-10">
-                {programList.length === 0 ? (
-                    <div className="flex min-h-screen flex-col items-center justify-between pb-20">
-                        <LoadingAnimation />
+                <div className="fixed font-bold w-full bg-[#fbe5d6] pt-2 pb-2 z-20 top-20">
+                    <DateNavigator selectedDate={selectedDate} setSelectedDate={setSelectedDate} onShowCalendar={() => setShowCalendar(true)} />
+                    <div className="flex justify-between items-center px-4 mt-2">
+                      <GenreFilter targetField={targetField} setTargetField={setTargetField} />
+                      <SortToggle sortOrder={sortOrder} setSortOrder={setSortOrder} />
                     </div>
-                    ) : (
-                    programList.map((program) => (
-                        <div key={program.id} className="mt-0 mb-0 w-full p-[2%] overflow-auto">
-                        <div className="bg-green-700 rounded-sm p-1 flex flex-col leading-normal">
-                            <button
-                            onClick={() => {
-                                setVisibleProgram(program)
-                                handleLogPost(currentPath, "eventId:"+program.id)
-                            }}
-                            className="grid grid-cols-12 text-gray-900 font-bold text-base text-center bg-white p-1 rounded-sm hover:bg-gray-400"
-                            >
-                            <FontAwesomeIcon 
-                                icon={program.icon} 
-                                className="col-start-1 w-auto h-6 text-green-700"
-                            />
-                            <div className="col-start-2 col-span-11">
-                                {program.title}
-                            </div>
-                            </button>
-                        </div>
-                        </div>
-                    ))
-    )           }  
                 </div>
+
+                <div className="mt-48">
+                    {isLoading ? (
+                        <div className="pt-20"><LoadingAnimation /></div>
+                    ) : filteredAndSortedPrograms.length === 0 ? (
+                        <p className="text-center text-gray-500 mt-16">この日のイベントはありません。</p>
+                    ) : (
+                        <ProgramTimeline programs={filteredAndSortedPrograms} onSelectProgram={handleSelectProgram} selectedDate={selectedDate}/>
+                    )}
+                </div>
+                
+                {showCalendar && (
+                    <CalendarModal
+                        onSelectDate={(date) => setSelectedDate(date)}
+                        onClose={() => setShowCalendar(false)}
+                    />
+                )}
+                
                 {visibleProgram && (
                     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-                        <div className="bg-white rounded-lg w-[95%] max-w-5x h-4/5 p-2 relative overflow-auto flex flex-col">
+                        <div className="bg-white rounded-lg w-[95%] max-w-5xl h-4/5 p-2 relative overflow-auto flex flex-col">
                             <h2 className="text-2xl font-bold mt-1 mb-1">{visibleProgram.title}</h2>
                             <hr className="border-t-2 border-green-700 my-2" />
                             <p className="text-left mb-2">{visibleProgram.content}</p>
-                            
+
                             <div className="text-left mb-2">
                                 <strong>開催日時:</strong>
-                                {(visibleProgram.schedule || []).map((s, index) => (
-                                    <p key={index} className="ml-2 mb-0">
-                                        {/* openとcloseが両方ある場合のみ時間を表示し、ない場合は「終日」と表示 */}
-                                        {formatDay(s.day)} {s.open && s.close ? `${s.open} ~ ${s.close}` : <span className="font-bold text-red-500">終日</span>}
-                                    </p>
-                                ))}
+                                {(visibleProgram.schedule || [])
+                                  .filter(s => {
+                                    const now = new Date();
+                                    const endTime = s.close && s.close.includes(':')
+                                      ? new Date(`${s.day}T${s.close}:00`)
+                                      : new Date(`${s.day}T23:59:59`);
+                                    return endTime >= now;
+                                  })
+                                  .map((s, index) => {
+                                    const now = new Date();
+                                    const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+                                    const isToday = s.day === todayStr;
+                                    let isCurrentlyOngoing = false;
+
+                                    if (isToday) {
+                                      const startTime = s.open && s.open.includes(':') ? new Date(`${s.day}T${s.open}:00`) : new Date(`${s.day}T00:00:00`);
+                                      const endTime = s.close && s.close.includes(':') ? new Date(`${s.day}T${s.close}:00`) : new Date(`${s.day}T23:59:59`);
+                                      if (now >= startTime && now <= endTime) {
+                                        isCurrentlyOngoing = true;
+                                      }
+                                    }
+
+                                    return (
+                                      <p key={index} className="ml-2 mb-0">
+                                        {formatDay(s.day)}{' '}
+                                        <span className={isCurrentlyOngoing ? "font-bold text-red-500" : ""}>
+                                          {s.open && s.close ? `${s.open} ~ ${s.close}` : <span className="font-bold text-red-500">終日</span>}
+                                        </span>
+                                      </p>
+                                    )
+                                })}
                             </div>
 
                             <div className="flex justify-between mb-0">
@@ -215,12 +386,13 @@ export default function ProgramsList() {
                                 <div className="w-full flex justify-center">
                                     <Image
                                         src={"/programPlace" + visibleProgram.id + ".jpg"}
-                                        layout="responsive"
                                         width={0}
                                         height={0}
+                                        sizes="100vw"
+                                        style={{ width: '100%', height: 'auto' }}
                                         alt="picture"
                                         priority
-                                        className="w-full h-auto rounded-lg"
+                                        className="rounded-lg"
                                     />
                                 </div>
                             </div>
