@@ -43,7 +43,6 @@ export type Program = {
 
 // --- UIコンポーネント ---
 
-// ★★★ 曜日表示のロジックを追加 ★★★
 const DateNavigator = ({ selectedDate, setSelectedDate, onShowCalendar }: {
   selectedDate: Date;
   setSelectedDate: (date: Date) => void;
@@ -91,6 +90,11 @@ const CalendarModal = ({ onSelectDate, onClose }: { onSelectDate: (date: Date) =
     const [currentDate, setCurrentDate] = useState(new Date());
     const daysOfWeek = ["日", "月", "火", "水", "木", "金", "土"];
     
+    // ★★★ 修正点 ★★★
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const oneMonthLater = new Date(today.getFullYear(), today.getMonth() + 1, 1);
+
     const startOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
     const endOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0);
     const startDate = new Date(startOfMonth);
@@ -107,27 +111,28 @@ const CalendarModal = ({ onSelectDate, onClose }: { onSelectDate: (date: Date) =
     };
 
     const handleDateClick = (date: Date) => {
-        const today = new Date();
-        today.setHours(0,0,0,0);
         if (date < today) return;
         onSelectDate(date);
         onClose();
     }
+
+    const disablePrev = currentDate.getFullYear() < today.getFullYear() || (currentDate.getFullYear() === today.getFullYear() && currentDate.getMonth() <= today.getMonth());
+    const disableNext = currentDate.getFullYear() > oneMonthLater.getFullYear() || (currentDate.getFullYear() === oneMonthLater.getFullYear() && currentDate.getMonth() >= oneMonthLater.getMonth());
 
     return (
         <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex justify-center items-center p-4">
             <div className="bg-white rounded-lg shadow-xl w-full max-w-sm">
                 <div className="p-4">
                     <div className="flex justify-between items-center mb-4">
-                        <button onClick={() => changeMonth(-1)} className="px-3 py-1 bg-gray-200 rounded">&lt;</button>
+                        {!disablePrev && <button onClick={() => changeMonth(-1)} className="px-3 py-1 bg-gray-200 rounded">&lt;</button>}
                         <h3 className="text-lg font-bold">{currentDate.getFullYear()}年 {currentDate.getMonth() + 1}月</h3>
-                        <button onClick={() => changeMonth(1)} className="px-3 py-1 bg-gray-200 rounded">&gt;</button>
+                        {!disableNext && <button onClick={() => changeMonth(1)} className="px-3 py-1 bg-gray-200 rounded">&gt;</button>}
                     </div>
                     <div className="grid grid-cols-7 gap-1 text-center text-sm">
                         {daysOfWeek.map(day => <div key={day} className="font-bold text-gray-600">{day}</div>)}
                         {dates.map((date, index) => {
                             const isCurrentMonth = date.getMonth() === currentDate.getMonth();
-                            const isPast = date < new Date(new Date().setHours(0,0,0,0));
+                            const isPast = date < today;
                             return (
                                 <div key={index}
                                     className={`p-2 rounded-md cursor-pointer ${isCurrentMonth ? 'text-black' : 'text-gray-300'} ${isPast ? 'text-gray-300 cursor-not-allowed' : 'hover:bg-blue-100'}`}
@@ -215,36 +220,33 @@ export default function ProgramsList() {
 
         const unsubscribe = onSnapshot(q, (snapshot) => {
             const now = new Date();
-            const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
-            const isToday = selectedDateStr === todayStr;
-
+            
             const programs = snapshot.docs.map((doc) => {
                 const data = doc.data();
                 const allSchedules: Schedule[] = data.schedule || [];
 
-                if (allSchedules.length > 0) {
-                    const latestEndTime = new Date(Math.max(...allSchedules.map(s => {
-                        const closeTime = s.close && s.close.includes(':') ? s.close : '23:59:59';
-                        return new Date(`${s.day}T${closeTime}:00`).getTime();
-                    })));
-                    if (latestEndTime < now) return null;
-                }
+                const schedulesForSelectedDay = allSchedules.filter(s => s.day === selectedDateStr);
+                if (schedulesForSelectedDay.length === 0) return null;
 
-                const scheduleForSelectedDay = allSchedules.find((s: Schedule) => s.day === selectedDateStr);
-                if (!scheduleForSelectedDay) return null;
+                const latestEndTime = new Date(Math.max(...schedulesForSelectedDay.map(s => {
+                    const closeTime = s.close && s.close.includes(':') ? s.close : '23:59:59';
+                    return new Date(`${s.day}T${closeTime}:00`).getTime();
+                })));
+
+                if (latestEndTime < now) return null;
 
                 let isOngoing = false;
                 let remainingTime: string | undefined = undefined;
-
-                if (isToday) {
-                    const openTimeStr = scheduleForSelectedDay.open;
-                    const closeTimeStr = scheduleForSelectedDay.close;
-                    const isAllDay = !openTimeStr || !openTimeStr.includes(':');
-                    const startTime = isAllDay ? new Date(selectedDateStr + "T00:00:00") : new Date(`${selectedDateStr}T${openTimeStr}:00`);
-                    const endTime = closeTimeStr && closeTimeStr.includes(':') ? new Date(`${selectedDateStr}T${closeTimeStr}:00`) : new Date(selectedDateStr + "T23:59:59");
-                    if (now >= startTime && now <= endTime) {
-                        isOngoing = true;
-                        remainingTime = formatRemainingTime(endTime);
+                
+                if (selectedDateStr === `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`) {
+                    for (const s of schedulesForSelectedDay) {
+                        const startTime = s.open && s.open.includes(':') ? new Date(`${s.day}T${s.open}:00`) : new Date(s.day + "T00:00:00");
+                        const endTime = s.close && s.close.includes(':') ? new Date(`${s.day}T${s.close}:00`) : new Date(s.day + "T23:59:59");
+                        if (now >= startTime && now <= endTime) {
+                            isOngoing = true;
+                            remainingTime = formatRemainingTime(endTime);
+                            break;
+                        }
                     }
                 }
 

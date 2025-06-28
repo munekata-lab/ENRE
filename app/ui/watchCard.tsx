@@ -23,7 +23,7 @@ export default function WatchCardComponent() {
           })}
           <div className="col-start-1 col-end-3 text-sm px-1 mt-0 mb-1 justify-self-center font-bold text-red-500">
             近くの
-            <Link href="/programlist" className="Line text-red-500">
+            <Link href="/programList" className="Line text-red-500">
               イベント
             </Link>
             に参加しませんか？
