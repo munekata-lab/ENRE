@@ -40,7 +40,7 @@ export default function ExpressFeelingsComponent() {
       setCaution(programInfo2.caution);
       setCondition(programInfo2.condition);
     })();
-  }, []);
+  }, [type]); // 依存配列にtypeを追加
 
   const handlePost = async () => {
     if (!document.trim()) {

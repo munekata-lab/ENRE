@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useZxing } from "react-zxing";
 import { usePathname, useRouter } from "next/navigation";
 import { db } from "@/lib/firebase/client"; // Firebaseの初期化ファイルをインポート
@@ -21,19 +21,18 @@ export default function BarcodeScanner() {
   });
 
   const pathname = usePathname();
-      const handleLogPost = async (previousTitle: string, newTitle: string) => {
-        try {
-          await postCollectionInLogs(
-            "qrコードのパス入力でのページ移動",
-            `${previousTitle} → ${newTitle}`,
-            "成功"
-          );
-        } catch (error: any) {
-          console.error("ログ記録中にエラーが発生しました:", error.message);
-        }
-      };
-        const currentPath = pathname?.replace(/^\//, "") || "home";
-  
+  const handleLogPost = useCallback(async (previousTitle: string, newTitle: string) => {
+    try {
+      await postCollectionInLogs(
+        "qrコードのパス入力でのページ移動",
+        `${previousTitle} → ${newTitle}`,
+        "成功"
+      );
+    } catch (error: any) {
+      console.error("ログ記録中にエラーが発生しました:", error.message);
+    }
+  }, []);
+  const currentPath = pathname?.replace(/^\//, "") || "home";
 
   useEffect(() => {
     if (result === "") return;

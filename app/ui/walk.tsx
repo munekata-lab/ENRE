@@ -51,7 +51,7 @@ export default function WalkComponent() {
         setIsFinished(false);
       }
     })();
-  }, []);
+  }, [programId, type]); // 依存配列にprogramIdとtypeを追加
 
   const handleStartWalking = () => {
     (async () => {

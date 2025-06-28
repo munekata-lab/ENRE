@@ -161,7 +161,7 @@ export default function LoadingComponent() {
         );
       }
     })();
-  }, [router, searchParams, pathname]);
+  }, [router, searchParams, pathname, randomIds]); // 依存配列にrandomIdsを追加
 
   const handleLogPost = async (title: string, state: string) => {
     try {
