@@ -72,10 +72,12 @@ export default function MenuComponent({
             aria-orientation="vertical"
             aria-labelledby="options-menu"
           >
-            <p className="block m-0 px-4 pt-2 pb-1 text-sm text-black text-right">
-              <FontAwesomeIcon icon={faUser} className="mr-2" />
-              <span>{nickName}</span>
-            </p>
+            {/* ★★★ ここから修正 ★★★ */}
+            <Link href="/mypage" className="block m-0 px-4 pt-2 pb-1 text-sm text-black text-right no-underline hover:bg-gray-100">
+                <FontAwesomeIcon icon={faUser} className="mr-2" />
+                <span>{nickName}</span>
+            </Link>
+            {/* ★★★ ここまで修正 ★★★ */}
             <p className="block m-0 px-4 pb-2 text-xs text-black text-right border-b-2 border-gray-300">
               <span>Enre ver {version}</span>
             </p>

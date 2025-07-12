@@ -7,35 +7,20 @@ import { usePathname } from "next/navigation";
 type Props = {
   link: string;
   title: string;
-  detail: string;
-  className: string;
+  isEnabled: boolean;
 };
 
-export default function QuestionnaireComponent({ link, title, detail, className }: Props) {
+export default function QuestionnaireComponent({ link, title, isEnabled }: Props) {
 
-  // const pathname = usePathname();
-  // const handleLogPost = async (previousTitle: string, newTitle: string) => {
-  //   try {
-  //     await postCollectionInLogs(
-  //       "ページ移動",
-  //       `${previousTitle} → ${newTitle}`,
-  //       "成功"
-  //     );
-  //   } catch (error: any) {
-  //     console.error("ログ記録中にエラーが発生しました:", error.message);
-  //   }
-  // };
-  // const currentPath = pathname?.replace(/^\//, "") || "home";
+  const detail = isEnabled ? "受付中" : "受付期間外";
 
   const handleClick = async () => {
+    if (!isEnabled) return;
     await postCollectionInLogs(
       "アンケート回答クリック",
       "アンケート",
       "アンケート"
     );
-    // await handleLogPost(currentPath, "questionnaire");
-
-
   };
   return (
     <div className="w-full bg-yellow-100 rounded-xl overflow-hidden md:max-w-2xl">
@@ -48,13 +33,14 @@ export default function QuestionnaireComponent({ link, title, detail, className 
         </div>
         <div className="row-start-3 col-start-1 col-end-3 grid place-items-center">
           <Link
-            href={link}
+            href={isEnabled ? link : '#'}
             target="_blank"
-            className="m-0 text-white no-underline"
+            className={`m-0 text-white no-underline ${!isEnabled && 'pointer-events-none'}`}
           >
             <button
-              className={className}
+              className={`text-sm py-2 px-4 rounded-md font-bold ${isEnabled ? 'bg-green-700' : 'bg-gray-400'}`}
               onClick={handleClick}
+              disabled={!isEnabled}
             >
               回答する
             </button>

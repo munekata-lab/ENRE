@@ -94,16 +94,14 @@ export default async function Home() {
                   <QuestionnaireComponent
                     link={`https://docs.google.com/forms/d/e/1FAIpQLScavjt8Kf2_ZfeY3jfWD6RCd8X848Hp9WMYe_gsn365aFf6ww/viewform?usp=pp_url&entry.296284400=${user.uid}`}
                     title="登録時アンケート"
-                    detail="受付中"
-                    className="text-sm bg-green-700 py-2 px-4 rounded-md font-bold"
+                    isEnabled={mode?.form[1]}
                   />
                 </div>
                 <div className="row-start-4 col-start-2 col-end-3">
                   <QuestionnaireComponent
                     link={`https://docs.google.com/forms/d/e/1FAIpQLSdcT2TQDyBV5vb5uqELWpT44n4DCoy74Z_lI1b1JWBQcq0l9g/viewform?usp=pp_url&entry.929680888=${user.uid}`}
                     title="体験後アンケート"
-                    detail="受付中"
-                    className="text-sm bg-green-700 py-2 px-4 rounded-md font-bold"
+                    isEnabled={mode?.form[2]}
                   />
                 </div>
               </div>

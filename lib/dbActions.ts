@@ -9,6 +9,43 @@ import type { Place } from "@/lib/type";
 import SettingsGuideComponent from "@/app/ui/settingsGuide";
 import { Timestamp } from 'firebase-admin/firestore';
 
+export type User = {
+  checkinProgramIds: string[];
+  createdAt: Timestamp;
+  currentPlace: string;
+  dev: boolean;
+  form: { [key: string]: boolean };
+  giPoint: number;
+  likes: string[];
+  notification: {
+    createdAt: Timestamp;
+    id: string;
+    isNotify: boolean;
+  };
+  participated: { [key: number]: number };
+  prevReward: number;
+  reward: number;
+  rewardField: {
+    C: number;
+    N: number;
+    O: number;
+    field1: number;
+    field2: number;
+    field3: number;
+  };
+  settings: {
+    modeOfTransportation: string;
+    nickName: string;
+    notification: boolean;
+    timeTable: { [key: number]: boolean[] };
+  };
+  settingsGuide: boolean;
+  totalReward: number;
+  university: boolean;
+  biomeUserName?: string;
+};
+// ★★★ ここまで追加 ★★★
+
 // --- Photos ---
 
 export async function fetchLimitedNumberPhotosInfo(num: Number) {
@@ -364,6 +401,22 @@ export async function patchReward2(point: string, field: string) {
     if (nextReward >= 500 && currentReward < 500) {
       await postCollectionInLogs("500ポイント達成", "500", "500");
     }
+
+    const evoThresholdList = [0, 6, 50, 100, 500];
+    const getEvoState = (reward: number) => {
+        if (reward < evoThresholdList[1]) return 1;
+        if (reward < evoThresholdList[2]) return 2;
+        if (reward < evoThresholdList[3]) return 3;
+        return 4;
+    };
+
+    const currentEvoState = getEvoState(currentReward);
+    const nextEvoState = getEvoState(nextReward);
+
+    if (nextEvoState > currentEvoState) {
+        await postCollectionInLogs(`ガマちゃんがLv.${nextEvoState}に進化した`, "evolution", `Lv.${currentEvoState} -> Lv.${nextEvoState}`);
+    }
+
     await adminDB.collection("users").doc(uid).set(
       {
         totalReward: nextReward,
@@ -554,6 +607,7 @@ export async function fetchMode(uid: string) {
     const modeDev = modeRef.data().dev;
     const modeProgramList = modeRef.data().programList;
     const modePhotoalbum = modeRef.data().photoalbum;
+    const form = modeRef.data().form;
     const userRef = await adminDB.collection("users").doc(uid).get();
     const userMode = userRef.data().dev;
     const userSettingsGuideMode = userRef.data().settingsGuide;
@@ -561,6 +615,7 @@ export async function fetchMode(uid: string) {
       webMode: modeDev,
       programListMode: modeProgramList,
       photoalbumMode: modePhotoalbum,
+      form: form,
       userMode: userMode,
       settingsGuide: userSettingsGuideMode,
     };
