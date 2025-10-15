@@ -15,7 +15,7 @@ export default function BusPoolLinkComponent() {
   return (
     <div className="justify-self-center items-center text-center mt-2">
       <Link
-        href="https://jweb.kyoto-su.ac.jp/webcam/"
+        href="https://jvweb.kyoto-su.ac.jp/webcam/"
         className="text-sm text-white bg-green-700 py-2 px-4 rounded-md font-bold no-underline"
         onClick={handleLogPost} 
       >
