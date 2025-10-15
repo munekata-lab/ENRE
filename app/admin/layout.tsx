@@ -52,10 +52,10 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
         <nav className="flex justify-center gap-4 mt-2">
           <Link href="/" className="text-white hover:underline">ホームへ戻る</Link>
           <Link 
-            href="/admin" 
+            href="/admin/cameras" 
             className={`text-white hover:underline ${pathname === "/admin" ? "font-bold text-yellow-400" : ""}`}
           >
-            ダッシュボード
+            カメラ情報
           </Link>
           <Link 
             href="/admin/events" 
