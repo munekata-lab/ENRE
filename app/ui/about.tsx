@@ -100,10 +100,10 @@ export default function AboutComponent() {
           Enre nature
         </p>
         <p className="text-base text-center mt-2 mb-0">
-          Enre nature開催!
+          Enre 開催!
         </p>
         <p className="text-base text-center">
-          1/8（水）～1/31（金）
+          1/13（木）～1/15（土）
         </p>
         <p className="text-base text-center mt-1 mb-0"
         style={{
