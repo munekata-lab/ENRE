@@ -18,7 +18,7 @@ export default async function PhotoAlbum() {
       <Suspense fallback={<HeaderSkeleton />}>
         <HeaderComponent />
       </Suspense>
-      {(mode?.photoalbumMode && mode?.userMode) || !mode?.photoalbumMode ? ( //firestoreのmodeがtrue且つ開発者ユーザー、またはfirestoreのmodeがfalse
+      {(!mode?.photoalbumMode && mode?.userMode) || !mode?.photoalbumMode ? ( //firestoreのmodeがfalse且つ開発者ユーザー、またはfirestoreのmodeがfalse
         <PhotoAlbumComponent />
       ) : (
         <MaintenanceComponent />

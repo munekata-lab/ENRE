@@ -8,6 +8,8 @@ import { number, z } from "zod";
 import type { Place } from "@/lib/type";
 import SettingsGuideComponent from "@/app/ui/settingsGuide";
 import { Timestamp } from 'firebase-admin/firestore';
+import { collection, query, getDocs, limit, orderBy } from "firebase/firestore";
+import { db } from "./firebase/client";
 
 export type User = {
   checkinProgramIds: string[];
@@ -598,6 +600,29 @@ export async function patchCurrentPlace(place: string) {
     return null;
   }
 }
+
+/**
+ * いずれかの場所の最新の更新日時を取得します。
+ * @returns {Promise<Timestamp | null>} FirestoreのTimestampオブジェクト、またはデータがない場合はnull。
+ */
+export const getLatestPlaceUpdateTime = async () => {
+  try {
+    const placeCollectionRef = query(
+      collection(db, "place"),
+      orderBy("updatedAt", "desc"), // updatedAtで降順に並び替え
+      limit(1) // 最初の1件のみ取得
+    );
+    const snapshot = await getDocs(placeCollectionRef);
+    if (snapshot.empty) {
+      return null;
+    }
+    const docData = snapshot.docs[0].data();
+    return docData.updatedAt; // Timestampオブジェクトを返す
+  } catch (error) {
+    console.error("Error fetching latest place update time:", error);
+    return null;
+  }
+};
 
 // --- Mode ---
 

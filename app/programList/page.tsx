@@ -37,7 +37,7 @@ type Props = {
             <Suspense fallback={<HeaderSkeleton />}>
                 <HeaderComponent />
             </Suspense>
-            {(mode?.programListMode && mode?.userMode) || !mode?.programListMode ? ( //firestoreのmodeがtrue且つ開発者ユーザー、またはfirestoreのmodeがfalse
+            {(!mode?.programListMode && mode?.userMode) || !mode?.programListMode ? ( //firestoreのmodeがfalse且つ開発者ユーザー、またはfirestoreのmodeがfalse
                 <ProgramsList />
             ) : (
                 <div className="mt-5 h-full w-full">
