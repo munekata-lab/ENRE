@@ -11,14 +11,14 @@ import { User } from '@/lib/dbActions';
 import { QRCodeCanvas } from 'qrcode.react';
 
 export default function MyPageComponent() {
-    const [uid, setUid] = useState<string | null>(null); // 追加: UID保存用ステート
     const [user, setUser] = useState<User | null>(null);
+    const [uid, setUid] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
         const unsubscribe = onAuthStateChanged(auth, async (authUser) => {
             if (authUser) {
-                setUid(authUser.uid); // 追加: UIDを保存
+                setUid(authUser.uid);
                 const userRef = doc(db, 'users', authUser.uid);
                 const docSnap = await getDoc(userRef);
                 if (docSnap.exists()) {
@@ -28,6 +28,7 @@ export default function MyPageComponent() {
                 }
             } else {
                 setUser(null);
+                setUid(null);
             }
             setIsLoading(false);
         });
@@ -39,22 +40,41 @@ export default function MyPageComponent() {
         return <div className="flex justify-center items-center h-full pt-20"><LoadingAnimation /></div>;
     }
 
-    if (!user) {
+    if (!user || !uid) {
         return <div className="text-center mt-10">ユーザー情報が見つかりません。再ログインしてください。</div>;
     }
 
-    const totalParticipated = Object.values(user.participated || {}).reduce((sum, count) => sum + count, 0);
+    // ▼▼▼ Entryフラグの計算ロジック ▼▼▼
+    const borderDate = new Date('2025-12-25T00:00:00'); // 基準日
+    let entry = 0;
 
+    if (user.createdAt) {
+        // FirestoreのTimestamp型ならtoDate()、そうでなければDate変換
+        // 型定義上はTimestampですが、念のためチェックして変換します
+        const createdAtDate = (user.createdAt as any).toDate 
+            ? (user.createdAt as any).toDate() 
+            : new Date(user.createdAt as any);
+
+        if (createdAtDate >= borderDate) {
+            entry = 1;
+        }
+    }
+    // ▲▲▲ 追加終わり ▲▲▲
+
+    // QRコードデータを作成
     const qrData = {
         token: "qr_add0524e7ea04d56a764a248613f4f0f",
         payload: {
             uid: uid,
-            nickname: user.settings.nickName, // ユーザーのニックネームを動的に設定
+            nickname: user.settings.nickName,
             country: "Japan",
             i18nextLng: "ja",
-            event_id: "10"
+            event_id: "11",
+            entry: entry // 判定結果（0 or 1）を追加
         }
     };
+
+    const totalParticipated = Object.values(user.participated || {}).reduce((sum, count) => sum + count, 0);
 
     return (
         <div className="container mx-auto p-4">
@@ -62,7 +82,7 @@ export default function MyPageComponent() {
                 <h1 className="text-3xl font-bold">{user.settings.nickName}の情報</h1>
             </div>
 
-            {/* 追加: QRコード表示エリア */}
+            {/* QRコード表示エリア */}
             <div className="flex flex-col items-center justify-center bg-white p-6 rounded-lg shadow-md mb-8">
                 <h2 className="text-xl font-semibold mb-4">連携用QRコード</h2>
                 <QRCodeCanvas 
@@ -72,7 +92,9 @@ export default function MyPageComponent() {
                     bgColor={"#FFFFFF"}
                     fgColor={"#000000"}
                 />
-                <p className="text-sm text-gray-500 mt-2">このQRコードを別のアプリで読み取ってください</p>
+                <p className="text-sm text-gray-500 mt-2">受付端末等で読み取ってください</p>
+                {/* デバッグ用（必要なくなれば削除してください） */}
+                {/* <p className="text-xs text-gray-400 mt-1">Entry Check: {entry}</p> */}
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
