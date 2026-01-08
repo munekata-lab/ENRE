@@ -69,7 +69,7 @@ export default function MyPageComponent() {
             nickname: user.settings.nickName,
             country: "Japan",
             i18nextLng: "ja",
-            event_id: "11",
+            event_id: "10",
             entry: entry // 判定結果（0 or 1）を追加
         }
     };
