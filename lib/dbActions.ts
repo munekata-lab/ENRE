@@ -1064,25 +1064,28 @@ export async function getPlace() {
   return result;
 }
 
-// この関数をまるごと置き換えるか、新規に追加してください。
-export async function addQrCodeToProgram(programId: string, qrData: object) {
+// 引数に qrId?: string を追加
+export async function addQrCodeToProgram(programId: string, qrData: object, qrId?: string) {
   try {
-    // 1. サブコレクションへの参照を作成します。
-    // adminDBを使い、ドキュメントパスとサブコレクション名を指定します。
     const qrCodesCollectionRef = adminDB
       .collection("new_program")
       .doc(programId)
       .collection("qr_codes");
 
-    // 2. サブコレクションに新しいドキュメントを追加します。
-    const newQrDocRef = await qrCodesCollectionRef.add(qrData);
-
-    console.log("サブコレクションに新しいドキュメントを追加しました。ID:", newQrDocRef.id);
-    return newQrDocRef.id;
+    if (qrId) {
+      // IDが指定されている場合は doc(qrId).set() を使用
+      await qrCodesCollectionRef.doc(qrId).set(qrData);
+      console.log("指定IDでドキュメントを追加しました。ID:", qrId);
+      return qrId;
+    } else {
+      // ID指定がない場合は add() で自動生成
+      const newQrDocRef = await qrCodesCollectionRef.add(qrData);
+      console.log("サブコレクションに自動IDで追加しました。ID:", newQrDocRef.id);
+      return newQrDocRef.id;
+    }
 
   } catch (error) {
     console.error("サブコレクションへのドキュメント追加に失敗しました:", error);
-    // エラーを再スローするか、適切なエラーハンドリングを行ってください。
     throw error;
   }
 }

@@ -336,7 +336,7 @@ export default function LoadingComponent() {
                 </div>
               )}
 
-              {modalTitle && (
+              {/* {modalTitle && (
                 <Modal
                   show={showModal}
                   onHide={() => {
@@ -389,7 +389,7 @@ export default function LoadingComponent() {
                     </button>
                   </Modal.Footer>
                 </Modal>
-              )}
+              )} */}
             </>
           )}
         </>

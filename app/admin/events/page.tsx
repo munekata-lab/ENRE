@@ -167,7 +167,7 @@ function ProgramCreateView() {
             const placeId = `P${programId.padStart(3, '0')}`;
             const firstQrId = `${programId}_1`;
             const qrData = { placeId, placeNumber: 1, type: type ? "checkin" : "checkout", createdAt: new Date() };
-            await addQrCodeToProgram(programId, qrData);
+            await addQrCodeToProgram(programId, qrData, firstQrId);
 
             alert("イベントが正常に追加されました。");
             resetForm();
