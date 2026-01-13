@@ -156,6 +156,18 @@ export default function AdminUsersPage() {
             placeholder="UIDの一部を入力..."
           />
         </div>
+        {/* ★追加: イベントID検索 */}
+        <div>
+          <label htmlFor="event-id-search" className="block text-sm font-medium text-gray-700">参加イベントID (AND)</label>
+          <input
+            type="text"
+            id="event-id-search"
+            className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+            value={eventIdSearch}
+            onChange={(e) => setEventIdSearch(e.target.value)}
+            placeholder="例: 1, 10 (すべて参加でヒット)"
+          />
+        </div>
         <div className="flex items-center pt-6">
           <input
             id="exclude-devs"
