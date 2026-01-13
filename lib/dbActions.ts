@@ -707,7 +707,7 @@ export async function fetchParticipatedEvents() {
   // };
   const initialParticipatedEvents: { [key: number]: number } = {};
   {/* ゆくゆくは自動でイベント数用意されるようにしたい */}
-  for (let i = 1; i <= 10; i++) {
+  for (let i = 1; i <= 13; i++) {
     initialParticipatedEvents[i] = 0;
   }
   const user = await getUserFromCookie();
