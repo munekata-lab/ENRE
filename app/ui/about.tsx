@@ -103,7 +103,7 @@ export default function AboutComponent() {
           Enre 開催!
         </p>
         <p className="text-base text-center">
-          1/13（木）～1/15（土）
+          1/13（火）～1/15（木）
         </p>
         <p className="text-base text-center mt-1 mb-0"
         style={{
@@ -186,7 +186,7 @@ export default function AboutComponent() {
             height: '75%',
           }}
         >
-          Enre（ver{version}）は2025年1月8日～10日のEnre natureにはじまり、31日（金）まで使用することが可能です。
+          Enre（ver{version}）は2025年1月13日～31日まで使用することが可能です。
         </p>
       </div>
 
