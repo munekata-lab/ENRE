@@ -27,6 +27,7 @@ export default function AdminUsersPage() {
   // 絞り込み用のState
   const [uidSearch, setUidSearch] = useState('');
   const [excludeDevs, setExcludeDevs] = useState(false);
+  const [eventIdSearch, setEventIdSearch] = useState('');
 
   // ★変更点1: ページネーション用のStateを追加
   const [currentPage, setCurrentPage] = useState(1);
@@ -58,7 +59,7 @@ export default function AdminUsersPage() {
   // ★変更点4: フィルタ条件が変わったらページをリセットする
   useEffect(() => {
     setCurrentPage(1);
-  }, [uidSearch, excludeDevs]);
+  }, [uidSearch, excludeDevs, eventIdSearch]);
 
   // 絞り込みとソートを適用するuseMemo
   const filteredAndSortedUserList = useMemo(() => {
@@ -76,7 +77,29 @@ export default function AdminUsersPage() {
       );
     }
 
-    // 3. 絞り込まれたリストをソート
+    // 3. ★追加: イベントIDによる絞り込み (AND検索)
+    if (eventIdSearch) {
+      // カンマ、スペースなどで区切って配列化
+      const targetIds = eventIdSearch
+        .split(/[,\s]+/)
+        .map(id => id.trim())
+        .filter(id => id !== '');
+
+      if (targetIds.length > 0) {
+        filteredUsers = filteredUsers.filter(user => {
+          // ユーザーの参加記録がない場合は除外
+          if (!user.participated) return false;
+          
+          // 入力されたIDすべてに参加しているか確認 (AND条件)
+          return targetIds.every(id => {
+            const count = user.participated[id];
+            return count && count > 0;
+          });
+        });
+      }
+    }
+
+    // 4. 絞り込まれたリストをソート
     if (sortConfig !== null) {
       filteredUsers.sort((a, b) => {
         if (a[sortConfig.key] < b[sortConfig.key]) {
@@ -90,7 +113,7 @@ export default function AdminUsersPage() {
     }
     
     return filteredUsers;
-  }, [userList, uidSearch, excludeDevs, sortConfig]);
+  }, [userList, uidSearch, excludeDevs, eventIdSearch, sortConfig]);
 
   const requestSort = (key: keyof User) => {
     let direction: 'ascending' | 'descending' = 'ascending';
