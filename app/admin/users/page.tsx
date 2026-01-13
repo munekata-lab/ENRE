@@ -11,6 +11,7 @@ type User = {
   modeOfTransportation: string;
   checkinProgramIds: string[];
   dev: boolean;
+  participated: { [key: string]: number };
 };
 
 // 1ページあたりの表示ユーザー数
@@ -158,6 +159,7 @@ export default function AdminUsersPage() {
               </th>
               <th className="py-2 px-4">交通手段</th>
               <th className="py-2 px-4">チェックイン中</th>
+              <th className="py-2 px-4">参加済みイベントID</th>
               <th className="py-2 px-4">UID</th>
             </tr>
           </thead>
@@ -169,6 +171,15 @@ export default function AdminUsersPage() {
                 <td className="py-2 px-4">{user.reward} pt</td>
                 <td className="py-2 px-4">{transpotationMethod(user.modeOfTransportation)}</td>
                 <td className="py-2 px-4">{user.checkinProgramIds?.join(', ') || 'なし'}</td>
+                <td className="py-2 px-4">
+                  {user.participated
+                    ? Object.entries(user.participated)
+                        .filter(([_, count]) => count > 0) // 参加回数が1以上のものだけ抽出
+                        .map(([id]) => id)
+                        .sort((a, b) => Number(a) - Number(b)) // ID順にソート
+                        .join(', ')
+                    : 'なし'}
+                </td>
                 <td className="py-2 px-4 text-xs text-gray-500">{user.uid}</td>
               </tr>
             ))}

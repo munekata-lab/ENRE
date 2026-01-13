@@ -1007,6 +1007,7 @@ export async function getUsers() {
     const nickName = settings.nickName;
     const university = userData.university;
     const dev = userData.dev || false; 
+    const participated = userData.participated || {};
 
     return {
       uid: uid,
@@ -1017,6 +1018,7 @@ export async function getUsers() {
       nickName: nickName,
       university: university,
       dev: dev,
+      participated: participated,
     };
   });
 
