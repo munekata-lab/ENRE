@@ -140,16 +140,16 @@ export default function LoadingComponent() {
         await patchParticipatedEvents(programId);
         await patchCheckoutProgramIds(programId);
         setCheckout(true);
-        setTimeout(async () => {
-          const randomId =
-            randomIds[Math.floor(Math.random() * randomIds.length)];
-          const programInfo3 = await fetchProgramInfo(String(randomId));
-          setModalProgramId(String(randomId));
-          setModalTitle(programInfo3.title);
-          setModalContent(programInfo3.content);
-          setModalPlace(programInfo3.place);
-          setShowModal(true);
-        }, 2000);
+        // setTimeout(async () => {
+        //   const randomId =
+        //     randomIds[Math.floor(Math.random() * randomIds.length)];
+        //   const programInfo3 = await fetchProgramInfo(String(randomId));
+        //   setModalProgramId(String(randomId));
+        //   setModalTitle(programInfo3.title);
+        //   setModalContent(programInfo3.content);
+        //   setModalPlace(programInfo3.place);
+        //   setShowModal(true);
+        // }, 2000);
         setLink(
           `/photoalbum/postjoinshare?programId=${programId}&place=${place}&point=${programInfo.point}&field=${programInfo.field}`
         );
