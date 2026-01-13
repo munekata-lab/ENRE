@@ -51,10 +51,21 @@ export default function BarcodeScanner() {
         } else {
           // 一致するドキュメントがあれば、ドキュメント名を取得
           const doc = querySnapshot.docs[0]; // 最初の一致するドキュメントを取得
-          const documentName = doc.id; // ドキュメントID（ドキュメント名として使う）
+        
+          // ▼▼▼ ここから修正 ▼▼▼
+          const documentName = doc.id; // 書き換えられるように let にする
+          let qrId = `${documentName}_1`;
+
+          // 単純な if 文で書き換え
+          if (documentName === "10") {
+            qrId = "nijyxd552Z8z9oiwXvKX";
+          } else if (documentName === "11") {
+            qrId = "JQ6clSCwJqFhFFtaQ8B7";
+          } else if (documentName === "12") {
+            qrId = "P6tE3mYBaYRVvR7qYNXJ";
+          }
+          // ▲▲▲ ここまで修正 ▲▲▲
           
-          // 修正点: programIdとidの両方をクエリパラメータとして渡す
-          const qrId = `${documentName}_1`; // 最初のQRコードのIDを想定
           handleLogPost(currentPath, "qrReaderByPass success: "+documentName);
           router.push(`/loading?programId=${documentName}&id=${qrId}`);
         }

@@ -89,6 +89,8 @@ export default function LoadingComponent() {
       const qrInfo = await fetchQrInfo(programId, qrId);
       const programInfo = await fetchProgramInfo(programId);
 
+      console.log("loadingPointの値:", programInfo?.loadingPoint);
+
       if (!qrInfo || !programInfo) {
         console.error("QR情報またはプログラム情報の取得に失敗しました。");
         setTitle("エラー");
@@ -120,6 +122,7 @@ export default function LoadingComponent() {
           programInfo.loadingPoint.toString(),
           programInfo.field
         );
+        console.log("pathReward");
       }
 
       if (qrInfo.type === "checkin") {
