@@ -1,7 +1,7 @@
 "use client";
 
 import { useFormState } from "react-dom";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import SubmitButton from "./submitButton";
 import { login } from "@/lib/authentication";
 import { useRouter } from "next/navigation";
@@ -12,12 +12,20 @@ import Image from "next/image";
 
 const initialState = {
   message: "",
+  success: false, // 初期状態に success を追加
 };
 
 export default function LoginComponent() {
-  const [error, action] = useFormState(login, initialState);
+  const [state, action] = useFormState(login, initialState); // state という名前に変更（errorだけでなく成功時も入るため）
   const [isPasswordView, setIsPasswordView] = useState(false);
   const router = useRouter();
+
+  // 【追加】ログイン成功時にリダイレクトする処理
+  useEffect(() => {
+    if (state?.success) {
+      router.push("/"); // ここで遷移を実行
+    }
+  }, [state?.success, router]);
 
   const togglePassword = () => {
     setIsPasswordView((prevState) => !prevState);
@@ -76,7 +84,7 @@ export default function LoginComponent() {
         </div>
         <div className="flex flex-col items-center justify-center">
           <SubmitButton title="ログイン" />
-          <p className="text-red-500">{error?.message}</p>
+          <p className="text-red-500">{state?.message}</p>
         </div>
       </form>
       <div className="mt-4">

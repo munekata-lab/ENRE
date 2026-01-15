@@ -134,23 +134,32 @@ export async function login(prevState: any, formData: FormData) {
     await session(id);
     await postCollectionInLogs("ログイン", "ログイン", "ログイン成功");
     postLogEvent("ログイン成功");
+
+    return {
+      success: true,
+      message: "ログインしました",
+    };
+
   } catch (error) {
     postLogEvent("ログイン失敗");
     if (error instanceof z.ZodError) {
       return {
+        success: false, // 追加
         message: error.issues[0].message,
       };
     }
     if (error instanceof FirebaseError) {
       return {
+        success: false, // 追加
         message: error.message,
       };
     }
     return {
+      success: false, // 追加
       message: "パスワードが間違っているか、アカウントが存在しません",
     };
   }
-  redirect("/");
+  // redirect("/");
 }
 
 export async function logout() {
