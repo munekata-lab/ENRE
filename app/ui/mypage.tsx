@@ -13,12 +13,22 @@ import { QRCodeCanvas } from 'qrcode.react';
 export default function MyPageComponent() {
     const [user, setUser] = useState<User | null>(null);
     const [uid, setUid] = useState<string | null>(null);
+    const [idToken, setIdToken] = useState<string | null>(null); // 追加: IDトークン用のstate
     const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
         const unsubscribe = onAuthStateChanged(auth, async (authUser) => {
             if (authUser) {
                 setUid(authUser.uid);
+                
+                // 追加: IDトークンを取得
+                try {
+                    const token = await authUser.getIdToken();
+                    setIdToken(token);
+                } catch (error) {
+                    console.error("IDトークンの取得に失敗しました", error);
+                }
+
                 const userRef = doc(db, 'users', authUser.uid);
                 const docSnap = await getDoc(userRef);
                 if (docSnap.exists()) {
@@ -29,6 +39,7 @@ export default function MyPageComponent() {
             } else {
                 setUser(null);
                 setUid(null);
+                setIdToken(null);
             }
             setIsLoading(false);
         });
@@ -66,7 +77,8 @@ export default function MyPageComponent() {
         token: "qr_add0524e7ea04d56a764a248613f4f0f",
         payload: {
             uid: uid,
-            nickname: user.settings.nickName,
+            id_token: idToken, // 追加: IDトークンをQRコードに含める
+            // nickname: user.settings.nickName,
             country: "Japan",
             i18nextLng: "ja",
             event_id: "10",
