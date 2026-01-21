@@ -1,28 +1,26 @@
 // app/api/pepper/route.ts
-
 import { adminDB } from "@/lib/firebase/server";
 
+// ▼ 追加: ブラウザでのアクセス確認用 (GET)
+export async function GET() {
+  return Response.json({ message: "Pepper API endpoint is ready." });
+}
+
+// ▼ 既存: Pepperからのデータ受信用 (POST)
 export async function POST(req: Request) {
   try {
-    // Pepperから送信されたJSONデータを取得
     const body = await req.json();
 
-    // データが空の場合のチェック
     if (!body) {
       return Response.json({ ok: false, message: "No data provided" }, { status: 400 });
     }
 
-    // 保存するデータを作成 (受信日時などを追加)
     const pepperData = {
       ...body,
-      receivedAt: new Date(), // 受信時刻をサーバー側で記録
+      receivedAt: new Date(),
     };
 
-    // Firestoreの 'pepper_messages' コレクションに保存
-    // ※コレクション名は用途に合わせて変更してください
     await adminDB.collection("pepper_messages").add(pepperData);
-
-    // Pepper側に成功レスポンスを返す
     return Response.json({ ok: true, message: "Data received successfully" });
 
   } catch (error) {
