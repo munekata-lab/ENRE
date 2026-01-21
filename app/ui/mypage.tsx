@@ -13,7 +13,8 @@ import { QRCodeCanvas } from 'qrcode.react';
 export default function MyPageComponent() {
     const [user, setUser] = useState<User | null>(null);
     const [uid, setUid] = useState<string | null>(null);
-    const [idToken, setIdToken] = useState<string | null>(null); // 追加: IDトークン用のstate
+    const [idToken, setIdToken] = useState<string | null>(null);
+    const [qrToken, setQrToken] = useState<string>(""); // 追加: QR用トークン
     const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
@@ -21,7 +22,6 @@ export default function MyPageComponent() {
             if (authUser) {
                 setUid(authUser.uid);
                 
-                // 追加: IDトークンを取得
                 try {
                     const token = await authUser.getIdToken();
                     setIdToken(token);
@@ -33,6 +33,14 @@ export default function MyPageComponent() {
                 const docSnap = await getDoc(userRef);
                 if (docSnap.exists()) {
                     setUser(docSnap.data() as User);
+                    
+                    // ▼▼▼ 追加: ユーザーデータ取得完了後に新しいトークンを生成 ▼▼▼
+                    // 固定のプレフィックス: "qr_"
+                    // ランダムな識別子: UUID (バージョン4)
+                    const uuid = crypto.randomUUID();
+                    setQrToken(`qr_${uuid}`);
+                    // ▲▲▲ 追加終わり ▲▲▲
+
                 } else {
                     setUser(null);
                 }
@@ -40,6 +48,7 @@ export default function MyPageComponent() {
                 setUser(null);
                 setUid(null);
                 setIdToken(null);
+                setQrToken("");
             }
             setIsLoading(false);
         });
@@ -56,12 +65,10 @@ export default function MyPageComponent() {
     }
 
     // ▼▼▼ Entryフラグの計算ロジック ▼▼▼
-    const borderDate = new Date('2025-12-25T00:00:00'); // 基準日
+    const borderDate = new Date('2025-12-25T00:00:00'); 
     let entry = 0;
 
     if (user.createdAt) {
-        // FirestoreのTimestamp型ならtoDate()、そうでなければDate変換
-        // 型定義上はTimestampですが、念のためチェックして変換します
         const createdAtDate = (user.createdAt as any).toDate 
             ? (user.createdAt as any).toDate() 
             : new Date(user.createdAt as any);
@@ -70,19 +77,18 @@ export default function MyPageComponent() {
             entry = 1;
         }
     }
-    // ▲▲▲ 追加終わり ▲▲▲
 
     // QRコードデータを作成
     const qrData = {
-        token: "qr_add0524e7ea04d56a764a248613f4f0f",
+        token: qrToken, // 生成した動的トークンを使用
         payload: {
-            uid: uid,
-            id_token: idToken, // 追加: IDトークンをQRコードに含める
-            // nickname: user.settings.nickName,
-            country: "Japan",
-            i18nextLng: "ja",
+            uid: uid, 
+            // id_token: idToken,
+            nickname: user.settings.nickName,
+            // country: "Japan", 
+            // i18nextLng: "ja", 
             event_id: "10",
-            entry: entry // 判定結果（0 or 1）を追加
+            entry: entry 
         }
     };
 
@@ -97,16 +103,19 @@ export default function MyPageComponent() {
             {/* QRコード表示エリア */}
             <div className="flex flex-col items-center justify-center bg-white p-6 rounded-lg shadow-md mb-8">
                 <h2 className="text-xl font-semibold mb-4">連携用QRコード</h2>
-                <QRCodeCanvas 
-                    value={JSON.stringify(qrData)} 
-                    size={200}
-                    level={"M"}
-                    bgColor={"#FFFFFF"}
-                    fgColor={"#000000"}
-                />
+                {qrToken ? (
+                    <QRCodeCanvas 
+                        value={JSON.stringify(qrData)} 
+                        size={200}
+                        level={"L"}
+                        bgColor={"#FFFFFF"}
+                        fgColor={"#000000"}
+                    />
+                ) : (
+                    <LoadingAnimation />
+                )}
                 <p className="text-sm text-gray-500 mt-2">受付端末等で読み取ってください</p>
-                {/* デバッグ用（必要なくなれば削除してください） */}
-                {/* <p className="text-xs text-gray-400 mt-1">Entry Check: {entry}</p> */}
+                {/* <p className="text-xs text-gray-400 mt-1">Token: {qrToken}</p> */}
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
