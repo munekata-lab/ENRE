@@ -17,15 +17,16 @@ export async function POST(req: Request) {
 
     // ボディから必要な情報を抽出 (Pepper側がこの形式で送ってくると仮定)
     // 送信データ例: { "uid": "user_xxx", "pepper_id": "pepper_01", ... }
-    const { token, event_id } = body;
+    const { token, event_id, uid } = body;
 
     // 必須項目のチェック（必要に応じて）
-    if (!token || !event_id) {
-      return Response.json({ ok: false, message: "Missing uid or pepper_id" }, { status: 400 });
+    if (!token || !event_id || !uid) {
+      return Response.json({ ok: false, message: "Missing uid or pepper_id or token" }, { status: 400 });
     }
 
     // pepper_logs コレクションに追加
     await adminDB.collection("pepper_logs").add({
+      uid: uid,
       token: token,
       title: "通信成功",
       date: FieldValue.serverTimestamp(), // または new Date()
