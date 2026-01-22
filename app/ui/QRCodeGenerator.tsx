@@ -5,7 +5,7 @@ import { QRCodeCanvas } from "qrcode.react";
 import { auth, db } from '@/lib/firebase/client';
 import { doc, getDoc } from 'firebase/firestore';
 import { onAuthStateChanged } from 'firebase/auth';
-import { User, postCollectionInLogs } from '@/lib/dbActions'; // ★追加: postCollectionInLogsをインポート
+import { User, postCollectionInLogs } from '@/lib/dbActions';
 import { LoadingAnimation } from '@/app/ui/skeletons';
 
 type QRCodeGeneratorProps = {
@@ -33,10 +33,8 @@ export default function QRCodeGenerator({ eventId }: QRCodeGeneratorProps) {
                         const newToken = `qr_${uuid}`;
                         setQrToken(newToken);
 
-                        // ★追加: ログ保存
-                        // タイトル: QR生成, place: eventId, state: token
+                        // ログ保存
                         try {
-                            // 非同期で実行（awaitしても良いが、描画をブロックしないようcatchだけしておく）
                             postCollectionInLogs("QR生成", eventId, newToken)
                                 .catch(err => console.error("ログ保存に失敗しました:", err));
                         } catch (e) {
@@ -57,15 +55,15 @@ export default function QRCodeGenerator({ eventId }: QRCodeGeneratorProps) {
             setIsLoading(false);
         });
         return () => unsubscribe();
-    }, [eventId]); // eventIdが変わった場合も再実行されるように依存配列に追加
+    }, [eventId]);
 
-    // QRコードデータを作成
+    // QRコードデータを作成 (robotmeetを削除)
     const qrData = (user && uid) ? {
         uid: uid,
         nickname: user.settings.nickName,
         event_id: eventId,
         qrtoken: qrToken,
-        robotmeet: user.robotMeet || []
+        // robotmeet: user.robotMeet || [] // 削除しました
     } : null;
 
     if (isLoading) {
