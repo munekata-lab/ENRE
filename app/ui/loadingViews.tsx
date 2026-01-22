@@ -5,12 +5,7 @@ import Link from "next/link";
 import Card from "react-bootstrap/Card";
 import Script from "next/script";
 import { useBudouX } from "../hooks/useBudouX";
-import { QRCodeCanvas } from "qrcode.react";
-import { auth, db } from '@/lib/firebase/client';
-import { doc, getDoc } from 'firebase/firestore';
-import { onAuthStateChanged } from 'firebase/auth';
-import { User } from '@/lib/dbActions';
-import { LoadingAnimation } from '@/app/ui/skeletons';
+import QRCodeGenerator from "./QRCodeGenerator";
 
 // --- 1. 参加済み画面 ---
 export function ParticipatedView() {
@@ -186,13 +181,13 @@ export function CheckoutView({
   );
 }
 
-// --- 4. ロボットイベント用完了画面（修正版） ---
+// --- 4. ロボットイベント用完了画面 ---
 type RobotCheckoutViewProps = {
   title: string;
   completionMessage: string;
   onLogPost: (title: string, type: string) => void;
   currentPath: string;
-  eventId: string; // ★追加: event_idを受け取る
+  eventId: string;
 };
 
 export function RobotCheckoutView({
@@ -200,44 +195,9 @@ export function RobotCheckoutView({
     completionMessage,
     onLogPost,
     currentPath,
-    eventId, // ★追加
+    eventId,
   }: RobotCheckoutViewProps) {
     const { parse } = useBudouX();
-    const [user, setUser] = useState<User | null>(null);
-    const [uid, setUid] = useState<string | null>(null); // ★追加: UIDを保持
-    const [qrToken, setQrToken] = useState<string>("");
-    const [isLoading, setIsLoading] = useState(true);
-
-    useEffect(() => {
-        const unsubscribe = onAuthStateChanged(auth, async (authUser) => {
-            if (authUser) {
-                setUid(authUser.uid); // ★追加
-                const userRef = doc(db, 'users', authUser.uid);
-                const docSnap = await getDoc(userRef);
-                if (docSnap.exists()) {
-                    setUser(docSnap.data() as User);
-                    const uuid = crypto.randomUUID();
-                    setQrToken(`qr_${uuid}`);
-                } else {
-                    setUser(null);
-                }
-            } else {
-                setUser(null);
-                setUid(null);
-            }
-            setIsLoading(false);
-        });
-        return () => unsubscribe();
-    }, []);
-
-    // ★修正: 指定されたフィールドを含むフラットなオブジェクトを作成
-    const qrData = (user && uid) ? {
-        uid: uid,
-        nickname: user.settings.nickName,
-        event_id: eventId,
-        qrtoken: qrToken,
-        robotmeet: user.robotMeet || []
-    } : null;
 
     return (
       <>
@@ -256,23 +216,8 @@ export function RobotCheckoutView({
             </Card.Body>
           </Card>
 
-          <div className="flex flex-col items-center justify-center bg-white p-6 rounded-lg shadow-md mb-8">
-            <h2 className="text-lg font-semibold mb-4">ロボットに提示してください</h2>
-            {isLoading ? (
-                <LoadingAnimation />
-            ) : (qrData && qrToken) ? (
-                <QRCodeCanvas 
-                    value={JSON.stringify(qrData)} 
-                    size={200}
-                    level={"L"}
-                    bgColor={"#FFFFFF"}
-                    fgColor={"#000000"}
-                />
-            ) : (
-                <p className="text-sm text-red-500">QRコード生成エラー</p>
-            )}
-            <p className="text-sm text-gray-500 mt-2">受付端末等で読み取ってください</p>
-          </div>
+          {/* QRコード生成コンポーネントを表示 */}
+          <QRCodeGenerator eventId={eventId} />
   
           <Link href="/" className="mt-1">
             <button
