@@ -45,6 +45,7 @@ export type User = {
   totalReward: number;
   university: boolean;
   biomeUserName?: string;
+  robotMeet: string[];
 };
 // ★★★ ここまで追加 ★★★
 

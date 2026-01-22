@@ -1,7 +1,7 @@
 "use client";
 
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faCamera, faPen, faLeaf, faMugHot, faPersonWalking, faMagnifyingGlass, faSort, faStar, faCalendarDays } from '@fortawesome/free-solid-svg-icons';
+import { faCamera, faPen, faLeaf, faMugHot, faPersonWalking, faMagnifyingGlass, faSort, faStar, faCalendarDays, faRobot } from '@fortawesome/free-solid-svg-icons';
 import Image from "next/image";
 import React, { useEffect, useState, useMemo } from "react";
 import { db } from "@/lib/firebase/client";
@@ -252,7 +252,7 @@ export default function ProgramsList() {
 
                 return {
                   id: doc.id, ...data, totalPoint: Number(data.point) + Number(data.loadingPoint),
-                  icon: data.type === "postphoto" ? faCamera : data.type === "expressfeelings" ? faPen : data.type === "fallenleaves" ? faLeaf : data.type === "walk" ? faPersonWalking : data.type === "biome" ? faMagnifyingGlass : faMugHot,
+                  icon: data.type === "postphoto" ? faCamera : data.type === "expressfeelings" ? faPen : data.type === "fallenleaves" ? faLeaf : data.type === "walk" ? faPersonWalking : data.type === "biome" ? faMagnifyingGlass : data.type === "robot" ? faRobot : faMugHot,
                   isOngoing: isOngoing,
                   remainingTime: remainingTime,
                 } as Program;

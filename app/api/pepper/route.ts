@@ -33,6 +33,11 @@ export async function POST(req: Request) {
       pepper_id: event_id
     });
 
+    // 2. users コレクションの robotMeet 配列に event_id を追加 (今回の要望)
+    await adminDB.collection("users").doc(uid).update({
+        robotMeet: FieldValue.arrayUnion(event_id)
+    });
+
     return Response.json({ ok: true, message: "Log saved successfully" });
 
   } catch (error) {

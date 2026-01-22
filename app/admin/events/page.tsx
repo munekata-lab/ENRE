@@ -166,7 +166,10 @@ function ProgramCreateView() {
 
             const placeId = `P${programId.padStart(3, '0')}`;
             const firstQrId = `${programId}_1`;
-            const qrData = { placeId, placeNumber: 1, type: type ? "checkin" : "checkout", createdAt: new Date() };
+
+            const qrType = (type && type !== "robot") ? "checkin" : "checkout";
+            const qrData = { placeId, placeNumber: 1, type: qrType, createdAt: new Date() };
+
             await addQrCodeToProgram(programId, qrData, firstQrId);
 
             alert("イベントが正常に追加されました。");
@@ -193,15 +196,21 @@ function ProgramCreateView() {
                 <InputField id="point" label="得点2 (完遂時)" placeholder="半角数字" value={point} onChange={(e) => setPoint(e.target.value)} />
                 <InputField id="type" label="イベント形式" value={type} as="select" onChange={(e) => setType(e.target.value)}
                     options={[
-                        { value: "", label: "QR読み取りのみ" }, { value: "biome", label: "biome" },
-                        { value: "fallenleaves", label: "コンポスト" }, { value: "postphoto", label: "写真投稿" },
-                        { value: "expressfeelings", label: "文字投稿" }, { value: "walk", label: "歩いて帰ろう" },
+                        { value: "", label: "QR読み取りのみ" }, 
+                        { value: "biome", label: "biome" },
+                        { value: "fallenleaves", label: "コンポスト" }, 
+                        { value: "postphoto", label: "写真投稿" },
+                        { value: "expressfeelings", label: "文字投稿" }, 
+                        { value: "walk", label: "歩いて帰ろう" },
+                        { value: "robot", label: "ロボット" },
                     ]}
                 />
                 <InputField id="field" label="ジャンル" value={field} as="select" onChange={(e) => setField(e.target.value)}
                     options={[
-                        { value: "", label: "選択してください" }, { value: "1", label: "知る" },
-                        { value: "2", label: "使う" }, { value: "3", label: "守る" },
+                        { value: "", label: "選択してください" }, 
+                        { value: "1", label: "知る" },
+                        { value: "2", label: "使う" }, 
+                        { value: "3", label: "守る" },
                     ]}
                 />
             </div>
@@ -342,7 +351,7 @@ function ProgramRetouchView({ program, onClose }: { program: Program; onClose: (
             const qrCodesCollectionRef = collection(db, "new_program", program.id, "qr_codes");
             const qrDocsSnapshot = await getDocs(qrCodesCollectionRef);
             
-            const newQrType = formData.type ? "checkin" : "checkout";
+            const newQrType = (formData.type && formData.type !== "robot") ? "checkin" : "checkout";
 
             // バッチ書き込みを使用して、複数のドキュメントを効率的に更新
             const batch = runTransaction(db, async (transaction) => {
@@ -377,8 +386,25 @@ function ProgramRetouchView({ program, onClose }: { program: Program; onClose: (
                   <InputField id="owner" label="運営" value={formData.owner} onChange={handleChange} />
                   <InputField id="loadingPoint" label="得点1" value={String(formData.loadingPoint)} onChange={handleChange} />
                   <InputField id="point" label="得点2" value={String(formData.point)} onChange={handleChange} />
-                  <InputField id="type" label="イベント形式" value={formData.type} as="select" onChange={handleChange} options={[{value: "", label: "QR読み取りのみ"}, {value: "postphoto", label: "写真投稿"}, {value: "biome", label: "biome"}, {value: "fallenleaves", label: "コンポスト"}, {value: "expressfeelings", label: "文字投稿"}, {value: "walk", label: "歩いて帰ろう"}]}/>
-                  <InputField id="field" label="ジャンル" value={formData.field} as="select" onChange={handleChange} options={[{value: "", label: "選択してください"}, {value: "1", label: "知る"}, {value: "2", label: "使う"}, {value: "3", label: "守る"}]}/>
+                  <InputField id="type" label="イベント形式" value={formData.type} as="select" onChange={handleChange} 
+                    options={[
+                      {value: "", label: "QR読み取りのみ"}, 
+                      {value: "postphoto", label: "写真投稿"}, 
+                      {value: "biome", label: "biome"}, 
+                      {value: "fallenleaves", label: "コンポスト"}, 
+                      {value: "expressfeelings", label: "文字投稿"}, 
+                      {value: "walk", label: "歩いて帰ろう"},
+                      {value: "robot", label: "ロボット" }
+                    ]}
+                  />
+                  <InputField id="field" label="ジャンル" value={formData.field} as="select" onChange={handleChange} 
+                    options={[
+                      {value: "", label: "選択してください"}, 
+                      {value: "1", label: "知る"}, 
+                      {value: "2", label: "使う"}, 
+                      {value: "3", label: "守る"}
+                    ]}
+                  />
                 </div>
                 <div className="mt-4">
                     <label className="block text-left text-sm font-medium text-gray-700 mb-2">開催日時</label>
